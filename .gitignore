@@ -1,3 +1,5 @@
 /starterkit
 /compile_commands.json
 /.cache/
+/sokol-shdc
+/src/shader.glsl.h
