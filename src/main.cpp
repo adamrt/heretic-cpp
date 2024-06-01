@@ -15,7 +15,7 @@
 #include "shader.glsl.h"
 
 static struct {
-    float time;
+    float rotation_speed = 1.0f;
     float rx, ry;
 
     struct {
@@ -127,12 +127,10 @@ void init()
 
 void gui_draw()
 {
-    static float f = 0.0f;
     ImGui::Begin("Hello, world!");
-    ImGui::Text("New thing!");
-    ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    ImGui::ColorEdit3("clear color", &state.gfx.clear_color.r);
-    ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+    ImGui::SliderFloat("Rotation Speed", &state.rotation_speed, 0.0f, 1.0f);
+    ImGui::ColorEdit3("Background", &state.gfx.clear_color.r);
+    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Text("w: %d, h: %d, dpi_scale: %.1f", sapp_width(), sapp_height(), sapp_dpi_scale());
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
@@ -142,14 +140,12 @@ void gui_draw()
 
 void frame()
 {
-    state.time += (float)sapp_frame_duration();
-
     vs_params_t vs_params;
     const float w = sapp_widthf();
     const float h = sapp_heightf();
     const float t = (float)sapp_frame_duration();
-    state.rx += 1.0f * t;
-    state.ry += 2.0f * t;
+    state.rx += 1.0f * t * state.rotation_speed;
+    state.ry += 2.0f * t * state.rotation_speed;
 
     glm::mat4 proj = glm::perspective(glm::radians(60.0f), w / h, 0.1f, 100.0f);
     glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 1.5f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
