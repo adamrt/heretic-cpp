@@ -122,8 +122,10 @@ static struct {
     float rotation_speed = 1.0f;
     float rx, ry;
 
+    Camera camera;
+
     struct {
-        sg_color clear_color;
+        sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
         sg_pass_action pass_action;
         sg_pipeline pip;
         sg_bindings bind;
@@ -136,9 +138,6 @@ void gfx_init()
     desc.environment = sglue_environment();
     desc.logger.func = slog_func;
     sg_setup(&desc);
-
-    state.gfx.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR; // only needed once
-    state.gfx.clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
 
     // clang-format off
     float vertices[] = {
@@ -198,21 +197,26 @@ void gfx_init()
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = shd;
+    pip_desc.index_type = SG_INDEXTYPE_UINT16;
+    pip_desc.cull_mode = SG_CULLMODE_BACK;
+    pip_desc.label = "cupe-pipeline";
+
     pip_desc.layout = {};
     pip_desc.layout.buffers[0].stride = 28;
     pip_desc.layout.attrs[ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
-    pip_desc.index_type = SG_INDEXTYPE_UINT16;
-    pip_desc.cull_mode = SG_CULLMODE_BACK;
-    pip_desc.label = "cupe-pipeline";
+
     pip_desc.depth = {};
     pip_desc.depth.write_enabled = true;
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-    state.gfx.pip = sg_make_pipeline(&pip_desc);
+    sg_pipeline pip = sg_make_pipeline(&pip_desc);
 
     sg_bindings bind_desc = {};
     bind_desc.vertex_buffers[0] = vbuf;
     bind_desc.index_buffer = ibuf;
+
+    state.gfx.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
+    state.gfx.pip = pip;
     state.gfx.bind = bind_desc;
 }
 
@@ -231,11 +235,18 @@ void init()
 
 void gui_draw()
 {
+    ImGui::SetNextWindowSize(ImVec2(0, 0));
+
     ImGui::Begin("Hello, world!");
-    ImGui::SliderFloat("Rotation Speed", &state.rotation_speed, 0.0f, 1.0f);
+    if (ImGui::RadioButton("Perspective", state.camera.projection == Projection::Perspective)) {
+        state.camera.projection = Projection::Perspective;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Orthographic", state.camera.projection == Projection::Orthographic)) {
+        state.camera.projection = Projection::Orthographic;
+    }
+    ImGui::SliderFloat("Rotation", &state.rotation_speed, 0.0f, 2.0f);
     ImGui::ColorEdit3("Background", &state.gfx.clear_color.r);
-    ImGui::Text("%.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-    ImGui::Text("w: %d, h: %d, dpi_scale: %.1f", sapp_width(), sapp_height(), sapp_dpi_scale());
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }
@@ -244,20 +255,7 @@ void gui_draw()
 
 void frame()
 {
-    vs_params_t vs_params;
-    const float w = sapp_widthf();
-    const float h = sapp_heightf();
-    const float t = (float)sapp_frame_duration();
-    state.rx += 1.0f * t * state.rotation_speed;
-    state.ry += 2.0f * t * state.rotation_speed;
-
-    glm::mat4 proj = glm::perspective(glm::radians(60.0f), w / h, 0.1f, 100.0f);
-    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 1.5f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 view_proj = proj * view;
-    glm::mat4 rxm = glm::rotate(glm::identity<glm::mat4>(), state.rx, glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rym = glm::rotate(glm::identity<glm::mat4>(), state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 model = rxm * rym;
-    vs_params.mvp = view_proj * model;
+    state.camera.update();
 
     simgui_new_frame({
         sapp_width(),
@@ -266,7 +264,16 @@ void frame()
         sapp_dpi_scale(),
     });
 
-    // clear color
+    vs_params_t vs_params;
+    const float t = (float)sapp_frame_duration();
+    state.rx += 1.0f * t * state.rotation_speed;
+    state.ry += 2.0f * t * state.rotation_speed;
+    glm::mat4 rxm = glm::rotate(glm::identity<glm::mat4>(), state.rx, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rym = glm::rotate(glm::identity<glm::mat4>(), state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = rxm * rym;
+    vs_params.mvp = state.camera.proj_matrix() * state.camera.view_matrix() * model;
+    sg_range vs_range = SG_RANGE(vs_params);
+
     state.gfx.pass_action.colors[0].clear_value = state.gfx.clear_color;
 
     sg_pass pass = {};
@@ -274,17 +281,17 @@ void frame()
     pass.swapchain = sglue_swapchain();
 
     sg_begin_pass(&pass);
-    sg_apply_pipeline(state.gfx.pip);
-    sg_apply_bindings(&state.gfx.bind);
+    {
+        sg_apply_pipeline(state.gfx.pip);
+        sg_apply_bindings(&state.gfx.bind);
+        sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &vs_range);
+        sg_draw(0, 36, 1);
 
-    sg_range vs_range = SG_RANGE(vs_params);
-    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &vs_range);
-    sg_draw(0, 36, 1);
-
-    gui_draw();
-
-    simgui_render();
+        gui_draw();
+        simgui_render();
+    }
     sg_end_pass();
+
     sg_commit();
 }
 
@@ -305,6 +312,8 @@ void input(sapp_event const* event)
     if (simgui_handle_event(event)) {
         return;
     }
+
+    state.camera.handle_event(event);
 }
 
 sapp_desc sokol_main(int argc, char* argv[])
