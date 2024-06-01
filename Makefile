@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -Werror -Wpedantic -g \
            -Wuninitialized -std=c++11
 LDFLAGS = -fsanitize=address -fsanitize=undefined
 LDLIBS = -lGL -ldl -lm -lX11 -lXi -lXcursor -lstdc++ -lglfw
-INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util
+INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util -Ilib/glm
 TARGET=starterkit
 
 IMGUI_CXXFLAGS=-std=c++11 -Ilib/imgui -Ilib/imgui/backends
@@ -25,7 +25,14 @@ $(IMGUI_OBJECTS): %.o: %.cpp
 clean:
 	@rm -f lib/imgui/*.o $(TARGET)
 
-bootstrap:
+sokol-shdc:
+	wget https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
+	chmod +x sokol-shdc
+
+shader: sokol-shdc
+	./sokol-shdc -i src/shader.glsl -o src/shader.glsl.h -l glsl430
+
+bootstrap: sokol-shdc shader
 	git submodule update --init --recursive
 
 .PHONY: bootstrap clean
