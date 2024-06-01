@@ -14,6 +14,110 @@
 
 #include "shader.glsl.h"
 
+enum class Projection : int {
+    Perspective = 0,
+    Orthographic = 1,
+};
+
+class Camera {
+public:
+    static constexpr float NEARZ = 0.01f;
+    static constexpr float FARZ = 100.0f;
+    static constexpr float MIN_DIST = 2.5f;
+    static constexpr float MAX_DIST = 100.0f;
+    static constexpr float MIN_LAT = -85.0f;
+    static constexpr float MAX_LAT = 85.0f;
+
+    Projection projection = Projection::Perspective;
+
+    auto handle_event(const sapp_event* ev) -> void;
+    auto update() -> void;
+
+    auto view_matrix() const -> glm::mat4 { return _view; }
+    auto proj_matrix() const -> glm::mat4 { return _proj; }
+
+private:
+    auto orbit(float dx, float dy) -> void;
+    auto zoom(float d) -> void;
+    auto euclidean(float latitude, float longitude) -> glm::vec3;
+
+    float _fov = 60.0f;
+    float _distance = 5.0f;
+    float _latitude = 30.f;
+    float _longitude = 30.0f;
+    glm::vec3 _eye;
+    glm::vec3 _target;
+    glm::mat4 _view;
+    glm::mat4 _proj;
+};
+
+auto Camera::orbit(float dx, float dy) -> void
+{
+    _longitude -= dx;
+    if (_longitude < 0.0f) {
+        _longitude += 360.0f;
+    }
+    if (_longitude > 360.0f) {
+        _longitude -= 360.0f;
+    }
+
+    _latitude = glm::clamp(_latitude + dy, MIN_LAT, MAX_LAT);
+}
+
+auto Camera::zoom(float d) -> void
+{
+    _distance = glm::clamp(_distance + d, MIN_DIST, MAX_DIST);
+}
+
+auto Camera::euclidean(float latitude, float longitude) -> glm::vec3
+{
+    const float lat = glm::radians(latitude);
+    const float lng = glm::radians(longitude);
+    return glm::vec3 { cosf(lat) * sinf(lng), sinf(lat), cosf(lat) * cosf(lng) };
+}
+
+auto Camera::update() -> void
+{
+    _eye = _target + euclidean(_latitude, _longitude) * _distance;
+    _view = glm::lookAt(_eye, _target, glm::vec3 { 0.0f, 1.0f, 0.0f });
+
+    const float aspect = sapp_widthf() / sapp_heightf();
+
+    if (projection == Projection::Perspective) {
+        _proj = glm::perspective(glm::radians(_fov), aspect, NEARZ, FARZ);
+    } else {
+        const float w = 1.0f * _distance;
+        const float h = w / aspect;
+        _proj = glm::ortho(-w, w, -h, h, NEARZ, FARZ);
+    }
+}
+
+auto Camera::handle_event(const sapp_event* event) -> void
+{
+    switch (event->type) {
+    case SAPP_EVENTTYPE_MOUSE_DOWN:
+        if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(true);
+        }
+        break;
+    case SAPP_EVENTTYPE_MOUSE_UP:
+        if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(false);
+        }
+        break;
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+        zoom(event->scroll_y * -0.5f);
+        break;
+    case SAPP_EVENTTYPE_MOUSE_MOVE:
+        if (sapp_mouse_locked()) {
+            orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+        }
+        break;
+    default:
+        break;
+    }
+}
+
 static struct {
     float rotation_speed = 1.0f;
     float rx, ry;
