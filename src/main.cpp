@@ -9,30 +9,45 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
-static sg_pass_action pass_action;
+static struct {
+    float time;
+    struct {
+        sg_color clear_color;
+        sg_pass_action pass_action;
+    } gfx;
+} state;
 
-void init(void)
+void gfx_init()
 {
     sg_desc desc = {};
     desc.environment = sglue_environment();
     desc.logger.func = slog_func;
     sg_setup(&desc);
 
+    state.gfx.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR; // only needed once
+    state.gfx.clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
+}
+
+void gui_init()
+{
     simgui_desc_t simgui_desc = {};
     simgui_desc.logger.func = slog_func;
     simgui_setup(&simgui_desc);
-
-    pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
-    pass_action.colors[0].clear_value = { 0.0f, 0.5f, 0.7f, 1.0f };
 }
 
-void ui_draw(void)
+void init()
+{
+    gfx_init();
+    gui_init();
+}
+
+void gui_draw()
 {
     static float f = 0.0f;
     ImGui::Begin("Hello, world!");
     ImGui::Text("New thing!");
     ImGui::SliderFloat("float", &f, 0.0f, 1.0f);
-    ImGui::ColorEdit3("clear color", &pass_action.colors[0].clear_value.r);
+    ImGui::ColorEdit3("clear color", &state.gfx.clear_color.r);
     ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
     ImGui::Text("w: %d, h: %d, dpi_scale: %.1f", sapp_width(), sapp_height(), sapp_dpi_scale());
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
@@ -41,22 +56,25 @@ void ui_draw(void)
     ImGui::End();
 }
 
-void frame(void)
+void frame()
 {
-    int const width = sapp_width();
-    int const height = sapp_height();
+    state.time += (float)sapp_frame_duration();
+
+    // clear color
+    state.gfx.pass_action.colors[0].clear_value = state.gfx.clear_color;
+
     simgui_new_frame({
-        width,
-        height,
+        sapp_width(),
+        sapp_height(),
         sapp_frame_duration(),
         sapp_dpi_scale(),
     });
 
     sg_pass pass = {};
-    pass.action = pass_action;
+    pass.action = state.gfx.pass_action;
     pass.swapchain = sglue_swapchain();
 
-    ui_draw();
+    gui_draw();
 
     sg_begin_pass(&pass);
     simgui_render();
@@ -64,7 +82,7 @@ void frame(void)
     sg_commit();
 }
 
-void cleanup(void)
+void cleanup()
 {
     simgui_shutdown();
     sg_shutdown();
@@ -72,7 +90,15 @@ void cleanup(void)
 
 void input(sapp_event const* event)
 {
-    simgui_handle_event(event);
+    if (event->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (event->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_quit();
+        }
+    }
+
+    if (simgui_handle_event(event)) {
+        return;
+    }
 }
 
 sapp_desc sokol_main(int argc, char* argv[])
