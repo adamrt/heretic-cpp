@@ -26,7 +26,7 @@ clean:
 	@rm -f lib/imgui/*.o $(TARGET)
 
 sokol-shdc:
-	wget https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
+	wget -q https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
 	chmod +x sokol-shdc
 
 shader: sokol-shdc

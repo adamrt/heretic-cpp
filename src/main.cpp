@@ -9,11 +9,20 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
+#include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
+
+#include "shader.glsl.h"
+
 static struct {
     float time;
+    float rx, ry;
+
     struct {
         sg_color clear_color;
         sg_pass_action pass_action;
+        sg_pipeline pip;
+        sg_bindings bind;
     } gfx;
 } state;
 
@@ -26,6 +35,81 @@ void gfx_init()
 
     state.gfx.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR; // only needed once
     state.gfx.clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
+
+    // clang-format off
+    float vertices[] = {
+        -1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+         1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+         1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+        -1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+
+        -1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+         1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+         1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+        -1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+
+        -1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+        -1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+        -1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+        -1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+
+        1.0, -1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
+        1.0,  1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
+        1.0,  1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
+        1.0, -1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
+
+        -1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+        -1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+         1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+         1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+
+        -1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
+        -1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+         1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+         1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
+    };
+
+    uint16_t indices[] = {
+        0,   1,  2,  0,  2,  3,
+        6,   5,  4,  7,  6,  4,
+        8,   9, 10,  8, 10, 11,
+        14, 13, 12, 15, 14, 12,
+        16, 17, 18, 16, 18, 19,
+        22, 21, 20, 23, 22, 20
+    };
+    // clang-format on
+
+    sg_shader shd = sg_make_shader(cube_shader_desc(sg_query_backend()));
+
+    sg_buffer_desc vbuf_desc = {};
+    vbuf_desc.data = SG_RANGE(vertices);
+    vbuf_desc.label = "cube-vertices";
+    sg_buffer vbuf = sg_make_buffer(&vbuf_desc);
+
+    sg_buffer_desc ibuf_desc = {};
+    ibuf_desc.type = SG_BUFFERTYPE_INDEXBUFFER;
+    ibuf_desc.data = SG_RANGE(indices);
+    ibuf_desc.label = "cube-indices";
+    sg_buffer ibuf = sg_make_buffer(&ibuf_desc);
+
+    sg_pipeline_desc pip_desc = {};
+    pip_desc.shader = shd;
+    pip_desc.layout = {};
+    pip_desc.layout.buffers[0].stride = 28;
+    pip_desc.layout.attrs[ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
+    pip_desc.index_type = SG_INDEXTYPE_UINT16;
+    pip_desc.cull_mode = SG_CULLMODE_BACK;
+    pip_desc.label = "cupe-pipeline";
+    pip_desc.depth = {};
+    pip_desc.depth.write_enabled = true;
+    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
+    state.gfx.pip = sg_make_pipeline(&pip_desc);
+
+    sg_bindings bind_desc = {};
+    bind_desc.vertex_buffers[0] = vbuf;
+    bind_desc.index_buffer = ibuf;
+    state.gfx.bind = bind_desc;
 }
 
 void gui_init()
@@ -60,8 +144,20 @@ void frame()
 {
     state.time += (float)sapp_frame_duration();
 
-    // clear color
-    state.gfx.pass_action.colors[0].clear_value = state.gfx.clear_color;
+    vs_params_t vs_params;
+    const float w = sapp_widthf();
+    const float h = sapp_heightf();
+    const float t = (float)sapp_frame_duration();
+    state.rx += 1.0f * t;
+    state.ry += 2.0f * t;
+
+    glm::mat4 proj = glm::perspective(glm::radians(60.0f), w / h, 0.1f, 100.0f);
+    glm::mat4 view = glm::lookAt(glm::vec3(0.0f, 1.5f, 6.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 view_proj = proj * view;
+    glm::mat4 rxm = glm::rotate(glm::identity<glm::mat4>(), state.rx, glm::vec3(1.0f, 0.0f, 0.0f));
+    glm::mat4 rym = glm::rotate(glm::identity<glm::mat4>(), state.ry, glm::vec3(0.0f, 1.0f, 0.0f));
+    glm::mat4 model = rxm * rym;
+    vs_params.mvp = view_proj * model;
 
     simgui_new_frame({
         sapp_width(),
@@ -70,13 +166,23 @@ void frame()
         sapp_dpi_scale(),
     });
 
+    // clear color
+    state.gfx.pass_action.colors[0].clear_value = state.gfx.clear_color;
+
     sg_pass pass = {};
     pass.action = state.gfx.pass_action;
     pass.swapchain = sglue_swapchain();
 
+    sg_begin_pass(&pass);
+    sg_apply_pipeline(state.gfx.pip);
+    sg_apply_bindings(&state.gfx.bind);
+
+    sg_range vs_range = SG_RANGE(vs_params);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &vs_range);
+    sg_draw(0, 36, 1);
+
     gui_draw();
 
-    sg_begin_pass(&pass);
     simgui_render();
     sg_end_pass();
     sg_commit();
