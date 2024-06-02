@@ -6,6 +6,8 @@
 // Project
 #include "Camera.h"
 #include "Renderable.h"
+#include "Scene.h"
+#include "cube.h"
 
 // Sokol
 #define SOKOL_IMPL
@@ -26,77 +28,6 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "shader.glsl.h"
-
-// clang-format off
-std::vector<float> cube_vertices = {
-    -1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-     1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-     1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-    -1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-
-    -1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-     1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-     1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-    -1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-
-    -1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-    -1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-    -1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-    -1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-
-    1.0, -1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
-    1.0,  1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
-    1.0,  1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
-    1.0, -1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
-
-    -1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-    -1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-     1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-     1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-
-    -1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
-    -1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-     1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-     1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
-};
-
-std::vector<uint16_t> cube_indices = {
-    0,   1,  2,  0,  2,  3,
-    6,   5,  4,  7,  6,  4,
-    8,   9, 10,  8, 10, 11,
-    14, 13, 12, 15, 14, 12,
-    16, 17, 18, 16, 18, 19,
-    22, 21, 20, 23, 22, 20
-};
-// clang-format on
-
-class Scene {
-public:
-    Scene() = default;
-    ~Scene() = default;
-
-    auto add_renderable(const Renderable& renderable) -> void
-    {
-        renderables.push_back(renderable);
-    }
-
-    auto update(float delta_time) -> void
-    {
-        for (auto& renderable : renderables) {
-            renderable.update(delta_time);
-        }
-    }
-
-    auto render(const glm::mat4& view_proj) -> void
-    {
-        for (auto& renderable : renderables) {
-            renderable.render(view_proj);
-        }
-    }
-
-private:
-    std::vector<Renderable> renderables;
-};
 
 static struct {
     float rotation_speed = 1.0f;
