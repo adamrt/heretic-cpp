@@ -5,7 +5,7 @@
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
-auto Camera::orbit(float dx, float dy) -> void
+auto Camera::_orbit(float dx, float dy) -> void
 {
     _longitude -= dx;
     if (_longitude < 0.0f) {
@@ -18,12 +18,12 @@ auto Camera::orbit(float dx, float dy) -> void
     _latitude = glm::clamp(_latitude + dy, MIN_LAT, MAX_LAT);
 }
 
-auto Camera::zoom(float d) -> void
+auto Camera::_zoom(float d) -> void
 {
     _distance = glm::clamp(_distance + d, MIN_DIST, MAX_DIST);
 }
 
-auto Camera::euclidean(float latitude, float longitude) -> glm::vec3
+auto Camera::_euclidean(float latitude, float longitude) -> glm::vec3
 {
     const float lat = glm::radians(latitude);
     const float lng = glm::radians(longitude);
@@ -32,7 +32,7 @@ auto Camera::euclidean(float latitude, float longitude) -> glm::vec3
 
 auto Camera::update() -> void
 {
-    _eye = _target + euclidean(_latitude, _longitude) * _distance;
+    _eye = _target + _euclidean(_latitude, _longitude) * _distance;
     _view = glm::lookAt(_eye, _target, glm::vec3 { 0.0f, 1.0f, 0.0f });
 
     const float aspect = sapp_widthf() / sapp_heightf();
@@ -60,11 +60,11 @@ auto Camera::handle_event(const sapp_event* event) -> void
         }
         break;
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        zoom(event->scroll_y * -0.5f);
+        _zoom(event->scroll_y * -0.5f);
         break;
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+            _orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
         }
         break;
     default:

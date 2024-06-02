@@ -20,15 +20,14 @@ public:
 
     Projection projection = Projection::Perspective;
 
-    auto handle_event(const sapp_event* ev) -> void;
     auto update() -> void;
-
+    auto handle_event(const sapp_event* ev) -> void;
     auto view_proj() const -> glm::mat4 { return _proj * _view; }
 
 private:
-    auto orbit(float dx, float dy) -> void;
-    auto zoom(float d) -> void;
-    auto euclidean(float latitude, float longitude) -> glm::vec3;
+    auto _orbit(float dx, float dy) -> void;
+    auto _zoom(float d) -> void;
+    auto _euclidean(float latitude, float longitude) -> glm::vec3;
 
     float _fov = 60.0f;
     float _distance = 5.0f;
