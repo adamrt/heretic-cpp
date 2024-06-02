@@ -1,7 +1,4 @@
-#include <iostream>
 #include <memory>
-#include <random>
-#include <vector>
 
 // Project
 #include "Camera.h"
@@ -23,11 +20,7 @@
 #include "sokol_imgui.h"
 
 // GLM
-#include "glm/ext/matrix_transform.hpp"
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
-
-#include "shader.glsl.h"
 
 static struct {
     float rotation_speed = 1.0f;
