@@ -26,4 +26,4 @@ void main() {
 }
 @end
 
-@program cube vs fs
+@program standard vs fs

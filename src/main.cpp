@@ -29,17 +29,10 @@ auto gui_draw() -> void;
 auto world_init() -> void;
 
 static struct {
-    float rotation_speed = 1.0f;
-
-    Camera camera;
     Scene scene;
-
-    struct {
-        sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
-        sg_pass_action pass_action;
-        sg_pipeline pip;
-        sg_bindings bind;
-    } gfx;
+    Camera camera;
+    float rotation_speed = 1.0f;
+    sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
 } state;
 
 auto init() -> void
@@ -56,8 +49,6 @@ auto gfx_init() -> void
     desc.environment = sglue_environment();
     desc.logger.func = slog_func;
     sg_setup(&desc);
-
-    state.gfx.pass_action.colors[0].load_action = SG_LOADACTION_CLEAR;
 }
 
 auto gui_init() -> void
@@ -69,7 +60,7 @@ auto gui_init() -> void
 
 auto world_init() -> void
 {
-    sg_shader cube_shader = sg_make_shader(cube_shader_desc(sg_query_backend()));
+    sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
     std::shared_ptr<MeshResources> cube_resources = std::make_shared<MeshResources>(cube_vertices, cube_indices, cube_shader);
 
     for (int i = 0; i < 1024; i++) {
@@ -95,7 +86,7 @@ auto gui_draw() -> void
         state.camera.projection = Projection::Orthographic;
     }
     ImGui::SliderFloat("Rotation", &state.rotation_speed, 0.0f, 2.0f);
-    ImGui::ColorEdit3("Background", &state.gfx.clear_color.r);
+    ImGui::ColorEdit3("Background", &state.clear_color.r);
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }
@@ -131,10 +122,9 @@ auto frame() -> void
         sapp_dpi_scale(),
     });
 
-    state.gfx.pass_action.colors[0].clear_value = state.gfx.clear_color;
-
     sg_pass pass = {};
-    pass.action = state.gfx.pass_action;
+    pass.action.colors[0].clear_value = state.clear_color;
+    pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
     pass.swapchain = sglue_swapchain();
 
     sg_begin_pass(&pass);
