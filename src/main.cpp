@@ -139,8 +139,7 @@ auto frame() -> void
 
     sg_begin_pass(&pass);
     {
-        glm::mat4 view_proj = state.camera.proj_matrix() * state.camera.view_matrix();
-        state.scene.render(view_proj);
+        state.scene.render(state.camera.view_proj());
         gui_draw();
         simgui_render();
     }

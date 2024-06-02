@@ -23,8 +23,7 @@ public:
     auto handle_event(const sapp_event* ev) -> void;
     auto update() -> void;
 
-    auto view_matrix() const -> glm::mat4 { return _view; }
-    auto proj_matrix() const -> glm::mat4 { return _proj; }
+    auto view_proj() const -> glm::mat4 { return _proj * _view; }
 
 private:
     auto orbit(float dx, float dy) -> void;
