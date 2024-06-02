@@ -1,8 +1,9 @@
-#include "glm/ext/matrix_transform.hpp"
 #include <iostream>
+#include <memory>
 #include <random>
 #include <vector>
 
+// Sokol
 #define SOKOL_IMPL
 #define SOKOL_GLCORE
 #include "sokol_app.h"
@@ -10,14 +11,61 @@
 #include "sokol_glue.h"
 #include "sokol_log.h"
 
+// ImGUI
 #define SOKOL_IMGUI_IMPL
 #include "imgui.h"
 #include "sokol_imgui.h"
 
+// GLM
+#include "glm/ext/matrix_transform.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+// Project
 #include "shader.glsl.h"
+
+// clang-format off
+std::vector<float> cube_vertices = {
+    -1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+     1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+     1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+    -1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
+
+    -1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+     1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+     1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+    -1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
+
+    -1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+    -1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
+    -1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+    -1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
+
+    1.0, -1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
+    1.0,  1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
+    1.0,  1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
+    1.0, -1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
+
+    -1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+    -1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+     1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
+     1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
+
+    -1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
+    -1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+     1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
+     1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
+};
+
+std::vector<uint16_t> cube_indices = {
+    0,   1,  2,  0,  2,  3,
+    6,   5,  4,  7,  6,  4,
+    8,   9, 10,  8, 10, 11,
+    14, 13, 12, 15, 14, 12,
+    16, 17, 18, 16, 18, 19,
+    22, 21, 20, 23, 22, 20
+};
+// clang-format on
 
 float random_float(float min, float max)
 {
@@ -27,21 +75,18 @@ float random_float(float min, float max)
     return dis(gen);
 }
 
-class Renderable {
+class MeshResources {
 public:
-    ~Renderable() = default;
-
-    Renderable(const float* vertices, size_t vertex_size, const uint16_t* indices, size_t index_size, sg_shader shader)
-        : model_matrix(1.0f)
+    MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices, sg_shader shader)
     {
         sg_buffer_desc vbuf_desc = {};
-        vbuf_desc.data = sg_range { vertices, vertex_size };
+        vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(float) };
         vbuf_desc.label = "vertex-buffer";
         vertex_buffer = sg_make_buffer(&vbuf_desc);
 
         sg_buffer_desc ibuf_desc = {};
         ibuf_desc.type = SG_BUFFERTYPE_INDEXBUFFER;
-        ibuf_desc.data = sg_range { indices, index_size };
+        ibuf_desc.data = sg_range { indices.data(), indices.size() * sizeof(uint16_t) };
         ibuf_desc.label = "index-buffer";
         index_buffer = sg_make_buffer(&ibuf_desc);
 
@@ -49,7 +94,7 @@ public:
         pip_desc.shader = shader;
         pip_desc.index_type = SG_INDEXTYPE_UINT16;
         pip_desc.cull_mode = SG_CULLMODE_BACK;
-        pip_desc.label = "cube-pipeline";
+        pip_desc.label = "pipeline";
 
         pip_desc.layout = {};
         pip_desc.layout.buffers[0].stride = 28;
@@ -61,13 +106,28 @@ public:
         pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
 
         pipeline = sg_make_pipeline(&pip_desc);
+        num_indices = indices.size();
+    }
 
-        bindings.vertex_buffers[0] = vertex_buffer;
-        bindings.index_buffer = index_buffer;
-        num_indices = index_size / sizeof(uint16_t);
+    sg_buffer vertex_buffer;
+    sg_buffer index_buffer;
+    sg_pipeline pipeline;
+    int num_indices;
+};
+
+class Renderable {
+public:
+    ~Renderable() = default;
+
+    Renderable(std::shared_ptr<MeshResources> resources)
+        : shared_resources(resources)
+        , model_matrix(1.0f)
+    {
+        bindings.vertex_buffers[0] = resources->vertex_buffer;
+        bindings.index_buffer = resources->index_buffer;
 
         std::uniform_real_distribution<> dis(1.0f, 10.0f);
-        rspeed = random_float(1.0f, 3.0f);
+        rspeed = random_float(-5.0f, 5.0f);
     }
 
     auto render(const glm::mat4& view_proj) -> void
@@ -76,12 +136,12 @@ public:
         vs_params_t vs_params;
         vs_params.mvp = mvp;
 
-        sg_apply_pipeline(pipeline);
+        sg_apply_pipeline(shared_resources->pipeline);
         sg_apply_bindings(&bindings);
 
         sg_range vs_range = SG_RANGE(vs_params);
         sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_params, &vs_range);
-        sg_draw(0, num_indices, 1);
+        sg_draw(0, shared_resources->num_indices, 1);
     }
 
     auto update(float delta_time) -> void
@@ -114,13 +174,9 @@ public:
     }
 
 private:
-    sg_pipeline pipeline = {};
+    std::shared_ptr<MeshResources> shared_resources;
     sg_bindings bindings = {};
-    sg_buffer vertex_buffer = {};
-    sg_buffer index_buffer = {};
-    int num_indices = 0;
     glm::mat4 model_matrix;
-
     float rspeed;
 };
 
@@ -288,22 +344,22 @@ auto gui_init() -> void
     simgui_setup(&simgui_desc);
 }
 
-Renderable create_cube(sg_shader shader);
-
 auto init() -> void
 {
     gfx_init();
     gui_init();
 
     sg_shader cube_shader = sg_make_shader(cube_shader_desc(sg_query_backend()));
+    std::shared_ptr<MeshResources> cube_resources = std::make_shared<MeshResources>(cube_vertices, cube_indices, cube_shader);
 
-    Renderable cube1 = create_cube(cube_shader);
-    cube1.translate(glm::vec3(-2.0f, 0.0f, 0.0f));
-    state.scene.add_renderable(cube1);
-
-    Renderable cube2 = create_cube(cube_shader);
-    cube2.translate(glm::vec3(2.0f, 0.0f, 0.0f));
-    state.scene.add_renderable(cube2);
+    for (int i = 0; i < 1024; i++) {
+        float x = random_float(-30.0f, 30.0f);
+        float y = random_float(-30.0f, 30.0f);
+        float z = random_float(-30.0f, 30.0f);
+        Renderable cube(cube_resources);
+        cube.translate(glm::vec3(x, y, z));
+        state.scene.add_renderable(cube);
+    }
 }
 
 auto gui_draw() -> void
@@ -394,53 +450,4 @@ sapp_desc sokol_main(int argc, char* argv[])
     desc.enable_clipboard = true;
     desc.logger.func = slog_func;
     return desc;
-}
-
-Renderable create_cube(sg_shader shader)
-{
-    // clang-format off
-    float vertices[] = {
-        -1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-         1.0, -1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-         1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-        -1.0,  1.0, -1.0,   1.0, 0.0, 0.0, 1.0,
-
-        -1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-         1.0, -1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-         1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-        -1.0,  1.0,  1.0,   0.0, 1.0, 0.0, 1.0,
-
-        -1.0, -1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-        -1.0,  1.0, -1.0,   0.0, 0.0, 1.0, 1.0,
-        -1.0,  1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-        -1.0, -1.0,  1.0,   0.0, 0.0, 1.0, 1.0,
-
-        1.0, -1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
-        1.0,  1.0, -1.0,    1.0, 0.5, 0.0, 1.0,
-        1.0,  1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
-        1.0, -1.0,  1.0,    1.0, 0.5, 0.0, 1.0,
-
-        -1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-        -1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-         1.0, -1.0,  1.0,   0.0, 0.5, 1.0, 1.0,
-         1.0, -1.0, -1.0,   0.0, 0.5, 1.0, 1.0,
-
-        -1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0,
-        -1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-         1.0,  1.0,  1.0,   1.0, 0.0, 0.5, 1.0,
-         1.0,  1.0, -1.0,   1.0, 0.0, 0.5, 1.0
-    };
-
-    uint16_t indices[] = {
-        0,   1,  2,  0,  2,  3,
-        6,   5,  4,  7,  6,  4,
-        8,   9, 10,  8, 10, 11,
-        14, 13, 12, 15, 14, 12,
-        16, 17, 18, 16, 18, 19,
-        22, 21, 20, 23, 22, 20
-    };
-    // clang-format on
-
-    Renderable cube(vertices, sizeof(vertices), indices, sizeof(indices), shader);
-    return cube;
 }
