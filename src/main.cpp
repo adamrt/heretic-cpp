@@ -22,6 +22,12 @@
 // GLM
 #include "glm/glm.hpp"
 
+// Forward declarations
+auto gfx_init() -> void;
+auto gui_init() -> void;
+auto gui_draw() -> void;
+auto world_init() -> void;
+
 static struct {
     float rotation_speed = 1.0f;
 
@@ -35,6 +41,14 @@ static struct {
         sg_bindings bind;
     } gfx;
 } state;
+
+auto init() -> void
+{
+    gfx_init();
+    gui_init();
+
+    world_init();
+}
 
 auto gfx_init() -> void
 {
@@ -53,11 +67,8 @@ auto gui_init() -> void
     simgui_setup(&simgui_desc);
 }
 
-auto init() -> void
+auto world_init() -> void
 {
-    gfx_init();
-    gui_init();
-
     sg_shader cube_shader = sg_make_shader(cube_shader_desc(sg_query_backend()));
     std::shared_ptr<MeshResources> cube_resources = std::make_shared<MeshResources>(cube_vertices, cube_indices, cube_shader);
 
@@ -89,6 +100,21 @@ auto gui_draw() -> void
         sapp_toggle_fullscreen();
     }
     ImGui::End();
+}
+
+auto input(sapp_event const* event) -> void
+{
+    if (event->type == SAPP_EVENTTYPE_KEY_DOWN) {
+        if (event->key_code == SAPP_KEYCODE_ESCAPE) {
+            sapp_quit();
+        }
+    }
+
+    if (simgui_handle_event(event)) {
+        return;
+    }
+
+    state.camera.handle_event(event);
 }
 
 auto frame() -> void
@@ -127,21 +153,6 @@ auto cleanup() -> void
 {
     simgui_shutdown();
     sg_shutdown();
-}
-
-auto input(sapp_event const* event) -> void
-{
-    if (event->type == SAPP_EVENTTYPE_KEY_DOWN) {
-        if (event->key_code == SAPP_KEYCODE_ESCAPE) {
-            sapp_quit();
-        }
-    }
-
-    if (simgui_handle_event(event)) {
-        return;
-    }
-
-    state.camera.handle_event(event);
 }
 
 sapp_desc sokol_main(int argc, char* argv[])
