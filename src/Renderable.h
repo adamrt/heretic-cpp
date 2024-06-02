@@ -29,7 +29,7 @@ public:
     Renderable(std::shared_ptr<MeshResources> resources);
 
     auto render(const glm::mat4& view_proj) -> void;
-    auto update(float delta_time) -> void;
+    auto update(float delta_time, float rotation_speed) -> void;
     auto set_model_matrix(const glm::mat4& matrix) -> void;
     auto translate(const glm::vec3& translation) -> void;
     auto rotate(float angle, const glm::vec3& axis) -> void;

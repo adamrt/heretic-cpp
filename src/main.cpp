@@ -24,7 +24,6 @@
 
 static struct {
     float rotation_speed = 1.0f;
-    float rx, ry;
 
     Camera camera;
     Scene scene;
@@ -97,7 +96,7 @@ auto frame() -> void
     const float t = (float)sapp_frame_duration();
 
     state.camera.update();
-    state.scene.update(t);
+    state.scene.update(t, state.rotation_speed);
 
     simgui_new_frame({
         sapp_width(),

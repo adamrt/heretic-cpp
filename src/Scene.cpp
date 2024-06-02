@@ -5,10 +5,10 @@ auto Scene::add_renderable(const Renderable& renderable) -> void
     renderables.push_back(renderable);
 }
 
-auto Scene::update(float delta_time) -> void
+auto Scene::update(float delta_time, float rotation_speed) -> void
 {
     for (auto& renderable : renderables) {
-        renderable.update(delta_time);
+        renderable.update(delta_time, rotation_speed);
     }
 }
 

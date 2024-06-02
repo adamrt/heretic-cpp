@@ -65,10 +65,10 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     sg_draw(0, shared_resources->num_indices, 1);
 }
 
-auto Renderable::update(float delta_time) -> void
+auto Renderable::update(float delta_time, float rotation_speed) -> void
 {
-    auto x = 1.0f * delta_time * rspeed;
-    auto y = 2.0f * delta_time * rspeed;
+    auto x = 1.0f * delta_time * rspeed * rotation_speed;
+    auto y = 2.0f * delta_time * rspeed * rotation_speed;
 
     rotate(x, glm::vec3(1.0f, 0.0f, 0.0f));
     rotate(y, glm::vec3(0.0f, 1.0f, 0.0f));
