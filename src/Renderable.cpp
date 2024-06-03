@@ -47,7 +47,6 @@ Renderable::Renderable(std::shared_ptr<MeshResources> resources)
     bindings.vertex_buffers[0] = resources->vertex_buffer;
     bindings.index_buffer = resources->index_buffer;
 
-    std::uniform_real_distribution<> dis(1.0f, 10.0f);
     rspeed = random_float(-5.0f, 5.0f);
 }
 
