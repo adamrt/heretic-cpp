@@ -1,6 +1,7 @@
 #include "Mesh.h"
 
-const int vertex_size = 10;
+// pos3 + norm3 + uv2 + color4
+const int vertex_size = 12;
 Mesh::Mesh(const std::vector<float> vertices)
 {
     sg_buffer_desc vbuf_desc = {};

@@ -111,7 +111,7 @@ std::vector<float> parse_obj(const std::string filename)
             for (int i = 0; i < 3; i++) {
                 auto v = vertices[vertex_indices[i] - 1];
                 auto n = normals[normal_indices[i] - 1];
-                // auto u = uvs[uv_indices[i] - 1];
+                auto u = uvs[uv_indices[i] - 1];
 
                 results.push_back(v.x);
                 results.push_back(v.y);
@@ -119,8 +119,8 @@ std::vector<float> parse_obj(const std::string filename)
                 results.push_back(n.x);
                 results.push_back(n.y);
                 results.push_back(n.z);
-                // results.push_back(u.x);
-                // results.push_back(u.y);
+                results.push_back(u.x);
+                results.push_back(u.y);
                 results.push_back(1.0f);
                 results.push_back(1.0f);
                 results.push_back(1.0f);

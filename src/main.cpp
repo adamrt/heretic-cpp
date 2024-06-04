@@ -68,9 +68,11 @@ auto world_init() -> void
     pip_desc.shader = cube_shader;
     pip_desc.cull_mode = SG_CULLMODE_BACK;
     pip_desc.label = "pipeline";
-    pip_desc.layout.buffers[0].stride = 40;
+    // Unnecessary if data is contiguous
+    // pip_desc.layout.buffers[0].stride = 48;
     pip_desc.layout.attrs[ATTR_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
     pip_desc.layout.attrs[ATTR_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4;
     pip_desc.depth.write_enabled = true;
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
