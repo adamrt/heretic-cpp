@@ -62,7 +62,7 @@ auto world_init() -> void
 {
     sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
     auto result = parse_obj("crab.obj");
-    auto cube_resources = std::make_shared<MeshResources>(result.first, result.second);
+    auto cube_resources = std::make_shared<Mesh>(result.first, result.second);
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = cube_shader;

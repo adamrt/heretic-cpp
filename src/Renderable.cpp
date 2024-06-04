@@ -1,7 +1,8 @@
-#include "Renderable.h"
 #include <cstdio>
 #include <cstring>
 #include <utility>
+
+#include "Renderable.h"
 
 float random_float(float min, float max)
 {
@@ -11,23 +12,7 @@ float random_float(float min, float max)
     return dis(gen);
 }
 
-MeshResources::MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices)
-{
-    sg_buffer_desc vbuf_desc = {};
-    vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(float) };
-    vbuf_desc.label = "vertex-buffer";
-    vertex_buffer = sg_make_buffer(&vbuf_desc);
-
-    sg_buffer_desc ibuf_desc = {};
-    ibuf_desc.type = SG_BUFFERTYPE_INDEXBUFFER;
-    ibuf_desc.data = sg_range { indices.data(), indices.size() * sizeof(uint16_t) };
-    ibuf_desc.label = "index-buffer";
-    index_buffer = sg_make_buffer(&ibuf_desc);
-
-    num_indices = indices.size();
-}
-
-Renderable::Renderable(std::shared_ptr<MeshResources> resources, sg_pipeline& pip)
+Renderable::Renderable(std::shared_ptr<Mesh> resources, sg_pipeline& pip)
     : shared_resources(resources)
     , pipeline(pip)
     , model_matrix(1.0f)
