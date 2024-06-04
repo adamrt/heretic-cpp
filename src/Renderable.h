@@ -15,7 +15,7 @@
 #include "shader.glsl.h"
 
 float random_float(float min, float max);
-std::pair<std::vector<float>, std::vector<uint16_t>> parse_obj(const std::string filename);
+std::vector<float> parse_obj(const std::string filename);
 
 class Renderable {
 public:

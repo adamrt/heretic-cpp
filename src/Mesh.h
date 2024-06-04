@@ -6,9 +6,8 @@
 
 class Mesh {
 public:
-    Mesh(const std::vector<float> vertices, const std::vector<uint16_t> indices);
+    Mesh(const std::vector<float> vertices);
 
     sg_buffer vertex_buffer;
-    sg_buffer index_buffer;
     int num_indices;
 };

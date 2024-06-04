@@ -61,25 +61,25 @@ auto gui_init() -> void
 auto world_init() -> void
 {
     sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
-    auto result = parse_obj("crab.obj");
-    auto cube_resources = std::make_shared<Mesh>(result.first, result.second);
+    auto result = parse_obj("cube.obj");
+    auto cube_resources = std::make_shared<Mesh>(result);
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = cube_shader;
-    pip_desc.index_type = SG_INDEXTYPE_UINT16;
     pip_desc.cull_mode = SG_CULLMODE_BACK;
     pip_desc.label = "pipeline";
-    pip_desc.layout.buffers[0].stride = 28;
-    pip_desc.layout.attrs[ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
+    pip_desc.layout.buffers[0].stride = 40;
+    pip_desc.layout.attrs[ATTR_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4;
     pip_desc.depth.write_enabled = true;
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
     sg_pipeline color_pipeline = sg_make_pipeline(&pip_desc);
 
-    for (int i = 0; i < 1024; i++) {
-        float x = random_float(-30.0f, 30.0f);
-        float y = random_float(-30.0f, 30.0f);
-        float z = random_float(-30.0f, 30.0f);
+    for (int i = 0; i < 128; i++) {
+        float x = random_float(-10.0f, 10.0f);
+        float y = random_float(-10.0f, 10.0f);
+        float z = random_float(-10.0f, 10.0f);
         Renderable cube(cube_resources, color_pipeline);
         cube.translate(glm::vec3(x, y, z));
         state.scene.add_renderable(cube);
