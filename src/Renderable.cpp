@@ -1,4 +1,7 @@
 #include "Renderable.h"
+#include <cstdio>
+#include <cstring>
+#include <utility>
 
 float random_float(float min, float max)
 {
@@ -76,4 +79,54 @@ auto Renderable::rotate(float angle, const glm::vec3& axis) -> void
 auto Renderable::scale(const glm::vec3& scaling_factors) -> void
 {
     model_matrix = glm::scale(model_matrix, scaling_factors);
+}
+
+std::pair<std::vector<float>, std::vector<uint16_t>> parse_obj(const std::string filename)
+{
+
+    FILE* file;
+    file = fopen(filename.c_str(), "r");
+    char line[1024];
+
+    std::vector<glm::vec2> uvs;
+    std::vector<float> vertices;
+    std::vector<uint16_t> indices;
+
+    while (fgets(line, 1024, file)) {
+        // Vertex information
+        if (strncmp(line, "v ", 2) == 0) {
+            float x, y, z;
+            sscanf(line, "v %f %f %f", &x, &y, &z);
+            vertices.push_back(x);
+            vertices.push_back(y);
+            vertices.push_back(z);
+            vertices.push_back(1.0f);
+            vertices.push_back(1.0f);
+            vertices.push_back(1.0f);
+            vertices.push_back(1.0f);
+        }
+        // Texture coordinate information
+        if (strncmp(line, "vt ", 3) == 0) {
+            glm::vec2 uv;
+            sscanf(line, "vt %f %f", &uv.x, &uv.y);
+            uvs.push_back(uv);
+        }
+        // Face information
+        if (strncmp(line, "f ", 2) == 0) {
+            unsigned int vertex_indices[3];
+            unsigned int texture_indices[3];
+            unsigned int normal_indices[3];
+            sscanf(
+                line, "f %u/%u/%u %u/%u/%u %u/%u/%u",
+                &vertex_indices[0], &texture_indices[0], &normal_indices[0],
+                &vertex_indices[1], &texture_indices[1], &normal_indices[1],
+                &vertex_indices[2], &texture_indices[2], &normal_indices[2]);
+
+            indices.push_back(vertex_indices[0] - 1);
+            indices.push_back(vertex_indices[1] - 1);
+            indices.push_back(vertex_indices[2] - 1);
+        };
+    };
+    fclose(file);
+    return { vertices, indices };
 }
