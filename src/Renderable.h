@@ -16,17 +16,16 @@ float random_float(float min, float max);
 
 class MeshResources {
 public:
-    MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices, sg_shader shader);
+    MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices);
 
     sg_buffer vertex_buffer;
     sg_buffer index_buffer;
-    sg_pipeline pipeline;
     int num_indices;
 };
 
 class Renderable {
 public:
-    Renderable(std::shared_ptr<MeshResources> resources);
+    Renderable(std::shared_ptr<MeshResources> resources, sg_pipeline& pip);
 
     auto render(const glm::mat4& view_proj) -> void;
     auto update(float delta_time, float rotation_speed) -> void;
@@ -37,6 +36,7 @@ public:
 
 private:
     std::shared_ptr<MeshResources> shared_resources;
+    sg_pipeline pipeline = {};
     sg_bindings bindings = {};
     glm::mat4 model_matrix;
     float rspeed;

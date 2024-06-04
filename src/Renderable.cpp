@@ -8,7 +8,7 @@ float random_float(float min, float max)
     return dis(gen);
 }
 
-MeshResources::MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices, sg_shader shader)
+MeshResources::MeshResources(const std::vector<float> vertices, const std::vector<uint16_t> indices)
 {
     sg_buffer_desc vbuf_desc = {};
     vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(float) };
@@ -21,27 +21,12 @@ MeshResources::MeshResources(const std::vector<float> vertices, const std::vecto
     ibuf_desc.label = "index-buffer";
     index_buffer = sg_make_buffer(&ibuf_desc);
 
-    sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = shader;
-    pip_desc.index_type = SG_INDEXTYPE_UINT16;
-    pip_desc.cull_mode = SG_CULLMODE_BACK;
-    pip_desc.label = "pipeline";
-
-    pip_desc.layout = {};
-    pip_desc.layout.buffers[0].stride = 28;
-    pip_desc.layout.attrs[ATTR_vs_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_color0].format = SG_VERTEXFORMAT_FLOAT4;
-
-    pip_desc.depth = {};
-    pip_desc.depth.write_enabled = true;
-    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-
-    pipeline = sg_make_pipeline(&pip_desc);
     num_indices = indices.size();
 }
 
-Renderable::Renderable(std::shared_ptr<MeshResources> resources)
+Renderable::Renderable(std::shared_ptr<MeshResources> resources, sg_pipeline& pip)
     : shared_resources(resources)
+    , pipeline(pip)
     , model_matrix(1.0f)
 {
     bindings.vertex_buffers[0] = resources->vertex_buffer;
@@ -56,7 +41,7 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     vs_params_t vs_params;
     vs_params.mvp = mvp;
 
-    sg_apply_pipeline(shared_resources->pipeline);
+    sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
 
     sg_range vs_range = SG_RANGE(vs_params);
