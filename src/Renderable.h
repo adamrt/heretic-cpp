@@ -22,7 +22,7 @@ std::vector<float> parse_obj(const std::string filename);
 
 class Renderable {
 public:
-    Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> texture, State& state);
+    Renderable(State& _state, std::shared_ptr<Mesh> resources, std::shared_ptr<Texture>);
     ~Renderable();
 
     auto render(const glm::mat4& view_proj) -> void;
@@ -41,6 +41,6 @@ private:
     sg_shader shader = {};
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
-    glm::mat4 model_matrix;
+    glm::mat4 model_matrix = { 1.0f };
     float rspeed;
 };

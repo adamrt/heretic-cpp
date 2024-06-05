@@ -8,6 +8,7 @@ float random_float(float min, float max)
     std::uniform_real_distribution<> dis(min, max);
     return dis(gen);
 }
+
 Renderable::~Renderable()
 {
     sg_destroy_pipeline(pipeline);
@@ -15,13 +16,12 @@ Renderable::~Renderable()
 
     std::cout << "Destroying Renderable" << std::endl;
 }
-Renderable::Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex, State& _state)
+
+Renderable::Renderable(State& _state, std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex)
     : state(_state)
     , shared_resources(resources)
     , texture(tex)
-    , model_matrix(1.0f)
 {
-
     shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
 
     sg_pipeline_desc pip_desc = {};
