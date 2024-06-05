@@ -69,7 +69,6 @@ auto world_init() -> void
 auto gui_draw() -> void
 {
     ImGui::SetNextWindowSize(ImVec2(0, 0));
-
     ImGui::Begin("Hello, world!");
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     if (ImGui::RadioButton("Perspective", state.camera.projection == Projection::Perspective)) {

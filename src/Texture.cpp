@@ -23,7 +23,6 @@ Texture::Texture(std::string filename)
 
 Texture::~Texture()
 {
-    std::cout << "destroying now!" << std::endl;
     sg_destroy_image(image);
     sg_destroy_sampler(sampler);
 }
