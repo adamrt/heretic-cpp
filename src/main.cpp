@@ -31,20 +31,20 @@
 // GLM
 #include "glm/glm.hpp"
 
+// Globals
+Scene scene;
+State state;
+
 // Forward declarations
 auto gfx_init() -> void;
 auto gui_init() -> void;
 auto gui_draw() -> void;
 auto world_init() -> void;
 
-Scene scene;
-State state;
-
 auto init() -> void
 {
     gfx_init();
     gui_init();
-
     world_init();
 }
 
@@ -118,7 +118,28 @@ auto input(sapp_event const* event) -> void
         return;
     }
 
-    state.camera.handle_event(event);
+    switch (event->type) {
+    case SAPP_EVENTTYPE_MOUSE_DOWN:
+        if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(true);
+        }
+        break;
+    case SAPP_EVENTTYPE_MOUSE_UP:
+        if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
+            sapp_lock_mouse(false);
+        }
+        break;
+    case SAPP_EVENTTYPE_MOUSE_SCROLL:
+        state.camera.zoom(event->scroll_y * -0.5f);
+        break;
+    case SAPP_EVENTTYPE_MOUSE_MOVE:
+        if (sapp_mouse_locked()) {
+            state.camera.orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+        }
+        break;
+    default:
+        break;
+    }
 }
 
 auto frame() -> void
