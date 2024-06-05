@@ -68,25 +68,7 @@ auto world_init() -> void
     auto texture = std::make_shared<Texture>("res/head.tga");
     auto mesh = std::make_shared<Mesh>("res/head.obj");
 
-    // FIXME: destroy later
-    sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
-
-    sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = cube_shader;
-    pip_desc.cull_mode = SG_CULLMODE_BACK;
-    pip_desc.face_winding = SG_FACEWINDING_CCW;
-    pip_desc.label = "pipeline";
-    // Unnecessary if data is contiguous
-    // pip_desc.layout.buffers[0].stride = 48;
-    pip_desc.layout.attrs[ATTR_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
-    pip_desc.layout.attrs[ATTR_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4;
-    pip_desc.depth.write_enabled = true;
-    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-    sg_pipeline color_pipeline = sg_make_pipeline(&pip_desc);
-
-    auto cube = std::make_shared<Renderable>(mesh, texture, color_pipeline, state);
+    auto cube = std::make_shared<Renderable>(mesh, texture, state);
     scene.add_renderable(cube);
 }
 

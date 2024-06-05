@@ -10,15 +10,36 @@ float random_float(float min, float max)
 }
 Renderable::~Renderable()
 {
+    sg_destroy_pipeline(pipeline);
+    sg_destroy_shader(shader);
+
     std::cout << "Destroying Renderable" << std::endl;
 }
-Renderable::Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex, sg_pipeline& pip, State& _state)
+Renderable::Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex, State& _state)
     : state(_state)
     , shared_resources(resources)
     , texture(tex)
-    , pipeline(pip)
     , model_matrix(1.0f)
 {
+
+    shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
+
+    sg_pipeline_desc pip_desc = {};
+    pip_desc.shader = shader;
+    pip_desc.cull_mode = SG_CULLMODE_BACK;
+    pip_desc.face_winding = SG_FACEWINDING_CCW;
+    pip_desc.label = "pipeline";
+    // Unnecessary if data is contiguous
+    // pip_desc.layout.buffers[0].stride = 48;
+    pip_desc.layout.attrs[ATTR_vs_a_position].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
+    pip_desc.layout.attrs[ATTR_vs_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
+    pip_desc.layout.attrs[ATTR_vs_a_color].format = SG_VERTEXFORMAT_FLOAT4;
+    pip_desc.depth.write_enabled = true;
+    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
+
+    pipeline = sg_make_pipeline(&pip_desc);
+
     bindings.vertex_buffers[0] = resources->vertex_buffer;
 
     rspeed = random_float(-5.0f, 5.0f);
