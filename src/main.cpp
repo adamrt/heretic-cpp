@@ -9,7 +9,6 @@
 #include "Scene.h"
 #include "State.h"
 #include "Texture.h"
-#include "cube.h"
 
 // STB
 #define STB_IMAGE_IMPLEMENTATION
