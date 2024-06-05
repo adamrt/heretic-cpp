@@ -16,8 +16,8 @@ struct State {
     float ambient_strength = 0.2f;
 
     std::array<Light, 3> lights = {
-        Light { glm::vec4 { 100.0f, 0.0f, 0.0f, 0.0f }, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f } },
-        Light { glm::vec4 { 0.0f, 100.0f, 0.0f, 0.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f } },
-        Light { glm::vec4 { 0.0f, 0.0f, 100.0f, 0.0f }, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f } },
+        Light { glm::vec4 { 40.0f, 0.0f, 0.0f, 0.0f }, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f } },
+        Light { glm::vec4 { 0.0f, 40.0f, 0.0f, 0.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f } },
+        Light { glm::vec4 { 0.0f, 0.0f, 40.0f, 0.0f }, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f } },
     };
 };

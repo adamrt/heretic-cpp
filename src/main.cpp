@@ -67,9 +67,8 @@ auto world_init() -> void
 {
     auto texture = std::make_shared<Texture>("res/head.tga");
     auto mesh = std::make_shared<Mesh>("res/head.obj");
-
-    auto cube = std::make_shared<Renderable>(mesh, texture, state);
-    scene.add_renderable(cube);
+    auto renderable = std::make_shared<Renderable>(mesh, texture, state);
+    scene.add_renderable(renderable);
 }
 
 auto gui_draw() -> void
