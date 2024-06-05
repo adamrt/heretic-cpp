@@ -11,13 +11,15 @@ float random_float(float min, float max)
     std::uniform_real_distribution<> dis(min, max);
     return dis(gen);
 }
-
-Renderable::Renderable(std::shared_ptr<Mesh> resources, sg_pipeline& pip, sg_image _image, sg_sampler _sampler, State& _state)
+Renderable::~Renderable()
+{
+    std::cout << "Destroying Renderable" << std::endl;
+}
+Renderable::Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex, sg_pipeline& pip, State& _state)
     : state(_state)
     , shared_resources(resources)
+    , texture(tex)
     , pipeline(pip)
-    , image(_image)
-    , sampler(_sampler)
     , model_matrix(1.0f)
 {
     bindings.vertex_buffers[0] = resources->vertex_buffer;
@@ -43,8 +45,8 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     light_params.position[1] = state.lights[1].position;
     light_params.position[2] = state.lights[2].position;
 
-    bindings.fs.images[SLOT_tex] = image;
-    bindings.fs.samplers[SLOT_smp] = sampler;
+    bindings.fs.images[SLOT_tex] = texture->image;
+    bindings.fs.samplers[SLOT_smp] = texture->sampler;
 
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);

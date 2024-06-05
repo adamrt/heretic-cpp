@@ -1,11 +1,13 @@
 #pragma once
 
+#include <iostream>
 #include <memory>
 #include <random>
 #include <vector>
 
 #include "Mesh.h"
 #include "State.h"
+#include "Texture.h"
 
 #include "sokol_gfx.h"
 
@@ -20,7 +22,8 @@ std::vector<float> parse_obj(const std::string filename);
 
 class Renderable {
 public:
-    Renderable(std::shared_ptr<Mesh> resources, sg_pipeline& pip, sg_image image, sg_sampler sampler, State& state);
+    Renderable(std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> texture, sg_pipeline& pip, State& state);
+    ~Renderable();
 
     auto render(const glm::mat4& view_proj) -> void;
     auto update(float delta_time, float rotation_speed) -> void;
@@ -33,10 +36,9 @@ public:
 
 private:
     std::shared_ptr<Mesh> shared_resources;
+    std::shared_ptr<Texture> texture;
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
-    sg_image image = {};
-    sg_sampler sampler = {};
     glm::mat4 model_matrix;
     float rspeed;
 };
