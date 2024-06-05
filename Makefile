@@ -4,7 +4,7 @@ CXXFLAGS = -Wall -Wextra -Werror -Wpedantic -g \
            -Wuninitialized -std=c++11
 LDFLAGS = -fsanitize=address -fsanitize=undefined
 LDLIBS = -lGL -ldl -lm -lX11 -lXi -lXcursor -lstdc++ -lglfw
-INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util -Ilib/glm
+INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util -Ilib/glm -Ilib/stb
 TARGET=starterkit
 
 IMGUI_CXXFLAGS=-std=c++11 -Ilib/imgui -Ilib/imgui/backends
