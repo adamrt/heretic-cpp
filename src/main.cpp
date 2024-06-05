@@ -65,10 +65,11 @@ auto gui_init() -> void
 
 auto world_init() -> void
 {
+    auto texture = std::make_shared<Texture>("res/head.tga");
+    auto mesh = std::make_shared<Mesh>("res/head.obj");
+
+    // FIXME: destroy later
     sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
-    auto tex = std::make_shared<Texture>("res/head.tga");
-    auto obj = parse_obj("res/head.obj");
-    auto cube_resources = std::make_shared<Mesh>(obj);
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = cube_shader;
@@ -85,7 +86,7 @@ auto world_init() -> void
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
     sg_pipeline color_pipeline = sg_make_pipeline(&pip_desc);
 
-    auto cube = std::make_shared<Renderable>(cube_resources, tex, color_pipeline, state);
+    auto cube = std::make_shared<Renderable>(mesh, texture, color_pipeline, state);
     scene.add_renderable(cube);
 }
 
