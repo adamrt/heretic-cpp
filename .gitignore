@@ -4,3 +4,4 @@
 /sokol-shdc
 /src/shader.glsl.h
 /src/*.o
+/res/*
