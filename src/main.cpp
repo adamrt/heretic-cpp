@@ -2,8 +2,10 @@
 
 // Project
 #include "Camera.h"
+#include "Light.h"
 #include "Renderable.h"
 #include "Scene.h"
+#include "State.h"
 #include "cube.h"
 
 // Sokol
@@ -28,12 +30,8 @@ auto gui_init() -> void;
 auto gui_draw() -> void;
 auto world_init() -> void;
 
-static struct {
-    Scene scene;
-    Camera camera;
-    float rotation_speed = 1.0f;
-    sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
-} state;
+Scene scene;
+State state;
 
 auto init() -> void
 {
@@ -78,14 +76,9 @@ auto world_init() -> void
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
     sg_pipeline color_pipeline = sg_make_pipeline(&pip_desc);
 
-    for (int i = 0; i < 128; i++) {
-        float x = random_float(-10.0f, 10.0f);
-        float y = random_float(-10.0f, 10.0f);
-        float z = random_float(-10.0f, 10.0f);
-        Renderable cube(cube_resources, color_pipeline);
-        cube.translate(glm::vec3(x, y, z));
-        state.scene.add_renderable(cube);
-    }
+
+    Renderable cube(cube_resources, color_pipeline, image, sampler, state);
+    scene.add_renderable(cube);
 }
 
 auto gui_draw() -> void
@@ -128,7 +121,7 @@ auto frame() -> void
     const float t = (float)sapp_frame_duration();
 
     state.camera.update();
-    state.scene.update(t, state.rotation_speed);
+    scene.update(t, state.rotation_speed);
 
     simgui_new_frame({
         sapp_width(),
@@ -144,7 +137,7 @@ auto frame() -> void
 
     sg_begin_pass(&pass);
     {
-        state.scene.render(state.camera.view_proj());
+        scene.render(state.camera.view_proj());
         gui_draw();
         simgui_render();
     }
