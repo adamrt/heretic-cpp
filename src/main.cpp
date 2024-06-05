@@ -1,3 +1,5 @@
+#include <array>
+#include <iostream>
 #include <memory>
 
 // Project
@@ -7,6 +9,10 @@
 #include "Scene.h"
 #include "State.h"
 #include "cube.h"
+
+// STB
+#define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // Sokol
 #define SOKOL_IMPL
@@ -56,15 +62,40 @@ auto gui_init() -> void
     simgui_setup(&simgui_desc);
 }
 
+sg_image load_png(const char* filename)
+{
+    stbi_set_flip_vertically_on_load(true);
+    int width, height, channels;
+    unsigned char* data = stbi_load(filename, &width, &height, &channels, 4); // Load image as RGBA
+    if (!data) {
+        std::cerr << "Failed to load image: " << filename << std::endl;
+        return { SG_INVALID_ID };
+    }
+
+    sg_image_desc image_desc = {};
+    image_desc.width = width;
+    image_desc.height = height;
+    image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+    image_desc.data.subimage[0][0] = { data, static_cast<size_t>(width * height * 4) };
+
+    sg_image image = sg_make_image(&image_desc);
+
+    stbi_image_free(data); // Free the loaded image data
+
+    return image;
+}
+
 auto world_init() -> void
 {
     sg_shader cube_shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
-    auto result = parse_obj("cube.obj");
+    sg_image image = load_png("res/cube.png");
+    auto result = parse_obj("res/cube.obj");
     auto cube_resources = std::make_shared<Mesh>(result);
 
     sg_pipeline_desc pip_desc = {};
     pip_desc.shader = cube_shader;
     pip_desc.cull_mode = SG_CULLMODE_BACK;
+    pip_desc.face_winding = SG_FACEWINDING_CCW;
     pip_desc.label = "pipeline";
     // Unnecessary if data is contiguous
     // pip_desc.layout.buffers[0].stride = 48;
@@ -76,6 +107,12 @@ auto world_init() -> void
     pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
     sg_pipeline color_pipeline = sg_make_pipeline(&pip_desc);
 
+    sg_sampler_desc sampler_desc = {};
+    sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.min_filter = SG_FILTER_NEAREST;
+    sampler_desc.mag_filter = SG_FILTER_NEAREST;
+    sg_sampler sampler = sg_make_sampler(&sampler_desc);
 
     Renderable cube(cube_resources, color_pipeline, image, sampler, state);
     scene.add_renderable(cube);
@@ -86,6 +123,7 @@ auto gui_draw() -> void
     ImGui::SetNextWindowSize(ImVec2(0, 0));
 
     ImGui::Begin("Hello, world!");
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     if (ImGui::RadioButton("Perspective", state.camera.projection == Projection::Perspective)) {
         state.camera.projection = Projection::Perspective;
     }
@@ -97,6 +135,16 @@ auto gui_draw() -> void
     ImGui::ColorEdit3("Background", &state.clear_color.r);
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
+    }
+
+    for (int i = 0; i < 3; i++) {
+        ImGui::PushID(i);
+        char title[10];
+        sprintf(title, "Light %d", i);
+        ImGui::SeparatorText(title);
+        ImGui::SliderFloat4("Position", &state.lights[i].position[0], -50.0f, 50.0f, "%0.2f", 0);
+        ImGui::ColorEdit4("Color", &state.lights[i].color[0], ImGuiColorEditFlags_None);
+        ImGui::PopID();
     }
     ImGui::End();
 }
