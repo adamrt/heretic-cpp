@@ -31,6 +31,7 @@ public:
     auto translate(const glm::vec3& translation) -> void;
     auto rotate(float angle, const glm::vec3& axis) -> void;
     auto scale(const glm::vec3& scaling_factors) -> void;
+    auto scale(float f) -> void;
 
     State& state;
 

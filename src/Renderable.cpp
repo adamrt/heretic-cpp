@@ -106,3 +106,8 @@ auto Renderable::scale(const glm::vec3& scaling_factors) -> void
 {
     model_matrix = glm::scale(model_matrix, scaling_factors);
 }
+
+auto Renderable::scale(float f) -> void
+{
+    scale(glm::vec3 { f, f, f });
+}
