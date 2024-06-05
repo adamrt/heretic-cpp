@@ -10,10 +10,6 @@
 #include "State.h"
 #include "Texture.h"
 
-// STB
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-
 // Sokol
 #define SOKOL_IMPL
 #define SOKOL_GLCORE
