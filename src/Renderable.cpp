@@ -32,7 +32,8 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     vs_params.u_model = model_matrix;
 
     fs_standard_params_t fs_params;
-    fs_params.u_ambient_color = glm::vec4 { 0.1f, 0.1f, 0.1f, 1.0f };
+    fs_params.u_ambient_color = state.ambient_color;
+    fs_params.u_ambient_strength = state.ambient_strength;
 
     fs_light_params_t light_params;
     light_params.color[0] = state.lights[0].color;

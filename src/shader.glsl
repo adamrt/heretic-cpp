@@ -29,6 +29,7 @@ void main() {
 @fs fs
 uniform fs_standard_params {
     vec4 u_ambient_color;
+    float u_ambient_strength;
 };
 
 uniform fs_light_params {
@@ -47,6 +48,8 @@ in vec4 v_color;
 out vec4 frag_color;
 
 void main() {
+    vec4 ambient = u_ambient_color * u_ambient_strength;
+
     vec3 norm = normalize(v_normal);
     vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
     vec4 tex_color = texture(sampler2D(tex, smp), v_uv);
@@ -56,7 +59,7 @@ void main() {
         float intensity = max(dot(norm, direction), 0.0);
         diffuse_light += dir_lights.color[i] * intensity;
     }
-    frag_color = (u_ambient_color + diffuse_light) * tex_color;
+    frag_color = (ambient + diffuse_light) * tex_color;
 }
 @end
 

@@ -136,15 +136,19 @@ auto gui_draw() -> void
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }
+    if (ImGui::CollapsingHeader("Lighting")) {
+        ImGui::ColorEdit4("Ambient Color", &state.ambient_color[0]);
+        ImGui::SliderFloat("Ambient Strength", &state.ambient_strength, 0.0f, 1.0f);
 
-    for (int i = 0; i < 3; i++) {
-        ImGui::PushID(i);
-        char title[10];
-        sprintf(title, "Light %d", i);
-        ImGui::SeparatorText(title);
-        ImGui::SliderFloat4("Position", &state.lights[i].position[0], -50.0f, 50.0f, "%0.2f", 0);
-        ImGui::ColorEdit4("Color", &state.lights[i].color[0], ImGuiColorEditFlags_None);
-        ImGui::PopID();
+        for (int i = 0; i < 3; i++) {
+            ImGui::PushID(i);
+            char title[10];
+            sprintf(title, "Light %d", i);
+            ImGui::SeparatorText(title);
+            ImGui::SliderFloat4("Position", &state.lights[i].position[0], -50.0f, 50.0f, "%0.2f", 0);
+            ImGui::ColorEdit4("Color", &state.lights[i].color[0], ImGuiColorEditFlags_None);
+            ImGui::PopID();
+        }
     }
     ImGui::End();
 }
