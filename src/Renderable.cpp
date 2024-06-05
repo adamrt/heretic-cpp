@@ -54,6 +54,8 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     fs_standard_params_t fs_params;
     fs_params.u_ambient_color = state.ambient_color;
     fs_params.u_ambient_strength = state.ambient_strength;
+    fs_params.u_render_mode = state.render_mode;
+    fs_params.u_use_lighting = state.use_lighting;
 
     fs_light_params_t light_params;
     light_params.color[0] = state.lights[0].color;

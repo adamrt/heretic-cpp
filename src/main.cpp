@@ -78,12 +78,24 @@ auto gui_draw() -> void
     if (ImGui::RadioButton("Orthographic", state.camera.projection == Projection::Orthographic)) {
         state.camera.projection = Projection::Orthographic;
     }
+
+    // Render Mode
+    if (ImGui::RadioButton("Textured", state.render_mode == 0)) {
+        state.render_mode = 0;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Colored", state.render_mode == 1)) {
+        state.render_mode = 1;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Normals", state.render_mode == 2)) {
+        state.render_mode = 2;
+    }
+
     ImGui::SliderFloat("Rotation", &state.rotation_speed, 0.0f, 2.0f);
     ImGui::ColorEdit3("Background", &state.clear_color.r);
-    if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
-        sapp_toggle_fullscreen();
-    }
     if (ImGui::CollapsingHeader("Lighting")) {
+        ImGui::Checkbox("Enabled", &state.use_lighting);
         ImGui::ColorEdit4("Ambient Color", &state.ambient_color[0]);
         ImGui::SliderFloat("Ambient Strength", &state.ambient_strength, 0.0f, 1.0f);
 
@@ -96,6 +108,9 @@ auto gui_draw() -> void
             ImGui::ColorEdit4("Color", &state.lights[i].color[0], ImGuiColorEditFlags_None);
             ImGui::PopID();
         }
+    }
+    if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
+        sapp_toggle_fullscreen();
     }
     ImGui::End();
 }
