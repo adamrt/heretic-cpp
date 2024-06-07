@@ -47,7 +47,7 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
             }
             positions.push_back(position);
         }
-        if (strncmp(line, "vn ", 2) == 0) {
+        if (strncmp(line, "vn ", 3) == 0) {
             glm::vec3 normal {};
             if (sscanf(line, "vn %f %f %f", &normal.x, &normal.y, &normal.z) != 3) {
                 std::cerr << "Error reading normal" << std::endl;
