@@ -1,7 +1,7 @@
 @ctype mat4 glm::mat4
 @ctype vec4 glm::vec4
 
-@vs vs
+@vs vs_standard
 uniform vs_standard_params{
     mat4 u_view_proj;
     mat4 u_model;
@@ -23,19 +23,17 @@ void main() {
 }
 @end
 
-@fs fs
-uniform fs_standard_params {
+@fs fs_textured
+uniform fs_textured_params {
+    int   u_render_mode;
+
+    int   u_use_lighting;
     vec4  u_ambient_color;
     float u_ambient_strength;
-    int   u_use_lighting;
-    int   u_render_mode;
+    vec4  u_light_positions[10];
+    vec4  u_light_colors[10];
+    int   u_light_count;
 };
-
-uniform fs_light_params {
-    vec4 position[10];
-    vec4 color[10];
-    int  u_num_lights;
-} dir_lights;
 
 uniform texture2D tex;
 uniform sampler smp;
@@ -63,10 +61,10 @@ void main() {
         if (u_use_lighting == 1) {
             vec3 norm = normalize(v_normal);
             vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
-            for (int i = 0; i < dir_lights.u_num_lights; i++) {
-                vec3 direction = normalize(dir_lights.position[i].xyz - v_position.xyz);
+            for (int i = 0; i < u_light_count; i++) {
+                vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
                 float intensity = max(dot(norm, direction), 0.0);
-                diffuse_light += dir_lights.color[i] * intensity;
+                diffuse_light += u_light_colors[i] * intensity;
             }
             vec4 ambient = u_ambient_color * u_ambient_strength;
             frag_color = (ambient + diffuse_light) * out_color;
@@ -77,7 +75,12 @@ void main() {
 }
 @end
 
-@fs light_fs
+@fs fs_colored
+
+uniform fs_colored_params {
+    vec4 u_color;
+};
+
 in vec4 v_position;
 in vec3 v_normal;
 in vec2 v_uv;
@@ -85,9 +88,9 @@ in vec2 v_uv;
 out vec4 frag_color;
 
 void main() {
-     frag_color = vec4(1.0, 1.0, 1.0, 1.0);
+     frag_color = u_color;
 }
 @end
 
-@program standard vs fs
-@program light    vs light_fs
+@program textured vs_standard fs_textured
+@program colored  vs_standard fs_colored
