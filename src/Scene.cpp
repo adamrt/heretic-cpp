@@ -1,12 +1,12 @@
 #include "Scene.h"
-#include "Light.h"
+#include "Model.h"
 
-auto Scene::add_model(std::shared_ptr<Model> model) -> void
+auto Scene::add_model(std::shared_ptr<TexturedModel> model) -> void
 {
     models.push_back(model);
 }
 
-auto Scene::add_light(std::shared_ptr<Light> light) -> void
+auto Scene::add_light(std::shared_ptr<ColoredModel> light) -> void
 {
     lights.push_back(light);
 }

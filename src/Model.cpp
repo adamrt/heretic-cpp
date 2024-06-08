@@ -7,10 +7,11 @@ Model::~Model()
     sg_destroy_shader(shader);
 }
 
-Model::Model(std::shared_ptr<Mesh> _mesh)
-    : mesh(_mesh)
+ColoredModel::ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position)
+    : Model(_position)
+    , color(_color)
 {
-    // Light Shader
+    mesh = _mesh;
     shader = sg_make_shader(colored_shader_desc(sg_query_backend()));
 
     sg_pipeline_desc pip_desc = {};
@@ -18,8 +19,6 @@ Model::Model(std::shared_ptr<Mesh> _mesh)
     pip_desc.cull_mode = SG_CULLMODE_BACK;
     pip_desc.face_winding = SG_FACEWINDING_CCW;
     pip_desc.label = "pipeline";
-    // Unnecessary if data is contiguous
-    // pip_desc.layout.buffers[0].stride = 48;
     pip_desc.layout.attrs[ATTR_vs_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_vs_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
     pip_desc.layout.attrs[ATTR_vs_standard_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
@@ -31,11 +30,11 @@ Model::Model(std::shared_ptr<Mesh> _mesh)
     bindings.vertex_buffers[0] = mesh->vertex_buffer;
 }
 
-Model::Model(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture)
-    : mesh(_mesh)
+TexturedModel::TexturedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture, glm::vec3 _position)
+    : Model(_position)
     , texture(_texture)
 {
-    // Standard Shader
+    mesh = _mesh;
     shader = sg_make_shader(textured_shader_desc(sg_query_backend()));
 
     sg_pipeline_desc pip_desc = {};
@@ -56,7 +55,7 @@ Model::Model(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture)
     bindings.vertex_buffers[0] = mesh->vertex_buffer;
 }
 
-auto Model::render() -> void
+auto TexturedModel::render() -> void
 {
     auto state = State::get_instance();
     vs_standard_params_t vs_params;
@@ -85,6 +84,26 @@ auto Model::render() -> void
     sg_range fs_range = SG_RANGE(fs_params);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &vs_range);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_textured_params, &fs_range);
+    sg_draw(0, mesh->vertices.size(), 1);
+}
+
+auto ColoredModel::render() -> void
+{
+    auto state = State::get_instance();
+    vs_standard_params_t vs_params;
+    vs_params.u_view_proj = state->camera.view_proj();
+    vs_params.u_model = model_matrix;
+
+    fs_colored_params_t fs_params;
+    fs_params.u_color = color;
+
+    sg_apply_pipeline(pipeline);
+    sg_apply_bindings(&bindings);
+
+    sg_range vs_range = SG_RANGE(vs_params);
+    sg_range fs_range = SG_RANGE(fs_params);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &vs_range);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_colored_params, &fs_range);
     sg_draw(0, mesh->vertices.size(), 1);
 }
 

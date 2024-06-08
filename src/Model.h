@@ -16,13 +16,12 @@
 
 class Model {
 public:
-    Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture>);
-    Model(std::shared_ptr<Mesh> _mesh);
-    Model() = delete;
-    ~Model();
+    Model(glm::vec3 position)
+        : translation(position) {};
+    virtual ~Model();
 
-    virtual auto render() -> void;
-    virtual auto update(float delta_time) -> void;
+    virtual auto render() -> void = 0;
+    auto update(float delta_time) -> void;
 
     glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
     glm::vec3 translation = { 0.0f, 0.0f, 0.0f };
@@ -31,8 +30,25 @@ public:
 
     // Rendering
     std::shared_ptr<Mesh> mesh;
-    std::shared_ptr<Texture> texture;
     sg_shader shader = {};
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
+};
+
+class TexturedModel : public Model {
+public:
+    TexturedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+
+    auto render() -> void override;
+
+    std::shared_ptr<Texture> texture;
+};
+
+class ColoredModel : public Model {
+public:
+    ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+
+    auto render() -> void override;
+
+    glm::vec4 color = {};
 };
