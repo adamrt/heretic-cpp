@@ -5,7 +5,7 @@
 // Project
 #include "Camera.h"
 #include "Light.h"
-#include "Renderable.h"
+#include "Model.h"
 #include "State.h"
 #include "Texture.h"
 
@@ -59,7 +59,7 @@ auto world_init() -> void
 {
     auto texture = std::make_shared<Texture>("res/cube.png");
     auto mesh = std::make_shared<Mesh>("res/cube.obj");
-    auto renderable = std::make_shared<Renderable>(mesh, texture);
+    auto renderable = std::make_shared<Model>(mesh, texture);
     state->scene.add_renderable(renderable);
 }
 

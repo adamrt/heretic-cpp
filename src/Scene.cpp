@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-auto Scene::add_renderable(std::shared_ptr<Renderable> renderable) -> void
+auto Scene::add_renderable(std::shared_ptr<Model> renderable) -> void
 {
     renderables.push_back(renderable);
 }

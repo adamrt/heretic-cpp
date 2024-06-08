@@ -1,5 +1,5 @@
 
-#include "Renderable.h"
+#include "Model.h"
 #include "State.h"
 
 float random_float(float min, float max)
@@ -10,15 +10,15 @@ float random_float(float min, float max)
     return dis(gen);
 }
 
-Renderable::~Renderable()
+Model::~Model()
 {
     sg_destroy_pipeline(pipeline);
     sg_destroy_shader(shader);
 
-    std::cout << "Destroying Renderable" << std::endl;
+    std::cout << "Destroying Model" << std::endl;
 }
 
-Renderable::Renderable(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture)
+Model::Model(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture)
     : mesh(_mesh)
     , texture(_texture)
 {
@@ -45,7 +45,7 @@ Renderable::Renderable(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _te
     rspeed = random_float(-5.0f, 5.0f);
 }
 
-auto Renderable::render() -> void
+auto Model::render() -> void
 {
     auto state = State::get_instance();
     vs_standard_params_t vs_params;
@@ -81,7 +81,7 @@ auto Renderable::render() -> void
     sg_draw(0, mesh->num_indices, 1);
 }
 
-auto Renderable::update(float delta_time, float rotation_speed) -> void
+auto Model::update(float delta_time, float rotation_speed) -> void
 {
     auto x = 1.0f * delta_time * rspeed * rotation_speed;
     auto y = 2.0f * delta_time * rspeed * rotation_speed;
@@ -90,27 +90,27 @@ auto Renderable::update(float delta_time, float rotation_speed) -> void
     rotate(y, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
-auto Renderable::set_model_matrix(const glm::mat4& matrix) -> void
+auto Model::set_model_matrix(const glm::mat4& matrix) -> void
 {
     model_matrix = matrix;
 }
 
-auto Renderable::translate(const glm::vec3& translation) -> void
+auto Model::translate(const glm::vec3& translation) -> void
 {
     model_matrix = glm::translate(model_matrix, translation);
 }
 
-auto Renderable::rotate(float angle, const glm::vec3& axis) -> void
+auto Model::rotate(float angle, const glm::vec3& axis) -> void
 {
     model_matrix = glm::rotate(model_matrix, angle, axis);
 }
 
-auto Renderable::scale(const glm::vec3& scaling_factors) -> void
+auto Model::scale(const glm::vec3& scaling_factors) -> void
 {
     model_matrix = glm::scale(model_matrix, scaling_factors);
 }
 
-auto Renderable::scale(float f) -> void
+auto Model::scale(float f) -> void
 {
     scale(glm::vec3 { f, f, f });
 }

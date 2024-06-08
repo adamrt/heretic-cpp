@@ -18,10 +18,10 @@
 
 float random_float(float min, float max);
 
-class Renderable {
+class Model {
 public:
-    Renderable(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture>);
-    ~Renderable();
+    Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture>);
+    ~Model();
 
     auto render() -> void;
     auto update(float delta_time, float rotation_speed) -> void;
