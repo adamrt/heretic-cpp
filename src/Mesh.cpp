@@ -9,8 +9,8 @@
 
 #include "Mesh.h"
 
-// pos3 + norm3 + uv2 + color4
-const int vertex_size = 12;
+// pos3 + norm3 + uv2
+const int vertex_size = 8;
 
 Mesh::Mesh(std::string filename)
 {
@@ -89,10 +89,6 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
                         results.push_back(n.z);
                         results.push_back(u.x);
                         results.push_back(u.y);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
                     }
 
                 } else if (count == 8) { // Quad
@@ -120,10 +116,6 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
                         results.push_back(n.z);
                         results.push_back(u.x);
                         results.push_back(u.y);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
                     }
 
                     for (int i : { 0, 2, 3 }) {
@@ -138,10 +130,6 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
                         results.push_back(n.z);
                         results.push_back(u.x);
                         results.push_back(u.y);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
-                        results.push_back(1.0f);
                     }
                 } else {
                     std::cerr << "Unknown face format: " << count << line << std::endl;

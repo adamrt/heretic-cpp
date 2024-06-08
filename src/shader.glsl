@@ -10,18 +10,15 @@ uniform vs_standard_params{
 in vec3 a_position;
 in vec3 a_normal;
 in vec2 a_uv;
-in vec4 a_color;
 
 out vec4 v_position;
 out vec3 v_normal;
 out vec2 v_uv;
-out vec4 v_color;
 
 void main() {
     v_position = u_model * vec4(a_position, 1.0);
     v_normal = mat3(transpose(inverse(u_model))) * a_normal;
     v_uv = a_uv;
-    v_color = a_color;
     gl_Position = u_view_proj * u_model * vec4(a_position, 1.0);
 }
 @end
@@ -46,7 +43,6 @@ uniform sampler smp;
 in vec4 v_position;
 in vec3 v_normal;
 in vec2 v_uv;
-in vec4 v_color;
 
 out vec4 frag_color;
 
@@ -55,8 +51,8 @@ void main() {
 
     if (u_render_mode == 0) { // Textured
         out_color = texture(sampler2D(tex, smp), v_uv);
-    } else if (u_render_mode == 1) { // Colored
-        out_color = v_color;
+    } else if (u_render_mode == 1) { // White
+        out_color = vec4(1.0, 1.0, 1.0 , 1.0);
     } else if (u_render_mode == 2) { // Normals
         out_color = vec4(v_normal, 1.0);
     }
@@ -85,12 +81,11 @@ void main() {
 in vec4 v_position;
 in vec3 v_normal;
 in vec2 v_uv;
-in vec4 v_color;
 
 out vec4 frag_color;
 
 void main() {
-     frag_color = v_color;
+     frag_color = vec4(1.0, 1.0, 1.0, 1.0);
 }
 @end
 

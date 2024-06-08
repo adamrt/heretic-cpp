@@ -31,8 +31,6 @@ public:
     glm::vec3 rotation = { 0.0f, 0.0f, 0.0f };
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
-    glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
-
     // Rendering
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Texture> texture;
