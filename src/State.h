@@ -6,6 +6,8 @@
 #include "sokol_gfx.h"
 
 #include "Camera.h"
+#include "GUI.h"
+#include "Renderer.h"
 #include "Scene.h"
 
 class State {
@@ -18,13 +20,16 @@ public:
 
     static State* get_instance()
     {
-        if (instance == nullptr)
+        if (instance == nullptr) {
             instance = new State();
+        }
         return instance;
     }
 
     static State* instance;
 
+    Renderer renderer;
+    GUI gui;
     Scene scene;
     Camera camera;
 

@@ -6,8 +6,6 @@ Model::~Model()
 {
     sg_destroy_pipeline(pipeline);
     sg_destroy_shader(shader);
-
-    std::cout << "Destroying Model" << std::endl;
 }
 
 Model::Model(std::shared_ptr<Mesh> _mesh)
