@@ -7,20 +7,23 @@ LDLIBS = -lGL -ldl -lm -lX11 -lXi -lXcursor -lstdc++ -lglfw
 INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util -Ilib/glm -Ilib/stb
 TARGET=starterkit
 
+SRC_FILES = src/main.cpp src/Camera.cpp src/Model.cpp src/Light.cpp src/Scene.cpp src/Texture.cpp src/Mesh.cpp src/State.cpp
+OBJ_FILES = $(SRC_FILES:.cpp=.o)
+
 IMGUI_CXXFLAGS=-std=c++11 -Ilib/imgui -Ilib/imgui/backends
 IMGUI_SOURCES=$(wildcard lib/imgui/*.cpp) \
 				lib/imgui/backends/imgui_impl_glfw.cpp \
 				lib/imgui/backends/imgui_impl_opengl3.cpp
 IMGUI_OBJECTS=$(IMGUI_SOURCES:.cpp=.o)
 
-$(TARGET): src/main.cpp src/Camera.cpp src/Model.cpp src/Light.cpp src/Scene.cpp src/Texture.cpp src/Mesh.cpp src/State.cpp $(IMGUI_OBJECTS)
+$(TARGET): $(OBJ_FILES) $(IMGUI_OBJECTS)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDLIBS) $(LDFLAGS) $(INCLUDES)
 
 $(IMGUI_OBJECTS): %.o: %.cpp
 	$(CXX) -c $< -o $@ $(IMGUI_CXXFLAGS)
 
 %.o: %.cpp
-	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDLIBS) $(INCLUDES)
+	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDLIBS) $(LDFLAGS) $(INCLUDES)
 
 clean:
 	@rm -f lib/imgui/*.o $(TARGET)
