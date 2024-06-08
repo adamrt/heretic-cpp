@@ -80,21 +80,20 @@ auto input(sapp_event const* event) -> void
 auto frame() -> void
 {
     auto state = State::get_instance();
-
     const float delta = (float)sapp_frame_duration();
+
+    // Update
+    state->camera.update();
+    state->scene.update(delta);
     for (auto& model : state->scene.models) {
         model->rotation += state->rotation_speed * delta;
         model->update(delta);
     }
 
-    state->camera.update();
-    state->scene.update(delta);
-
+    // Render
     state->renderer.begin_frame();
-    {
-        state->scene.render();
-        state->gui.render();
-    }
+    state->scene.render();
+    state->gui.render();
     state->renderer.end_frame();
 }
 
