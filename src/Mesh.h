@@ -16,8 +16,11 @@ class Mesh {
 public:
     Mesh(std::string filename);
 
+    glm::vec3 normalized_scale() const;
+    glm::vec3 center_translation() const;
+
     std::vector<Vertex> parse_obj(const std::string filename);
 
     sg_buffer vertex_buffer;
-    int num_vertices;
+    std::vector<Vertex> vertices;
 };

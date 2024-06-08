@@ -9,19 +9,14 @@
 
 #include "Mesh.h"
 
-// pos3 + norm3 + uv2
-const int vertex_size = 8;
-
 Mesh::Mesh(std::string filename)
 {
-    std::vector<Vertex> vertices = parse_obj(filename);
+    vertices = parse_obj(filename);
 
     sg_buffer_desc vbuf_desc = {};
     vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(Vertex) };
     vbuf_desc.label = "vertex-buffer";
     vertex_buffer = sg_make_buffer(&vbuf_desc);
-
-    num_vertices = vertices.size();
 }
 
 std::vector<Vertex> Mesh::parse_obj(const std::string filename)
@@ -125,67 +120,59 @@ std::vector<Vertex> Mesh::parse_obj(const std::string filename)
 
 // normalized_scale returns a glm::vec3 that can be used to scale the mesh
 // to (-1, 1) on each coordinate.
-// glm::vec3 Mesh::normalized_scale() const
-// {
-//     if (triangles.empty()) {
-//         return glm::vec3(1.0f, 1.0f, 1.0f);
-//     }
+glm::vec3 Mesh::normalized_scale() const
+{
+    float min_x = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::min();
+    float min_y = std::numeric_limits<float>::max();
+    float max_y = std::numeric_limits<float>::min();
+    float min_z = std::numeric_limits<float>::max();
+    float max_z = std::numeric_limits<float>::min();
 
-//     float min_x = std::numeric_limits<float>::max();
-//     float max_x = std::numeric_limits<float>::min();
-//     float min_y = std::numeric_limits<float>::max();
-//     float max_y = std::numeric_limits<float>::min();
-//     float min_z = std::numeric_limits<float>::max();
-//     float max_z = std::numeric_limits<float>::min();
+    for (const auto& vertex : vertices) {
+        min_x = std::min(min_x, vertex.position.x);
+        max_x = std::max(max_x, vertex.position.x);
+        min_y = std::min(min_y, vertex.position.y);
+        max_y = std::max(max_y, vertex.position.y);
+        min_z = std::min(min_z, vertex.position.z);
+        max_z = std::max(max_z, vertex.position.z);
+    }
 
-//     for (const auto& triangle : triangles) {
-//         for (const auto& vertex : triangle.vertices) {
-//             min_x = std::min(min_x, vertex.position.x);
-//             max_x = std::max(max_x, vertex.position.x);
-//             min_y = std::min(min_y, vertex.position.y);
-//             max_y = std::max(max_y, vertex.position.y);
-//             min_z = std::min(min_z, vertex.position.z);
-//             max_z = std::max(max_z, vertex.position.z);
-//         }
-//     }
+    float size_x = max_x - min_x;
+    float size_y = max_y - min_y;
+    float size_z = max_z - min_z;
 
-//     float size_x = max_x - min_x;
-//     float size_y = max_y - min_y;
-//     float size_z = max_z - min_z;
+    float largest_dimension = std::max({ size_x, size_y, size_z });
+    float scaling_factor = 2.0f / largest_dimension;
 
-//     float largest_dimension = std::max({ size_x, size_y, size_z });
-//     float scaling_factor = 2.0f / largest_dimension;
+    return glm::vec3(scaling_factor, scaling_factor, scaling_factor);
+}
 
-//     return glm::vec3(scaling_factor, scaling_factor, scaling_factor);
-// }
+// center_translation returns a glm::vec3 that can be used to translate the
+// mesh to the center of (0, 0).
+glm::vec3 Mesh::center_translation() const
+{
+    float min_x = std::numeric_limits<float>::max();
+    float max_x = std::numeric_limits<float>::min();
+    float min_y = std::numeric_limits<float>::max();
+    float max_y = std::numeric_limits<float>::min();
+    float min_z = std::numeric_limits<float>::max();
+    float max_z = std::numeric_limits<float>::min();
 
-// // center_translation returns a glm::vec3 that can be used to translate the
-// // mesh to the center of (0, 0).
-// glm::vec3 Mesh::center_translation() const
-// {
-//     float min_x = std::numeric_limits<float>::max();
-//     float max_x = std::numeric_limits<float>::min();
-//     float min_y = std::numeric_limits<float>::max();
-//     float max_y = std::numeric_limits<float>::min();
-//     float min_z = std::numeric_limits<float>::max();
-//     float max_z = std::numeric_limits<float>::min();
+    for (auto& vertex : vertices) {
+        // Min
+        min_x = std::min(vertex.position.x, min_x);
+        min_y = std::min(vertex.position.y, min_y);
+        min_z = std::min(vertex.position.z, min_z);
+        // Max
+        max_x = std::max(vertex.position.x, max_x);
+        max_y = std::max(vertex.position.y, max_y);
+        max_z = std::max(vertex.position.z, max_z);
+    }
 
-//     for (auto& t : triangles) {
-//         for (int i = 0; i < 3; i++) {
-//             // Min
-//             min_x = std::min(t.vertices[i].position.x, min_x);
-//             min_y = std::min(t.vertices[i].position.y, min_y);
-//             min_z = std::min(t.vertices[i].position.z, min_z);
-//             // max
-//             max_x = std::max(t.vertices[i].position.x, max_x);
-//             max_y = std::max(t.vertices[i].position.y, max_y);
-//             max_z = std::max(t.vertices[i].position.z, max_z);
-//         }
-//     }
+    float x = -(max_x + min_x) / 2.0;
+    float y = -(max_y + min_y) / 2.0;
+    float z = -(max_z + min_z) / 2.0;
 
-//     float x = -(max_x + min_x) / 2.0;
-//     float y = -(max_y + min_y) / 2.0;
-//     float z = -(max_z + min_z) / 2.0;
-
-//     return glm::vec3(x, y, z);
-// }
+    return glm::vec3(x, y, z);
+}
