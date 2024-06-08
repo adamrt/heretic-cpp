@@ -1,8 +1,19 @@
 #pragma once
 
+#include "Mesh.h"
+#include "Model.h"
 #include "glm/glm.hpp"
+#include "glm/matrix.hpp"
 
-struct Light {
-    glm::vec4 position;
-    glm::vec4 color;
+class Light : public Model {
+public:
+    Light(std::shared_ptr<Mesh> _mesh, glm::vec3 _position, glm::vec4 _color)
+        : Model(_mesh)
+    {
+        translation = _position;
+        color = _color;
+        scale = glm::vec3(0.3f, 0.3f, 0.3f);
+    }
+
+    auto render() -> void override;
 };

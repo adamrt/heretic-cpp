@@ -35,8 +35,9 @@ uniform fs_standard_params {
 };
 
 uniform fs_light_params {
-    vec4 position[3];
-    vec4 color[3];
+    vec4 position[10];
+    vec4 color[10];
+    int  u_num_lights;
 } dir_lights;
 
 uniform texture2D tex;
@@ -66,7 +67,7 @@ void main() {
         if (u_use_lighting == 1) {
             vec3 norm = normalize(v_normal);
             vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
-            for (int i = 0; i < 3; i++) {
+            for (int i = 0; i < dir_lights.u_num_lights; i++) {
                 vec3 direction = normalize(dir_lights.position[i].xyz - v_position.xyz);
                 float intensity = max(dot(norm, direction), 0.0);
                 diffuse_light += dir_lights.color[i] * intensity;
@@ -80,4 +81,18 @@ void main() {
 }
 @end
 
+@fs light_fs
+in vec4 v_position;
+in vec3 v_normal;
+in vec2 v_uv;
+in vec4 v_color;
+
+out vec4 frag_color;
+
+void main() {
+     frag_color = v_color;
+}
+@end
+
 @program standard vs fs
+@program light    vs light_fs

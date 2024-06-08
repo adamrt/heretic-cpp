@@ -2,14 +2,16 @@
 
 #include <vector>
 
+#include "Light.h"
 #include "Model.h"
 
 class Scene {
 public:
-    auto add_renderable(std::shared_ptr<Model> renderable) -> void;
-    auto update(float delta_time, float rotation_speed) -> void;
+    auto add_model(std::shared_ptr<Model> renderable) -> void;
+    auto add_light(std::shared_ptr<Light> light) -> void;
+    auto update(float delta_time) -> void;
     auto render() -> void;
 
-private:
-    std::vector<std::shared_ptr<Model>> renderables;
+    std::vector<std::shared_ptr<Model>> models;
+    std::vector<std::shared_ptr<Light>> lights;
 };

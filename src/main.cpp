@@ -57,10 +57,17 @@ auto gui_init() -> void
 
 auto world_init() -> void
 {
-    auto texture = std::make_shared<Texture>("res/cube.png");
-    auto mesh = std::make_shared<Mesh>("res/cube.obj");
-    auto renderable = std::make_shared<Model>(mesh, texture);
-    state->scene.add_renderable(renderable);
+    auto light_mesh = std::make_shared<Mesh>("res/cube.obj");
+
+    auto model_texture = std::make_shared<Texture>("res/cube.png");
+    auto model_mesh = std::make_shared<Mesh>("res/cube.obj");
+    auto model = std::make_shared<Model>(model_mesh, model_texture);
+
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 40.0f, 0.0f, 0.0f, 0.0f }, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f }));
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 40.0f, 0.0f, 0.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }));
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 0.0f, 40.0f, 0.0f }, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f }));
+
+    state->scene.add_model(model);
 }
 
 auto gui_draw() -> void
@@ -96,15 +103,18 @@ auto gui_draw() -> void
         ImGui::ColorEdit4("Ambient Color", &state->ambient_color[0]);
         ImGui::SliderFloat("Ambient Strength", &state->ambient_strength, 0.0f, 1.0f);
 
-        for (int i = 0; i < 3; i++) {
+        for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);
             char title[10];
-            sprintf(title, "Light %d", i);
+            sprintf(title, "Light %d", (int)i);
             ImGui::SeparatorText(title);
-            ImGui::SliderFloat4("Position", &state->lights[i].position[0], -50.0f, 50.0f, "%0.2f", 0);
-            ImGui::ColorEdit4("Color", &state->lights[i].color[0], ImGuiColorEditFlags_None);
+            ImGui::SliderFloat3("Position", &state->scene.lights[i]->translation[0], -50.0f, 50.0f, "%0.2f", 0);
+            ImGui::ColorEdit4("Color", &state->scene.lights[i]->color[0], ImGuiColorEditFlags_None);
             ImGui::PopID();
         }
+    }
+    if (ImGui::Button("Delete Light")) {
+        state->scene.lights.pop_back();
     }
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
@@ -151,10 +161,14 @@ auto input(sapp_event const* event) -> void
 auto frame() -> void
 {
 
-    const float t = (float)sapp_frame_duration();
+    const float delta = (float)sapp_frame_duration();
+    for (auto& model : state->scene.models) {
+        model->rotation += state->rotation_speed * delta;
+        model->update(delta);
+    }
 
     state->camera.update();
-    state->scene.update(t, state->rotation_speed);
+    state->scene.update(delta);
 
     simgui_new_frame({
         sapp_width(),

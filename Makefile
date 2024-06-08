@@ -13,8 +13,8 @@ IMGUI_SOURCES=$(wildcard lib/imgui/*.cpp) \
 				lib/imgui/backends/imgui_impl_opengl3.cpp
 IMGUI_OBJECTS=$(IMGUI_SOURCES:.cpp=.o)
 
-$(TARGET): src/main.cpp src/Camera.cpp src/Model.cpp src/Scene.cpp src/Texture.cpp src/Mesh.cpp src/State.cpp $(IMGUI_OBJECTS)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDLIBS) $(INCLUDES)
+$(TARGET): src/main.cpp src/Camera.cpp src/Model.cpp src/Light.cpp src/Scene.cpp src/Texture.cpp src/Mesh.cpp src/State.cpp $(IMGUI_OBJECTS)
+	$(CXX) -o $@ $^ $(CXXFLAGS) $(LDLIBS) $(LDFLAGS) $(INCLUDES)
 
 $(IMGUI_OBJECTS): %.o: %.cpp
 	$(CXX) -c $< -o $@ $(IMGUI_CXXFLAGS)

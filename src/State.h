@@ -6,7 +6,6 @@
 #include "sokol_gfx.h"
 
 #include "Camera.h"
-#include "Light.h"
 #include "Scene.h"
 
 class State {
@@ -36,10 +35,4 @@ public:
     float ambient_strength = 0.2f;
     int render_mode = 0;
     bool use_lighting = true;
-
-    std::array<Light, 3> lights = {
-        Light { glm::vec4 { 40.0f, 0.0f, 0.0f, 0.0f }, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f } },
-        Light { glm::vec4 { 0.0f, 40.0f, 0.0f, 0.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f } },
-        Light { glm::vec4 { 0.0f, 0.0f, 40.0f, 0.0f }, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f } },
-    };
 };

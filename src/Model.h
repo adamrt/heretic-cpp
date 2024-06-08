@@ -16,27 +16,27 @@
 
 #include "shader.glsl.h"
 
-float random_float(float min, float max);
-
 class Model {
 public:
     Model(std::shared_ptr<Mesh> mesh, std::shared_ptr<Texture>);
+    Model(std::shared_ptr<Mesh> _mesh);
+    Model() = delete;
     ~Model();
 
-    auto render() -> void;
-    auto update(float delta_time, float rotation_speed) -> void;
-    auto set_model_matrix(const glm::mat4& matrix) -> void;
-    auto translate(const glm::vec3& translation) -> void;
-    auto rotate(float angle, const glm::vec3& axis) -> void;
-    auto scale(const glm::vec3& scaling_factors) -> void;
-    auto scale(float f) -> void;
+    virtual auto render() -> void;
+    virtual auto update(float delta_time) -> void;
 
-private:
+    glm::vec3 scale = { 1.0f, 1.0f, 1.0f };
+    glm::vec3 translation = { 0.0f, 0.0f, 0.0f };
+    glm::vec3 rotation = { 0.0f, 0.0f, 0.0f };
+    glm::mat4 model_matrix = glm::mat4(1.0f);
+
+    glm::vec4 color = { 1.0f, 1.0f, 1.0f, 1.0f };
+
+    // Rendering
     std::shared_ptr<Mesh> mesh;
     std::shared_ptr<Texture> texture;
     sg_shader shader = {};
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
-    glm::mat4 model_matrix = { 1.0f };
-    float rspeed;
 };
