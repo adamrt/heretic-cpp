@@ -57,17 +57,15 @@ auto gui_init() -> void
 
 auto world_init() -> void
 {
-    auto light_mesh = std::make_shared<Mesh>("res/cube.obj");
-
     auto model_texture = std::make_shared<Texture>("res/cube.png");
     auto model_mesh = std::make_shared<Mesh>("res/cube.obj");
     auto model = std::make_shared<Model>(model_mesh, model_texture);
+    state->scene.add_model(model);
 
+    auto light_mesh = std::make_shared<Mesh>("res/cube.obj");
     state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 20.0f, 0.0f, 0.0f, 0.0f }, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f }));
     state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 20.0f, 0.0f, 0.0f }, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }));
     state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 0.0f, 20.0f, 0.0f }, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f }));
-
-    state->scene.add_model(model);
 }
 
 auto gui_draw() -> void
