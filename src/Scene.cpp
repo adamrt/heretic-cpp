@@ -12,9 +12,9 @@ auto Scene::update(float delta_time, float rotation_speed) -> void
     }
 }
 
-auto Scene::render(const glm::mat4& view_proj) -> void
+auto Scene::render() -> void
 {
     for (auto& renderable : renderables) {
-        renderable->render(view_proj);
+        renderable->render();
     }
 }

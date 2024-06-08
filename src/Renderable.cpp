@@ -1,5 +1,6 @@
 
 #include "Renderable.h"
+#include "State.h"
 
 float random_float(float min, float max)
 {
@@ -17,10 +18,9 @@ Renderable::~Renderable()
     std::cout << "Destroying Renderable" << std::endl;
 }
 
-Renderable::Renderable(State& _state, std::shared_ptr<Mesh> resources, std::shared_ptr<Texture> tex)
-    : state(_state)
-    , shared_resources(resources)
-    , texture(tex)
+Renderable::Renderable(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture)
+    : mesh(_mesh)
+    , texture(_texture)
 {
     shader = sg_make_shader(standard_shader_desc(sg_query_backend()));
 
@@ -40,30 +40,31 @@ Renderable::Renderable(State& _state, std::shared_ptr<Mesh> resources, std::shar
 
     pipeline = sg_make_pipeline(&pip_desc);
 
-    bindings.vertex_buffers[0] = resources->vertex_buffer;
+    bindings.vertex_buffers[0] = mesh->vertex_buffer;
 
     rspeed = random_float(-5.0f, 5.0f);
 }
 
-auto Renderable::render(const glm::mat4& view_proj) -> void
+auto Renderable::render() -> void
 {
+    auto state = State::get_instance();
     vs_standard_params_t vs_params;
-    vs_params.u_view_proj = view_proj;
+    vs_params.u_view_proj = state->camera.view_proj();
     vs_params.u_model = model_matrix;
 
     fs_standard_params_t fs_params;
-    fs_params.u_ambient_color = state.ambient_color;
-    fs_params.u_ambient_strength = state.ambient_strength;
-    fs_params.u_render_mode = state.render_mode;
-    fs_params.u_use_lighting = state.use_lighting;
+    fs_params.u_ambient_color = state->ambient_color;
+    fs_params.u_ambient_strength = state->ambient_strength;
+    fs_params.u_render_mode = state->render_mode;
+    fs_params.u_use_lighting = state->use_lighting;
 
     fs_light_params_t light_params;
-    light_params.color[0] = state.lights[0].color;
-    light_params.color[1] = state.lights[1].color;
-    light_params.color[2] = state.lights[2].color;
-    light_params.position[0] = state.lights[0].position;
-    light_params.position[1] = state.lights[1].position;
-    light_params.position[2] = state.lights[2].position;
+    light_params.color[0] = state->lights[0].color;
+    light_params.color[1] = state->lights[1].color;
+    light_params.color[2] = state->lights[2].color;
+    light_params.position[0] = state->lights[0].position;
+    light_params.position[1] = state->lights[1].position;
+    light_params.position[2] = state->lights[2].position;
 
     bindings.fs.images[SLOT_tex] = texture->image;
     bindings.fs.samplers[SLOT_smp] = texture->sampler;
@@ -77,7 +78,7 @@ auto Renderable::render(const glm::mat4& view_proj) -> void
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &vs_range);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_standard_params, &fs_range);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_light_params, &light_range);
-    sg_draw(0, shared_resources->num_indices, 1);
+    sg_draw(0, mesh->num_indices, 1);
 }
 
 auto Renderable::update(float delta_time, float rotation_speed) -> void
