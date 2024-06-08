@@ -14,24 +14,24 @@ const int vertex_size = 8;
 
 Mesh::Mesh(std::string filename)
 {
-    auto vertices = parse_obj(filename);
+    std::vector<Vertex> vertices = parse_obj(filename);
 
     sg_buffer_desc vbuf_desc = {};
-    vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(float) };
+    vbuf_desc.data = sg_range { vertices.data(), vertices.size() * sizeof(Vertex) };
     vbuf_desc.label = "vertex-buffer";
     vertex_buffer = sg_make_buffer(&vbuf_desc);
 
-    num_indices = vertices.size() / vertex_size;
+    num_vertices = vertices.size();
 }
 
-std::vector<float> Mesh::parse_obj(const std::string filename)
+std::vector<Vertex> Mesh::parse_obj(const std::string filename)
 {
     FILE* file = fopen(filename.c_str(), "r");
     if (!file) {
         std::cerr << "Error opening file: " << filename << std::endl;
         return {};
     }
-    std::vector<float> results;
+    std::vector<Vertex> results;
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> normals;
     std::vector<glm::vec2> texcoords;
@@ -78,17 +78,11 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
                     }
 
                     for (int i = 0; i < 3; i++) {
-                        auto v = positions[position_indices[i] - 1];
-                        auto n = normals[normal_indices[i] - 1];
-                        auto u = texcoords[texcoord_indices[i] - 1];
-                        results.push_back(v.x);
-                        results.push_back(v.y);
-                        results.push_back(v.z);
-                        results.push_back(n.x);
-                        results.push_back(n.y);
-                        results.push_back(n.z);
-                        results.push_back(u.x);
-                        results.push_back(u.y);
+                        Vertex v;
+                        v.position = positions[position_indices[i] - 1];
+                        v.normal = normals[normal_indices[i] - 1];
+                        v.tex_coords = texcoords[texcoord_indices[i] - 1];
+                        results.push_back(v);
                     }
 
                 } else if (count == 8) { // Quad
@@ -105,31 +99,19 @@ std::vector<float> Mesh::parse_obj(const std::string filename)
                     }
 
                     for (int i : { 0, 1, 2 }) {
-                        auto v = positions[position_indices[i] - 1];
-                        auto n = normals[normal_indices[i] - 1];
-                        auto u = texcoords[texcoord_indices[i] - 1];
-                        results.push_back(v.x);
-                        results.push_back(v.y);
-                        results.push_back(v.z);
-                        results.push_back(n.x);
-                        results.push_back(n.y);
-                        results.push_back(n.z);
-                        results.push_back(u.x);
-                        results.push_back(u.y);
+                        Vertex v;
+                        v.position = positions[position_indices[i] - 1];
+                        v.normal = normals[normal_indices[i] - 1];
+                        v.tex_coords = texcoords[texcoord_indices[i] - 1];
+                        results.push_back(v);
                     }
 
                     for (int i : { 0, 2, 3 }) {
-                        auto v = positions[position_indices[i] - 1];
-                        auto n = normals[normal_indices[i] - 1];
-                        auto u = texcoords[texcoord_indices[i] - 1];
-                        results.push_back(v.x);
-                        results.push_back(v.y);
-                        results.push_back(v.z);
-                        results.push_back(n.x);
-                        results.push_back(n.y);
-                        results.push_back(n.z);
-                        results.push_back(u.x);
-                        results.push_back(u.y);
+                        Vertex v;
+                        v.position = positions[position_indices[i] - 1];
+                        v.normal = normals[normal_indices[i] - 1];
+                        v.tex_coords = texcoords[texcoord_indices[i] - 1];
+                        results.push_back(v);
                     }
                 } else {
                     std::cerr << "Unknown face format: " << count << line << std::endl;

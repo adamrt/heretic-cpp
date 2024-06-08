@@ -18,5 +18,5 @@ auto Light::render() -> void
     sg_range fs_range = SG_RANGE(fs_params);
     sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &vs_range);
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_colored_params, &fs_range);
-    sg_draw(0, mesh->num_indices, 1);
+    sg_draw(0, mesh->num_vertices, 1);
 }
