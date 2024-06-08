@@ -17,7 +17,7 @@ out vec2 v_uv;
 
 void main() {
     v_position = u_model * vec4(a_position, 1.0);
-    v_normal = mat3(transpose(inverse(u_model))) * a_normal;
+    v_normal = normalize(mat3(transpose(inverse(u_model))) * a_normal);
     v_uv = a_uv;
     gl_Position = u_view_proj * u_model * vec4(a_position, 1.0);
 }
