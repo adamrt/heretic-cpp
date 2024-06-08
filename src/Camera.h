@@ -1,8 +1,7 @@
 #pragma once
 
-#include "sokol_app.h"
-
 #include "glm/glm.hpp"
+#include "sokol_app.h"
 
 enum class Projection : int {
     Perspective = 0,

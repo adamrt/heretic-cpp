@@ -5,9 +5,9 @@
 #include <string>
 #include <utility>
 
-#include "glm/glm.hpp"
-
 #include "Mesh.h"
+
+#include "glm/glm.hpp"
 
 Mesh::Mesh(std::string filename)
 {

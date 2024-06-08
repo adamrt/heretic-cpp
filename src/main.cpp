@@ -2,12 +2,14 @@
 #include <iostream>
 #include <memory>
 
-// Project
 #include "Camera.h"
 #include "Light.h"
 #include "Model.h"
 #include "State.h"
 #include "Texture.h"
+
+// GLM
+#include "glm/glm.hpp"
 
 // Sokol
 #define SOKOL_IMPL
@@ -21,9 +23,6 @@
 #define SOKOL_IMGUI_IMPL
 #include "imgui.h"
 #include "sokol_imgui.h"
-
-// GLM
-#include "glm/glm.hpp"
 
 auto init() -> void
 {

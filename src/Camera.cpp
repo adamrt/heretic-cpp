@@ -1,8 +1,7 @@
 #include "Camera.h"
 
-#include "glm/glm.hpp"
-
 #include "glm/ext/matrix_transform.hpp"
+#include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
 auto Camera::orbit(float dx, float dy) -> void

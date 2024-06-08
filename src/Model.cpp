@@ -1,4 +1,3 @@
-
 #include "Model.h"
 #include "State.h"
 

@@ -1,3 +1,6 @@
+#include "GUI.h"
+#include "State.h"
+
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_log.h"
@@ -5,9 +8,6 @@
 #define SOKOL_GLCORE
 #include "imgui.h"
 #include "sokol_imgui.h"
-
-#include "GUI.h"
-#include "State.h"
 
 GUI::GUI()
 {

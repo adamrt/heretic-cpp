@@ -7,14 +7,12 @@
 
 #include "Mesh.h"
 #include "Texture.h"
-
-#include "sokol_gfx.h"
+#include "shader.glsl.h"
 
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-
-#include "shader.glsl.h"
+#include "sokol_gfx.h"
 
 class Model {
 public:

@@ -3,12 +3,12 @@
 #include <array>
 #include <iostream>
 
-#include "sokol_gfx.h"
-
 #include "Camera.h"
 #include "GUI.h"
 #include "Renderer.h"
 #include "Scene.h"
+
+#include "sokol_gfx.h"
 
 class State {
 private:

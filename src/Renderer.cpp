@@ -1,11 +1,11 @@
+#include "Renderer.h"
+#include "State.h"
+
 #define SOKOL_GLCORE
 #include "sokol_app.h"
 #include "sokol_gfx.h"
 #include "sokol_glue.h"
 #include "sokol_log.h"
-
-#include "Renderer.h"
-#include "State.h"
 
 Renderer::Renderer()
 {
