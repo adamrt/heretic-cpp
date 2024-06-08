@@ -9,6 +9,14 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
+float rnd(float min, float max)
+{
+    std::random_device rd;                          // Obtain a random number from hardware
+    std::mt19937 gen(rd());                         // Seed the generator
+    std::uniform_real_distribution<> dis(min, max); // Define the range
+    return dis(gen);                                // Generate the random float
+}
+
 GUI::GUI()
 {
     simgui_desc_t simgui_desc = {};
@@ -67,6 +75,14 @@ auto GUI::draw() -> void
     ImGui::SliderFloat("Rotation", &state->rotation_speed, 0.0f, 2.0f);
     ImGui::ColorEdit3("Background", &state->clear_color.r);
     if (ImGui::CollapsingHeader("Lighting")) {
+        if (ImGui::Button(state->scene.lights.size() < 10 ? "Add Light" : "Max Lights!")) {
+            if (state->scene.lights.size() < 10) {
+                auto position = glm::vec3 { rnd(-20, 20), rnd(-20, 20), rnd(-20, 20) };
+                auto color = glm::vec4 { rnd(0.0, 1.0), rnd(0.0, 1.0), rnd(0.0, 1.0), 1.0f };
+                state->scene.add_light(std::make_shared<Light>(state->light_mesh, position, color));
+            }
+        }
+
         ImGui::Checkbox("Enabled", &state->use_lighting);
         ImGui::ColorEdit4("Ambient Color", &state->ambient_color[0]);
         ImGui::SliderFloat("Ambient Strength", &state->ambient_strength, 0.0f, 1.0f);
@@ -84,6 +100,7 @@ auto GUI::draw() -> void
             ImGui::PopID();
         }
     }
+
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }

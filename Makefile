@@ -27,6 +27,7 @@ $(IMGUI_OBJECTS): %.o: %.cpp
 
 clean:
 	@rm -f lib/imgui/*.o $(TARGET)
+	@rm -f src/*.o
 
 sokol-shdc:
 	wget -q https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
