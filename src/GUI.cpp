@@ -80,7 +80,7 @@ auto GUI::draw() -> void
             if (state->scene.lights.size() < 10) {
                 auto position = glm::vec3 { rnd(-20, 20), rnd(-20, 20), rnd(-20, 20) };
                 auto color = glm::vec4 { rnd(0.0, 1.0), rnd(0.0, 1.0), rnd(0.0, 1.0), 1.0f };
-                auto light = std::make_shared<ColoredModel>(state->light_mesh, color, position);
+                auto light = std::make_shared<Light>(state->light_mesh, color, position);
                 light->scale = glm::vec3(0.3f);
                 state->scene.add_light(light);
             }

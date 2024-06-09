@@ -52,3 +52,10 @@ public:
 
     glm::vec4 color = {};
 };
+
+// Light is just a ColoredModel with a smaller scale. It always uses the cube
+// mesh, so we might want to implicitly provide it in the future.
+class Light : public ColoredModel {
+public:
+    Light(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+};

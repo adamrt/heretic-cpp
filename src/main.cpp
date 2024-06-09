@@ -35,12 +35,9 @@ auto init() -> void
     auto light_mesh = std::make_shared<Mesh>("res/cube.obj");
     state->light_mesh = light_mesh; // Allows GUI to add lights
 
-    state->scene.add_light(std::make_shared<ColoredModel>(light_mesh, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f }, glm::vec4 { 20.0f, 0.0f, 0.0f, 0.0f }));
-    state->scene.add_light(std::make_shared<ColoredModel>(light_mesh, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }, glm::vec4 { 0.0f, 20.0f, 0.0f, 0.0f }));
-    state->scene.add_light(std::make_shared<ColoredModel>(light_mesh, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f }, glm::vec4 { 0.0f, 0.0f, 20.0f, 0.0f }));
-    for (auto& light : state->scene.lights) {
-        light->scale = glm::vec3(0.3f);
-    }
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f }, glm::vec4 { 20.0f, 0.0f, 0.0f, 0.0f }));
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }, glm::vec4 { 0.0f, 20.0f, 0.0f, 0.0f }));
+    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f }, glm::vec4 { 0.0f, 0.0f, 20.0f, 0.0f }));
 }
 
 auto input(sapp_event const* event) -> void

@@ -6,7 +6,7 @@ auto Scene::add_model(std::shared_ptr<TexturedModel> model) -> void
     models.push_back(model);
 }
 
-auto Scene::add_light(std::shared_ptr<ColoredModel> light) -> void
+auto Scene::add_light(std::shared_ptr<Light> light) -> void
 {
     lights.push_back(light);
 }
