@@ -4,6 +4,7 @@
 
 #include "Camera.h"
 #include "Model.h"
+#include "Pipeline.h"
 #include "ResourceManager.h"
 #include "Shader.h"
 #include "State.h"
@@ -28,9 +29,12 @@
 auto init() -> void
 {
     auto state = State::get_instance();
-    auto resource_manager = ResourceManager::get_instance();
-    resource_manager->add_shader("textured", textured_shader_desc(sg_query_backend()));
-    resource_manager->add_shader("colored", colored_shader_desc(sg_query_backend()));
+    auto resources = ResourceManager::get_instance();
+
+    auto textured_shader = resources->add_shader("textured", std::make_shared<Shader>(textured_shader_desc(sg_query_backend())));
+    auto colored_shader = resources->add_shader("colored", std::make_shared<Shader>(colored_shader_desc(sg_query_backend())));
+    auto textured_pipeline = resources->add_pipeline("textured", std::make_shared<Pipeline>(textured_shader));
+    auto colored_pipeline = resources->add_pipeline("colored", std::make_shared<Pipeline>(colored_shader));
 
     auto model_texture = std::make_shared<Texture>("res/cube.png");
     auto model_mesh = std::make_shared<Mesh>("res/cube.obj");

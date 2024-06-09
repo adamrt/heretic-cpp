@@ -22,22 +22,10 @@ ColoredModel::ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::v
     : Model(_position)
     , color(_color)
 {
+    auto resources = ResourceManager::get_instance();
+
     mesh = _mesh;
-    auto resource_manager = ResourceManager::get_instance();
-
-    sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = resource_manager->get_shader("colored")->getShader();
-    pip_desc.cull_mode = SG_CULLMODE_BACK;
-    pip_desc.face_winding = SG_FACEWINDING_CCW;
-    pip_desc.label = "pipeline";
-    pip_desc.layout.attrs[ATTR_vs_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_standard_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
-    pip_desc.depth.write_enabled = true;
-    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-
-    pipeline = sg_make_pipeline(&pip_desc);
-
+    pipeline = resources->get_pipeline("colored")->get_pipeline();
     bindings.vertex_buffers[0] = mesh->vertex_buffer;
 }
 
@@ -71,24 +59,10 @@ TexturedModel::TexturedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Textur
     : Model(_position)
     , texture(_texture)
 {
+    auto resources = ResourceManager::get_instance();
+
     mesh = _mesh;
-    auto resource_manager = ResourceManager::get_instance();
-
-    sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = resource_manager->get_shader("textured")->getShader();
-    pip_desc.cull_mode = SG_CULLMODE_BACK;
-    pip_desc.face_winding = SG_FACEWINDING_CCW;
-    pip_desc.label = "pipeline";
-    // Unnecessary if data is contiguous
-    // pip_desc.layout.buffers[0].stride = 48;
-    pip_desc.layout.attrs[ATTR_vs_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
-    pip_desc.layout.attrs[ATTR_vs_standard_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
-    pip_desc.depth.write_enabled = true;
-    pip_desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
-
-    pipeline = sg_make_pipeline(&pip_desc);
-
+    pipeline = resources->get_pipeline("textured")->get_pipeline();
     bindings.vertex_buffers[0] = mesh->vertex_buffer;
 }
 auto TexturedModel::render() -> void
