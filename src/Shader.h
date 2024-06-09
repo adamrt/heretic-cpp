@@ -13,5 +13,5 @@ public:
     sg_shader get_shader() const { return shader; }
 
 private:
-    sg_shader shader;
+    sg_shader shader = {};
 };

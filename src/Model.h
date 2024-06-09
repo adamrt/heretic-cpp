@@ -29,7 +29,7 @@ public:
     glm::mat4 model_matrix = glm::mat4(1.0f);
 
     // Rendering
-    std::shared_ptr<Mesh> mesh;
+    std::shared_ptr<Mesh> mesh = nullptr;
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
 };
@@ -40,7 +40,7 @@ public:
 
     auto render() -> void override;
 
-    std::shared_ptr<Texture> texture;
+    std::shared_ptr<Texture> texture = nullptr;
 };
 
 class ColoredModel : public Model {

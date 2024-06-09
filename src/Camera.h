@@ -31,8 +31,8 @@ private:
     float _distance = 15.0f;
     float _latitude = 30.0f;
     float _longitude = 30.0f;
-    glm::vec3 _eye;
-    glm::vec3 _target;
-    glm::mat4 _view;
-    glm::mat4 _proj;
+    glm::vec3 _eye = {};
+    glm::vec3 _target = {};
+    glm::mat4 _view = {};
+    glm::mat4 _proj = {};
 };

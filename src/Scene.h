@@ -11,6 +11,6 @@ public:
     auto update(float delta_time) -> void;
     auto render() -> void;
 
-    std::vector<std::shared_ptr<TexturedModel>> models;
-    std::vector<std::shared_ptr<Light>> lights;
+    std::vector<std::shared_ptr<TexturedModel>> models = {};
+    std::vector<std::shared_ptr<Light>> lights = {};
 };

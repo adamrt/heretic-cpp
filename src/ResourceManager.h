@@ -21,6 +21,6 @@ public:
 private:
     ResourceManager() { }
     static ResourceManager* instance;
-    std::map<std::string, std::shared_ptr<Shader>> shaders;
-    std::map<std::string, std::shared_ptr<Pipeline>> pipelines;
+    std::map<std::string, std::shared_ptr<Shader>> shaders = {};
+    std::map<std::string, std::shared_ptr<Pipeline>> pipelines = {};
 };

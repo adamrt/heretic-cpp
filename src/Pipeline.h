@@ -17,5 +17,5 @@ public:
     sg_pipeline get_pipeline() const { return pipeline; }
 
 private:
-    sg_pipeline pipeline;
+    sg_pipeline pipeline = {};
 };

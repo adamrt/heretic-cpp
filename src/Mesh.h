@@ -21,6 +21,6 @@ public:
 
     std::vector<Vertex> parse_obj(const std::string filename);
 
-    sg_buffer vertex_buffer;
-    std::vector<Vertex> vertices;
+    sg_buffer vertex_buffer = {};
+    std::vector<Vertex> vertices = {};
 };
