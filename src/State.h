@@ -11,9 +11,6 @@
 #include "sokol_gfx.h"
 
 class State {
-private:
-    State() = default;
-
 public:
     State(const State&) = delete;
     State& operator=(const State&) = delete;
@@ -25,9 +22,6 @@ public:
         }
         return instance;
     }
-
-    static State* instance;
-
     Renderer renderer;
     GUI gui;
     Scene scene;
@@ -42,4 +36,8 @@ public:
     float ambient_strength = 0.2f;
     int render_mode = 0;
     bool use_lighting = true;
+
+private:
+    State() {};
+    static State* instance;
 };

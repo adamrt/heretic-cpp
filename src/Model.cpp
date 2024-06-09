@@ -1,10 +1,10 @@
 #include "Model.h"
+#include "ResourceManager.h"
 #include "State.h"
 
 Model::~Model()
 {
     sg_destroy_pipeline(pipeline);
-    sg_destroy_shader(shader);
 }
 
 auto Model::update(float delta_time) -> void
@@ -23,10 +23,10 @@ ColoredModel::ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::v
     , color(_color)
 {
     mesh = _mesh;
-    shader = sg_make_shader(colored_shader_desc(sg_query_backend()));
+    auto resource_manager = ResourceManager::get_instance();
 
     sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = shader;
+    pip_desc.shader = resource_manager->get_shader("colored")->getShader();
     pip_desc.cull_mode = SG_CULLMODE_BACK;
     pip_desc.face_winding = SG_FACEWINDING_CCW;
     pip_desc.label = "pipeline";
@@ -72,10 +72,10 @@ TexturedModel::TexturedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Textur
     , texture(_texture)
 {
     mesh = _mesh;
-    shader = sg_make_shader(textured_shader_desc(sg_query_backend()));
+    auto resource_manager = ResourceManager::get_instance();
 
     sg_pipeline_desc pip_desc = {};
-    pip_desc.shader = shader;
+    pip_desc.shader = resource_manager->get_shader("textured")->getShader();
     pip_desc.cull_mode = SG_CULLMODE_BACK;
     pip_desc.face_winding = SG_FACEWINDING_CCW;
     pip_desc.label = "pipeline";

@@ -4,6 +4,8 @@
 
 #include "Camera.h"
 #include "Model.h"
+#include "ResourceManager.h"
+#include "Shader.h"
 #include "State.h"
 #include "Texture.h"
 
@@ -26,6 +28,9 @@
 auto init() -> void
 {
     auto state = State::get_instance();
+    auto resource_manager = ResourceManager::get_instance();
+    resource_manager->add_shader("textured", textured_shader_desc(sg_query_backend()));
+    resource_manager->add_shader("colored", colored_shader_desc(sg_query_backend()));
 
     auto model_texture = std::make_shared<Texture>("res/cube.png");
     auto model_mesh = std::make_shared<Mesh>("res/cube.obj");

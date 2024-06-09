@@ -30,7 +30,6 @@ public:
 
     // Rendering
     std::shared_ptr<Mesh> mesh;
-    sg_shader shader = {};
     sg_pipeline pipeline = {};
     sg_bindings bindings = {};
 };
