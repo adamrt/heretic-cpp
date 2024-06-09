@@ -26,8 +26,11 @@ $(IMGUI_OBJECTS): %.o: %.cpp
 	$(CXX) -c $< -o $@ $(CXXFLAGS) $(LDLIBS) $(LDFLAGS) $(INCLUDES)
 
 clean:
-	@rm -f lib/imgui/*.o $(TARGET)
 	@rm -f src/*.o
+	@rm -f $(TARGET)
+
+clean-all: clean
+	@rm -f lib/imgui/*.o
 
 sokol-shdc:
 	wget -q https://github.com/floooh/sokol-tools-bin/raw/master/bin/linux/sokol-shdc
