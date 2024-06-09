@@ -1,6 +1,7 @@
 #include "GUI.h"
 #include "Model.h"
 #include "State.h"
+#include "utils.h"
 
 #include "sokol_app.h"
 #include "sokol_gfx.h"
@@ -9,14 +10,6 @@
 #define SOKOL_GLCORE
 #include "imgui.h"
 #include "sokol_imgui.h"
-
-float rnd(float min, float max)
-{
-    std::random_device rd;                          // Obtain a random number from hardware
-    std::mt19937 gen(rd());                         // Seed the generator
-    std::uniform_real_distribution<> dis(min, max); // Define the range
-    return dis(gen);                                // Generate the random float
-}
 
 GUI::GUI()
 {
@@ -78,8 +71,8 @@ auto GUI::draw() -> void
     if (ImGui::CollapsingHeader("Lighting")) {
         if (ImGui::Button(state->scene.lights.size() < 10 ? "Add Light" : "Max Lights!")) {
             if (state->scene.lights.size() < 10) {
-                auto position = glm::vec3 { rnd(-20, 20), rnd(-20, 20), rnd(-20, 20) };
-                auto color = glm::vec4 { rnd(0.0, 1.0), rnd(0.0, 1.0), rnd(0.0, 1.0), 1.0f };
+                auto position = glm::vec3 { rndf(-20, 20), rndf(-20, 20), rndf(-20, 20) };
+                auto color = glm::vec4 { rndf(0.0, 1.0), rndf(0.0, 1.0), rndf(0.0, 1.0), 1.0f };
                 auto light = std::make_shared<Light>(state->light_mesh, color, position);
                 light->scale = glm::vec3(0.3f);
                 state->scene.add_light(light);
