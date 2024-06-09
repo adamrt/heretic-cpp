@@ -11,11 +11,11 @@ auto Model::update(float delta_time) -> void
 {
     (void)delta_time;
     model_matrix = glm::mat4(1.0f);
-    model_matrix = glm::scale(model_matrix, scale);
+    model_matrix = glm::translate(model_matrix, translation);
     model_matrix = glm::rotate(model_matrix, rotation.x, glm::vec3(1.0f, 0.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, rotation.y, glm::vec3(0.0f, 1.0f, 0.0f));
     model_matrix = glm::rotate(model_matrix, rotation.z, glm::vec3(0.0f, 0.0f, 1.0f));
-    model_matrix = glm::translate(model_matrix, translation);
+    model_matrix = glm::scale(model_matrix, scale);
 }
 
 ColoredModel::ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position)
