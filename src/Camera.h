@@ -28,9 +28,9 @@ private:
     auto _euclidean(float latitude, float longitude) -> glm::vec3;
 
     float _fov = 60.0f;
-    float _distance = 5.0f;
-    float _latitude = 0.0f;
-    float _longitude = 0.0f;
+    float _distance = 15.0f;
+    float _latitude = 30.0f;
+    float _longitude = 30.0f;
     glm::vec3 _eye;
     glm::vec3 _target;
     glm::mat4 _view;
