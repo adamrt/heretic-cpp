@@ -40,12 +40,15 @@ auto init() -> void
     auto model_texture = std::make_shared<Texture>("res/cube.png");
     auto model_mesh = std::make_shared<Mesh>("res/cube.obj");
 
+    auto normalized_scale = model_mesh->normalized_scale();
+
     for (int i = 0; i < 128; i++) {
         float x = rndf(-10.0f, 10.0f);
         float y = rndf(-10.0f, 10.0f);
         float z = rndf(-10.0f, 10.0f);
         auto model = std::make_shared<TexturedModel>(model_mesh, model_texture);
         model->translation = glm::vec3(x, y, z);
+        model->scale = normalized_scale;
         state->scene.add_model(model);
     }
 
