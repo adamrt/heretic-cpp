@@ -1,4 +1,4 @@
-TARGET=starterkit
+TARGET=heretic
 
 CXX = gcc
 
@@ -17,7 +17,7 @@ LDFLAGS_RELEASE =
 LDLIBS = -lGL -ldl -lm -lX11 -lXi -lXcursor -lstdc++ -lglfw
 INCLUDES = -Ilib/imgui -Ilib/sokol -Ilib/sokol/util -Ilib/glm -Ilib/stb
 
-SRC_FILES = src/main.cpp src/Camera.cpp src/GUI.cpp src/Shader.cpp src/ResourceManager.cpp src/Pipeline.cpp src/Renderer.cpp src/Model.cpp src/Scene.cpp src/Texture.cpp src/Mesh.cpp src/State.cpp src/utils.cpp src/FFT.cpp
+SRC_FILES = $(wildcard src/*.cpp)
 OBJ_FILES = $(SRC_FILES:.cpp=.o)
 
 IMGUI_CXXFLAGS=-std=c++11 -Ilib/imgui -Ilib/imgui/backends
@@ -61,4 +61,4 @@ shader: sokol-shdc
 bootstrap: sokol-shdc shader
 	git submodule update --init --recursive
 
-.PHONY: bootstrap clean
+.PHONY: bootstrap clean clean-all debug release shader sokol-shdc
