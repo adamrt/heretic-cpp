@@ -32,14 +32,12 @@ auto init() -> void
     auto state = State::get_instance();
 
     BinReader reader("/home/adam/sync/emu/fft.bin");
-    auto map = reader.read_map(49);
-
+    auto map = reader.read_map(12);
     auto map_mesh = std::make_shared<Mesh>(map->vertices);
-
-    auto model = std::make_shared<TexturedModel>(map_mesh, map->texture);
-    model->scale = map_mesh->normalized_scale();
-    model->translation = map_mesh->center_translation();
-    state->scene.add_model(model);
+    auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->palette);
+    map_model->scale = map_mesh->normalized_scale();
+    map_model->translation = map_mesh->center_translation();
+    state->scene.add_model(map_model);
 
     for (std::shared_ptr<Light> light : map->lights) {
         state->scene.add_light(light);
