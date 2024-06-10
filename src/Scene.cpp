@@ -1,7 +1,7 @@
 #include "Scene.h"
 #include "Model.h"
 
-auto Scene::add_model(std::shared_ptr<TexturedModel> model) -> void
+auto Scene::add_model(std::shared_ptr<Model> model) -> void
 {
     models.push_back(model);
 }

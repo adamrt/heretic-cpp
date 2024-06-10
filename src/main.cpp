@@ -6,7 +6,6 @@
 #include "FFT.h"
 #include "Model.h"
 #include "Pipeline.h"
-#include "ResourceManager.h"
 #include "Shader.h"
 #include "State.h"
 #include "Texture.h"
@@ -31,9 +30,6 @@
 auto init() -> void
 {
     auto state = State::get_instance();
-    auto resources = ResourceManager::get_instance();
-
-    auto cube_mesh = resources->add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
 
     BinReader reader("/home/adam/sync/emu/fft.bin");
     auto map = reader.read_map(49);

@@ -14,6 +14,8 @@ ResourceManager::ResourceManager()
 
     auto paletted_shader = add_shader("paletted", std::make_shared<Shader>(paletted_shader_desc(sg_query_backend())));
     add_pipeline("paletted", std::make_shared<Pipeline>(paletted_shader));
+
+    add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
 }
 
 auto ResourceManager::get_instance() -> ResourceManager*
