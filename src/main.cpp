@@ -33,10 +33,6 @@ auto init() -> void
     auto state = State::get_instance();
     auto resources = ResourceManager::get_instance();
 
-    auto textured_shader = resources->add_shader("textured", std::make_shared<Shader>(textured_shader_desc(sg_query_backend())));
-    auto colored_shader = resources->add_shader("colored", std::make_shared<Shader>(colored_shader_desc(sg_query_backend())));
-    auto textured_pipeline = resources->add_pipeline("textured", std::make_shared<Pipeline>(textured_shader));
-    auto colored_pipeline = resources->add_pipeline("colored", std::make_shared<Pipeline>(colored_shader));
     auto cube_mesh = resources->add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
 
     BinReader reader("/home/adam/sync/emu/fft.bin");

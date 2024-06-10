@@ -1,6 +1,20 @@
 #include "ResourceManager.h"
 
+#include "shader.glsl.h"
+
 ResourceManager* ResourceManager::instance = nullptr;
+
+ResourceManager::ResourceManager()
+{
+    auto textured_shader = add_shader("textured", std::make_shared<Shader>(textured_shader_desc(sg_query_backend())));
+    add_pipeline("textured", std::make_shared<Pipeline>(textured_shader));
+
+    auto colored_shader = add_shader("colored", std::make_shared<Shader>(colored_shader_desc(sg_query_backend())));
+    add_pipeline("colored", std::make_shared<Pipeline>(colored_shader));
+
+    auto paletted_shader = add_shader("paletted", std::make_shared<Shader>(paletted_shader_desc(sg_query_backend())));
+    add_pipeline("paletted", std::make_shared<Pipeline>(paletted_shader));
+}
 
 auto ResourceManager::get_instance() -> ResourceManager*
 {

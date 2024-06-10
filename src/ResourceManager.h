@@ -23,7 +23,7 @@ public:
     auto get_mesh(const std::string& name) -> std::shared_ptr<Mesh>;
 
 private:
-    ResourceManager() { }
+    ResourceManager();
     static ResourceManager* instance;
     std::map<std::string, std::shared_ptr<Shader>> shaders = {};
     std::map<std::string, std::shared_ptr<Pipeline>> pipelines = {};
