@@ -39,3 +39,18 @@ auto ResourceManager::get_pipeline(const std::string& name) -> std::shared_ptr<P
     }
     assert(false);
 }
+
+auto ResourceManager::add_mesh(const std::string& name, std::shared_ptr<Mesh> mesh) -> std::shared_ptr<Mesh>
+{
+    meshes[name] = mesh;
+    return mesh;
+}
+
+auto ResourceManager::get_mesh(const std::string& name) -> std::shared_ptr<Mesh>
+{
+    auto it = meshes.find(name);
+    if (it != meshes.end()) {
+        return it->second;
+    }
+    assert(false);
+}

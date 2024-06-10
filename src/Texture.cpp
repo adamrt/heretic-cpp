@@ -21,6 +21,44 @@ Texture::Texture(std::string filename)
     }
 }
 
+// This is for FFT map textures
+Texture::Texture(std::array<uint8_t, TEXTURE_NUM_BYTES> data)
+{
+    sg_sampler_desc sampler_desc = {};
+    sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.min_filter = SG_FILTER_NEAREST;
+    sampler_desc.mag_filter = SG_FILTER_NEAREST;
+    sampler = sg_make_sampler(&sampler_desc);
+
+    sg_image_desc image_desc = {};
+    image_desc.width = TEXTURE_WIDTH;
+    image_desc.height = TEXTURE_HEIGHT;
+    image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+    image_desc.data.subimage[0][0] = { data.data(), static_cast<size_t>(TEXTURE_WIDTH * TEXTURE_HEIGHT * 4) };
+
+    image = sg_make_image(&image_desc);
+}
+
+// This is for FFT Palettes
+Texture::Texture(std::array<uint8_t, PALETTE_NUM_BYTES> data)
+{
+    sg_sampler_desc sampler_desc = {};
+    sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
+    sampler_desc.min_filter = SG_FILTER_NEAREST;
+    sampler_desc.mag_filter = SG_FILTER_NEAREST;
+    sampler = sg_make_sampler(&sampler_desc);
+
+    sg_image_desc image_desc = {};
+    image_desc.width = 256;
+    image_desc.height = 1;
+    image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
+    image_desc.data.subimage[0][0] = { data.data(), PALETTE_NUM_BYTES };
+
+    image = sg_make_image(&image_desc);
+}
+
 Texture::~Texture()
 {
     sg_destroy_image(image);

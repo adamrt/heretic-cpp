@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Camera.h"
+#include "FFT.h"
 #include "Model.h"
 #include "Pipeline.h"
 #include "ResourceManager.h"
@@ -36,28 +37,21 @@ auto init() -> void
     auto colored_shader = resources->add_shader("colored", std::make_shared<Shader>(colored_shader_desc(sg_query_backend())));
     auto textured_pipeline = resources->add_pipeline("textured", std::make_shared<Pipeline>(textured_shader));
     auto colored_pipeline = resources->add_pipeline("colored", std::make_shared<Pipeline>(colored_shader));
+    auto cube_mesh = resources->add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
 
-    auto model_texture = std::make_shared<Texture>("res/cube.png");
-    auto model_mesh = std::make_shared<Mesh>("res/cube.obj");
+    BinReader reader("/home/adam/sync/emu/fft.bin");
+    auto map = reader.read_map(49);
 
-    auto normalized_scale = model_mesh->normalized_scale();
+    auto map_mesh = std::make_shared<Mesh>(map->vertices);
 
-    for (int i = 0; i < 128; i++) {
-        float x = rndf(-10.0f, 10.0f);
-        float y = rndf(-10.0f, 10.0f);
-        float z = rndf(-10.0f, 10.0f);
-        auto model = std::make_shared<TexturedModel>(model_mesh, model_texture);
-        model->translation = glm::vec3(x, y, z);
-        model->scale = normalized_scale;
-        state->scene.add_model(model);
+    auto model = std::make_shared<TexturedModel>(map_mesh, map->texture);
+    model->scale = map_mesh->normalized_scale();
+    model->translation = map_mesh->center_translation();
+    state->scene.add_model(model);
+
+    for (std::shared_ptr<Light> light : map->lights) {
+        state->scene.add_light(light);
     }
-
-    auto light_mesh = std::make_shared<Mesh>("res/cube.obj");
-    state->light_mesh = light_mesh; // Allows GUI to add lights
-
-    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.0f, 0.0f, 1.0f, 1.0f }, glm::vec4 { 20.0f, 0.0f, 0.0f, 0.0f }));
-    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 1.0f, 0.0f, 0.0f, 1.0f }, glm::vec4 { 0.0f, 20.0f, 0.0f, 0.0f }));
-    state->scene.add_light(std::make_shared<Light>(light_mesh, glm::vec4 { 0.5f, 0.5f, 0.5f, 1.0f }, glm::vec4 { 0.0f, 0.0f, 20.0f, 0.0f }));
 }
 
 auto input(sapp_event const* event) -> void

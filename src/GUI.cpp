@@ -1,5 +1,6 @@
 #include "GUI.h"
 #include "Model.h"
+#include "ResourceManager.h"
 #include "State.h"
 #include "utils.h"
 
@@ -41,6 +42,8 @@ auto GUI::render() -> void
 
 auto GUI::draw() -> void
 {
+    auto resources = ResourceManager::get_instance();
+
     auto state = State::get_instance();
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Hello, world!");
@@ -71,10 +74,10 @@ auto GUI::draw() -> void
     if (ImGui::CollapsingHeader("Lighting")) {
         if (ImGui::Button(state->scene.lights.size() < 10 ? "Add Light" : "Max Lights!")) {
             if (state->scene.lights.size() < 10) {
+                auto cube_mesh = resources->get_mesh("cube");
                 auto position = glm::vec3 { rndf(-20, 20), rndf(-20, 20), rndf(-20, 20) };
                 auto color = glm::vec4 { rndf(0.0, 1.0), rndf(0.0, 1.0), rndf(0.0, 1.0), 1.0f };
-                auto light = std::make_shared<Light>(state->light_mesh, color, position);
-                light->scale = glm::vec3(0.3f);
+                auto light = std::make_shared<Light>(cube_mesh, color, position);
                 state->scene.add_light(light);
             }
         }

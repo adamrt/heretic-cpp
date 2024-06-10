@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "Mesh.h"
 #include "Pipeline.h"
 #include "Shader.h"
 
@@ -18,9 +19,13 @@ public:
     auto add_pipeline(const std::string& name, std::shared_ptr<Pipeline> pipeline) -> std::shared_ptr<Pipeline>;
     auto get_pipeline(const std::string& name) -> std::shared_ptr<Pipeline>;
 
+    auto add_mesh(const std::string& name, std::shared_ptr<Mesh> mesh) -> std::shared_ptr<Mesh>;
+    auto get_mesh(const std::string& name) -> std::shared_ptr<Mesh>;
+
 private:
     ResourceManager() { }
     static ResourceManager* instance;
     std::map<std::string, std::shared_ptr<Shader>> shaders = {};
     std::map<std::string, std::shared_ptr<Pipeline>> pipelines = {};
+    std::map<std::string, std::shared_ptr<Mesh>> meshes = {};
 };

@@ -26,7 +26,6 @@ auto Pipeline::standard_desc() -> sg_pipeline_desc
     sg_pipeline_desc desc = {};
     // desc.shader must be populated before sg_make_pipeline();
     desc.cull_mode = SG_CULLMODE_BACK;
-    desc.face_winding = SG_FACEWINDING_CCW;
     desc.label = "pipeline";
     desc.layout.attrs[ATTR_vs_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3;
     desc.layout.attrs[ATTR_vs_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3;

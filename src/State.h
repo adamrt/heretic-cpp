@@ -22,12 +22,10 @@ public:
         }
         return instance;
     }
-    Renderer renderer;
-    GUI gui;
-    Scene scene;
-    Camera camera;
-
-    std::shared_ptr<Mesh> light_mesh;
+    Renderer renderer = {};
+    GUI gui = {};
+    Scene scene = {};
+    Camera camera = {};
 
     float rotation_speed = 0.0f;
     sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
