@@ -553,8 +553,8 @@ auto BinFile::read_texture() -> std::shared_ptr<Texture>
 
     for (int i = 0, j = 0; i < TEXTURE_RAW_SIZE; i++, j += 8) {
         uint8_t raw_pixel = data.at(i);
-        uint8_t right = ((raw_pixel & 0x0F)) * 17;
-        uint8_t left = ((raw_pixel & 0xF0) >> 4) * 17;
+        uint8_t right = ((raw_pixel & 0x0F));
+        uint8_t left = ((raw_pixel & 0xF0) >> 4);
         pixels.at(j + 0) = right;
         pixels.at(j + 1) = right;
         pixels.at(j + 2) = right;
