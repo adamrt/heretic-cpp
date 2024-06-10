@@ -91,3 +91,48 @@ auto TexturedModel::render() -> void
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_textured_params, &fs_range);
     sg_draw(0, mesh->vertices.size(), 1);
 }
+
+PalettedModel::PalettedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture, std::shared_ptr<Texture> _palette, glm::vec3 _position)
+    : Model(_position)
+    , texture(_texture)
+    , palette(_palette)
+{
+    auto resources = ResourceManager::get_instance();
+
+    mesh = _mesh;
+    pipeline = resources->get_pipeline("paletted")->get_pipeline();
+    bindings.vertex_buffers[0] = mesh->vertex_buffer;
+}
+
+auto PalettedModel::render() -> void
+{
+    auto state = State::get_instance();
+    vs_standard_params_t vs_params;
+    vs_params.u_view_proj = state->camera.view_proj();
+    vs_params.u_model = model_matrix;
+
+    fs_paletted_params_t fs_params;
+    fs_params.u_ambient_color = state->ambient_color;
+    fs_params.u_ambient_strength = state->ambient_strength;
+    fs_params.u_render_mode = state->render_mode;
+    fs_params.u_use_lighting = state->use_lighting;
+
+    fs_params.u_light_count = state->scene.lights.size();
+    for (size_t i = 0; i < state->scene.lights.size(); i++) {
+        fs_params.u_light_colors[i] = state->scene.lights[i]->color;
+        fs_params.u_light_positions[i] = glm::vec4(state->scene.lights[i]->translation, 1.0f);
+    }
+
+    bindings.fs.images[SLOT_tex] = texture->image;
+    bindings.fs.images[SLOT_palette] = palette->image;
+    bindings.fs.samplers[SLOT_smp] = texture->sampler;
+
+    sg_apply_pipeline(pipeline);
+    sg_apply_bindings(&bindings);
+
+    sg_range vs_range = SG_RANGE(vs_params);
+    sg_range fs_range = SG_RANGE(fs_params);
+    sg_apply_uniforms(SG_SHADERSTAGE_VS, SLOT_vs_standard_params, &vs_range);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_textured_params, &fs_range);
+    sg_draw(0, mesh->vertices.size(), 1);
+}

@@ -51,10 +51,10 @@ Texture::Texture(std::array<uint8_t, PALETTE_NUM_BYTES> data)
     sampler = sg_make_sampler(&sampler_desc);
 
     sg_image_desc image_desc = {};
-    image_desc.width = 256;
+    image_desc.width = 16 * 16;
     image_desc.height = 1;
     image_desc.pixel_format = SG_PIXELFORMAT_RGBA8;
-    image_desc.data.subimage[0][0] = { data.data(), PALETTE_NUM_BYTES };
+    image_desc.data.subimage[0][0] = { data.data(), static_cast<size_t>(PALETTE_NUM_BYTES) };
 
     image = sg_make_image(&image_desc);
 }

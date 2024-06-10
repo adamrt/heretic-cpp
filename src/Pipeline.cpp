@@ -30,6 +30,7 @@ auto Pipeline::standard_desc() -> sg_pipeline_desc
     desc.layout.attrs[ATTR_vs_standard_a_position].format = SG_VERTEXFORMAT_FLOAT3;
     desc.layout.attrs[ATTR_vs_standard_a_normal].format = SG_VERTEXFORMAT_FLOAT3;
     desc.layout.attrs[ATTR_vs_standard_a_uv].format = SG_VERTEXFORMAT_FLOAT2;
+    desc.layout.attrs[ATTR_vs_standard_a_palette_index].format = SG_VERTEXFORMAT_FLOAT;
     desc.depth.write_enabled = true;
     desc.depth.compare = SG_COMPAREFUNC_LESS_EQUAL;
     return desc;

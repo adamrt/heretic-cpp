@@ -51,6 +51,15 @@ out vec4 frag_color;
 void main() {
     vec4 out_color;
 
+    vec3 norm = normalize(v_normal);
+    vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
+    for (int i = 0; i < u_light_count; i++) {
+        vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
+        float intensity = max(dot(norm, direction), 0.0);
+        diffuse_light += u_light_colors[i] * intensity;
+    }
+    vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
+
     if (u_render_mode == 0) { // Textured
         out_color = texture(sampler2D(tex, smp), v_uv);
     } else if (u_render_mode == 1) { // White
@@ -59,23 +68,10 @@ void main() {
         out_color = vec4(v_normal, 1.0);
     }
 
-    if (u_render_mode == 2) {
-        frag_color = out_color;
-    } else {
-        if (u_use_lighting == 1) {
-            vec3 norm = normalize(v_normal);
-            vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
-            for (int i = 0; i < u_light_count; i++) {
-                vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
-                float intensity = max(dot(norm, direction), 0.0);
-                diffuse_light += u_light_colors[i] * intensity;
-            }
-            vec4 ambient = u_ambient_color * u_ambient_strength;
-            frag_color = (ambient + diffuse_light) * out_color;
-        } else {
-            frag_color = out_color;
-        }
+    if (u_render_mode != 2 && u_use_lighting == 1) {
+        out_color = out_color * light;
     }
+    frag_color = out_color;
 }
 @end
 
@@ -105,7 +101,28 @@ out vec4 frag_color;
 void main() {
     vec4 out_color;
 
-    if (u_render_mode == 0) { // Textured
+    vec3 norm = normalize(v_normal);
+    vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
+    for (int i = 0; i < u_light_count; i++) {
+        vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
+        float intensity = max(dot(norm, direction), 0.0);
+        diffuse_light += u_light_colors[i] * intensity;
+    }
+    vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
+
+    // Draw black for triangles without normals (untextured triangles)
+    if (v_normal.x + v_normal.y + v_normal.z + v_uv.x + v_uv.y == 0.0) {
+        // Draw black for things without normals and uv coords.
+        // The uv coords and normal could actually be 0 so we check them both.
+        frag_color = light * vec4(0.1, 0.1, 0.1, 1.0);
+        return;
+    }
+
+    if (u_render_mode == 0) { // Paletted
+        // This has to be 256.0 instead of 255 (really 255.1 is fine).
+        // And palette_pos needs to be calculated then cast to uint,
+        // not casting each to uint then calculating. Otherwise there
+        // will be distortion in perspective projection on some gpus.
         vec4 tex_color = texture(sampler2D(tex, smp), v_uv) * 256.0;
         uint palette_pos = uint(v_palette_index * 16 + tex_color.r);
         vec4 color = texture(sampler2D(palette, smp), vec2(float(palette_pos) / 255.0, 0.0));
@@ -118,23 +135,11 @@ void main() {
         out_color = vec4(v_normal, 1.0);
     }
 
-    if (u_render_mode == 2) {
-        frag_color = out_color;
-    } else {
-        if (u_use_lighting == 1) {
-            vec3 norm = normalize(v_normal);
-            vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
-            for (int i = 0; i < u_light_count; i++) {
-                vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
-                float intensity = max(dot(norm, direction), 0.0);
-                diffuse_light += u_light_colors[i] * intensity;
-            }
-            vec4 ambient = u_ambient_color * u_ambient_strength;
-            frag_color = (ambient + diffuse_light) * out_color;
-        } else {
-            frag_color = out_color;
-        }
+    if (u_render_mode != 2 && u_use_lighting == 1) {
+        out_color = out_color * light;
     }
+
+    frag_color = out_color;
 }
 @end
 

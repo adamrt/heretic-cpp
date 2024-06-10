@@ -42,6 +42,16 @@ public:
     std::shared_ptr<Texture> texture = nullptr;
 };
 
+class PalettedModel : public Model {
+public:
+    PalettedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture, std::shared_ptr<Texture> _palette, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+
+    auto render() -> void override;
+
+    std::shared_ptr<Texture> texture = nullptr;
+    std::shared_ptr<Texture> palette = nullptr;
+};
+
 class ColoredModel : public Model {
 public:
     ColoredModel(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
