@@ -18,7 +18,6 @@ class Model {
 public:
     Model(glm::vec3 position)
         : translation(position) {};
-    virtual ~Model();
 
     virtual auto render() -> void = 0;
     auto update(float delta_time) -> void;

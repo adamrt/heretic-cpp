@@ -2,11 +2,6 @@
 #include "ResourceManager.h"
 #include "State.h"
 
-Model::~Model()
-{
-    sg_destroy_pipeline(pipeline);
-}
-
 auto Model::update(float delta_time) -> void
 {
     (void)delta_time;
