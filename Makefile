@@ -61,4 +61,4 @@ shader: sokol-shdc
 bootstrap: sokol-shdc shader
 	git submodule update --init --recursive
 
-.PHONY: bootstrap clean clean-all debug release shader sokol-shdc
+.PHONY: bootstrap clean clean-all debug release shader
