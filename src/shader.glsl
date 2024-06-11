@@ -19,7 +19,13 @@ out float v_palette_index;
 
 void main() {
     v_position = u_model * vec4(a_position, 1.0);
-    v_normal = normalize(mat3(transpose(inverse(u_model))) * a_normal);
+    v_normal = mat3(transpose(inverse(u_model))) * a_normal;
+    if (length(v_normal) > 0.0) {
+        v_normal = normalize(v_normal);
+    } else {
+        v_normal = vec3(0.0, 0.0, 0.0);
+    }
+
     v_uv = a_uv;
     v_palette_index = a_palette_index;
     gl_Position = u_view_proj * u_model * vec4(a_position, 1.0);
@@ -68,9 +74,11 @@ void main() {
         out_color = vec4(v_normal, 1.0);
     }
 
+    // Don't use light for normals
     if (u_render_mode != 2 && u_use_lighting == 1) {
         out_color = out_color * light;
     }
+
     frag_color = out_color;
 }
 @end
@@ -114,7 +122,7 @@ void main() {
     if (v_normal.x + v_normal.y + v_normal.z + v_uv.x + v_uv.y == 0.0) {
         // Draw black for things without normals and uv coords.
         // The uv coords and normal could actually be 0 so we check them both.
-        frag_color = light * vec4(0.1, 0.1, 0.1, 1.0);
+        frag_color = light * vec4(0.0, 0.0, 0.0, 1.0);
         return;
     }
 
@@ -123,7 +131,7 @@ void main() {
         // And palette_pos needs to be calculated then cast to uint,
         // not casting each to uint then calculating. Otherwise there
         // will be distortion in perspective projection on some gpus.
-        vec4 tex_color = texture(sampler2D(tex, smp), v_uv) * 256.0;
+        vec4 tex_color = texture(sampler2D(tex, smp), v_uv) * 255.0;
         uint palette_pos = uint(v_palette_index * 16 + tex_color.r);
         vec4 color = texture(sampler2D(palette, smp), vec2(float(palette_pos) / 255.0, 0.0));
         if (color.a < 0.5)
@@ -135,6 +143,7 @@ void main() {
         out_color = vec4(v_normal, 1.0);
     }
 
+    // Don't use light for normals
     if (u_render_mode != 2 && u_use_lighting == 1) {
         out_color = out_color * light;
     }
