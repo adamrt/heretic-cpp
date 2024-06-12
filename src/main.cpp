@@ -6,6 +6,7 @@
 #include "FFT.h"
 #include "Model.h"
 #include "Pipeline.h"
+#include "ResourceManager.h"
 #include "Shader.h"
 #include "State.h"
 #include "Texture.h"
@@ -27,21 +28,50 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
-auto init() -> void
+int mapidx = 49;
+
+auto set_model(std::string const& model_path, std::string const& texture_path) -> void
 {
     auto state = State::get_instance();
+    auto resources = ResourceManager::get_instance();
+    auto reader = resources->get_bin_reader();
 
-    BinReader reader("/home/adam/sync/emu/fft.bin");
-    auto map = reader.read_map(12);
+    auto mesh = std::make_shared<Mesh>(model_path);
+    auto texture = std::make_shared<Texture>(texture_path);
+    auto model = std::make_shared<TexturedModel>(mesh, texture);
+
+    state->scene.clear();
+    state->scene.add_model(model);
+}
+
+auto set_map(int mapnum) -> void
+{
+    auto state = State::get_instance();
+    auto resources = ResourceManager::get_instance();
+    auto reader = resources->get_bin_reader();
+
+    auto map = reader->read_map(mapnum);
     auto map_mesh = std::make_shared<Mesh>(map->vertices);
     auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->palette);
     map_model->scale = map_mesh->normalized_scale();
     map_model->translation = map_mesh->center_translation();
+
+    state->scene.clear();
     state->scene.add_model(map_model);
 
     for (std::shared_ptr<Light> light : map->lights) {
         state->scene.add_light(light);
     }
+}
+
+auto init() -> void
+{
+
+    State::get_instance(); // Required to initialize State->Renderer->sokol.
+    ResourceManager::get_instance()->set_bin_reader(std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin"));
+
+    set_model("res/cube.obj", "res/cube.png");
+    // set_map(mapidx);
 }
 
 auto input(sapp_event const* event) -> void
