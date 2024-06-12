@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "FFT.h"
 #include "Mesh.h"
 #include "Pipeline.h"
 #include "Shader.h"
@@ -22,9 +23,15 @@ public:
     auto add_mesh(const std::string& name, std::shared_ptr<Mesh> mesh) -> std::shared_ptr<Mesh>;
     auto get_mesh(const std::string& name) -> std::shared_ptr<Mesh>;
 
+    auto set_bin_reader(std::shared_ptr<BinReader> _bin_reader) -> std::shared_ptr<BinReader>;
+    auto get_bin_reader() -> std::shared_ptr<BinReader>;
+
 private:
     ResourceManager();
     static ResourceManager* instance;
+
+    std::shared_ptr<BinReader> bin_reader = nullptr;
+
     std::map<std::string, std::shared_ptr<Shader>> shaders = {};
     std::map<std::string, std::shared_ptr<Pipeline>> pipelines = {};
     std::map<std::string, std::shared_ptr<Mesh>> meshes = {};
