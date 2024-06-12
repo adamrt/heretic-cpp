@@ -78,17 +78,32 @@ auto input(sapp_event const* event) -> void
 {
     auto state = State::get_instance();
 
-    if (event->type == SAPP_EVENTTYPE_KEY_DOWN) {
-        if (event->key_code == SAPP_KEYCODE_ESCAPE) {
-            sapp_quit();
-        }
-    }
-
     if (simgui_handle_event(event)) {
         return;
     }
 
     switch (event->type) {
+    case SAPP_EVENTTYPE_KEY_DOWN:
+        switch (event->key_code) {
+        case SAPP_KEYCODE_ESCAPE:
+            sapp_quit();
+            break;
+        case SAPP_KEYCODE_J:
+            mapidx--;
+            if (!map_list[0].valid)
+                mapidx--;
+            set_map(mapidx);
+            break;
+        case SAPP_KEYCODE_K:
+            mapidx++;
+            if (!map_list[0].valid)
+                mapidx++;
+            set_map(mapidx);
+            break;
+        default:
+            break;
+        }
+        break;
     case SAPP_EVENTTYPE_MOUSE_DOWN:
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(true);
