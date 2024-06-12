@@ -31,3 +31,9 @@ auto Scene::render() -> void
         light->render();
     }
 }
+
+auto Scene::clear() -> void
+{
+    models.clear();
+    lights.clear();
+}

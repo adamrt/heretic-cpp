@@ -10,6 +10,7 @@ public:
     auto add_light(std::shared_ptr<Light> light) -> void;
     auto update(float delta_time) -> void;
     auto render() -> void;
+    auto clear() -> void;
 
     std::vector<std::shared_ptr<Model>> models = {};
     std::vector<std::shared_ptr<Light>> lights = {};
