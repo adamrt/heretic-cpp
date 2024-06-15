@@ -90,13 +90,13 @@ auto input(sapp_event const* event) -> void
             break;
         case SAPP_KEYCODE_J:
             mapidx--;
-            if (!map_list[0].valid)
+            if (!map_list[mapidx].valid)
                 mapidx--;
             set_map(mapidx);
             break;
         case SAPP_KEYCODE_K:
             mapidx++;
-            if (!map_list[0].valid)
+            if (!map_list[mapidx].valid)
                 mapidx++;
             set_map(mapidx);
             break;
