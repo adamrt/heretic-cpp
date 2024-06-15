@@ -301,9 +301,13 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
     // Textured triangle vertices
     for (int i = index; i < N * 3; i = i + 3) {
-        vertices.at(i + 0).position = read_position();
-        vertices.at(i + 1).position = read_position();
-        vertices.at(i + 2).position = read_position();
+        auto a = read_position();
+        auto b = read_position();
+        auto c = read_position();
+
+        vertices.at(i + 0).position = a;
+        vertices.at(i + 1).position = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).position = b;
     }
 
     index = index + (N * 3);
@@ -317,22 +321,26 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
         // Triangle A
         vertices.at(i + 0).position = a;
-        vertices.at(i + 1).position = b;
-        vertices.at(i + 2).position = c;
+        vertices.at(i + 1).position = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).position = b;
 
         // Triangle B
         vertices.at(i + 3).position = b;
-        vertices.at(i + 4).position = d;
-        vertices.at(i + 5).position = c;
+        vertices.at(i + 4).position = c; // c/d swap for CW-CCW
+        vertices.at(i + 5).position = d;
     }
 
     index = index + (P * 2 * 3);
 
     // Untextured triangle vertices
     for (int i = index; i < index + (Q * 3); i = i + 3) {
-        vertices.at(i + 0).position = read_position();
-        vertices.at(i + 1).position = read_position();
-        vertices.at(i + 2).position = read_position();
+        auto a = read_position();
+        auto b = read_position();
+        auto c = read_position();
+
+        vertices.at(i + 0).position = a;
+        vertices.at(i + 1).position = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).position = b;
     }
 
     index = index + (Q * 3);
@@ -346,13 +354,13 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
         // Triangle A
         vertices.at(i + 0).position = a;
-        vertices.at(i + 1).position = b;
-        vertices.at(i + 2).position = c;
+        vertices.at(i + 1).position = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).position = b;
 
         // Triangle B
         vertices.at(i + 3).position = b;
-        vertices.at(i + 4).position = d;
-        vertices.at(i + 5).position = c;
+        vertices.at(i + 4).position = c; // c/d swap for CW-CCW
+        vertices.at(i + 5).position = d;
     }
 
     index = index + (R * 2 * 3);
@@ -368,9 +376,13 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
     // Triangle normals
     for (int i = index; i < N * 3; i = i + 3) {
-        vertices.at(i + 0).normal = read_normal();
-        vertices.at(i + 1).normal = read_normal();
-        vertices.at(i + 2).normal = read_normal();
+        auto a = read_normal();
+        auto b = read_normal();
+        auto c = read_normal();
+
+        vertices.at(i + 0).normal = a;
+        vertices.at(i + 1).normal = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).normal = b;
     }
 
     index = index + (N * 3);
@@ -384,13 +396,13 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
         // Triangle A
         vertices.at(i + 0).normal = a;
-        vertices.at(i + 1).normal = b;
-        vertices.at(i + 2).normal = c;
+        vertices.at(i + 1).normal = c; // b/c swap for CW->CCW
+        vertices.at(i + 2).normal = b;
 
         // Triangle B
         vertices.at(i + 3).normal = b;
-        vertices.at(i + 4).normal = d;
-        vertices.at(i + 5).normal = c;
+        vertices.at(i + 4).normal = c; // c/d swap for CW-CCW
+        vertices.at(i + 5).normal = d;
     }
 
     // Reset index so we can start over for texture data, using the same vertices.
@@ -415,9 +427,9 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
 
         vertices.at(i + 0).tex_coords = a;
         vertices.at(i + 0).palette_index = palette;
-        vertices.at(i + 1).tex_coords = b;
+        vertices.at(i + 1).tex_coords = c; // b/c swap for CW->CCW
         vertices.at(i + 1).palette_index = palette;
-        vertices.at(i + 2).tex_coords = c;
+        vertices.at(i + 2).tex_coords = b;
         vertices.at(i + 2).palette_index = palette;
     }
 
@@ -446,17 +458,17 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
         // Triangle A
         vertices.at(i + 0).tex_coords = a;
         vertices.at(i + 0).palette_index = palette;
-        vertices.at(i + 1).tex_coords = b;
+        vertices.at(i + 1).tex_coords = c; // b/c swap for CW->CCW
         vertices.at(i + 1).palette_index = palette;
-        vertices.at(i + 2).tex_coords = c;
+        vertices.at(i + 2).tex_coords = b;
         vertices.at(i + 2).palette_index = palette;
 
         // Triangle B
         vertices.at(i + 3).tex_coords = b;
         vertices.at(i + 3).palette_index = palette;
-        vertices.at(i + 4).tex_coords = d;
+        vertices.at(i + 4).tex_coords = c; // c/d swap for CW-CCW
         vertices.at(i + 4).palette_index = palette;
-        vertices.at(i + 5).tex_coords = c;
+        vertices.at(i + 5).tex_coords = d;
         vertices.at(i + 5).palette_index = palette;
     }
 
