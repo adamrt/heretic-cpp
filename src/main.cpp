@@ -52,7 +52,14 @@ auto set_map(int mapnum) -> void
 
     auto map = reader->read_map(mapnum);
     auto map_mesh = std::make_shared<Mesh>(map->vertices);
-    auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->palette);
+
+    std::shared_ptr<Model> map_model;
+    if (map->texture != nullptr && map->palette != nullptr) {
+        map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->palette);
+    } else {
+        map_model = std::make_shared<ColoredModel>(map_mesh);
+    }
+
     map_model->scale = map_mesh->normalized_scale();
     map_model->translation = map_mesh->center_translation();
 
