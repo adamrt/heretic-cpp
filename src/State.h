@@ -31,7 +31,7 @@ public:
     sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
 
     glm::vec4 ambient_color = { 1.0, 1.0, 1.0, 1.0f };
-    float ambient_strength = 0.2f;
+    float ambient_strength = 0.5f;
     int render_mode = 0;
     bool use_lighting = true;
 
