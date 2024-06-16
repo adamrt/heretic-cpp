@@ -38,6 +38,8 @@ public:
 
     std::vector<Record> records = {};
 
+    int map_num = 49;
+
 private:
     State() {};
     static State* instance;

@@ -28,8 +28,6 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
-int mapidx = 49;
-
 auto set_model(std::string const& model_path, std::string const& texture_path) -> void
 {
     auto state = State::get_instance();
@@ -44,13 +42,16 @@ auto set_model(std::string const& model_path, std::string const& texture_path) -
     state->scene.add_model(model);
 }
 
-auto set_map(int mapnum) -> void
+auto set_map(int mapnum) -> bool
 {
     auto state = State::get_instance();
     auto resources = ResourceManager::get_instance();
     auto reader = resources->get_bin_reader();
 
     auto map = reader->read_map(mapnum);
+    if (map == nullptr) {
+        return false;
+    }
     auto map_mesh = std::make_shared<Mesh>(map->vertices);
 
     std::shared_ptr<Model> map_model;
@@ -70,16 +71,61 @@ auto set_map(int mapnum) -> void
     for (std::shared_ptr<Light> light : map->lights) {
         state->scene.add_light(light);
     }
+    return true;
 }
 
 auto init() -> void
 {
 
-    State::get_instance(); // Required to initialize State->Renderer->sokol.
+    auto state = State::get_instance();
     ResourceManager::get_instance()->set_bin_reader(std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin"));
 
-    set_model("res/cube.obj", "res/cube.png");
-    // set_map(mapidx);
+    // set_model("res/drone.obj", "res/drone.png");
+    set_map(state->map_num);
+}
+
+auto map_next() -> void
+{
+    auto state = State::get_instance();
+    for (;;) {
+        state->map_num++;
+        if (state->map_num > 127) {
+            state->map_num = 0;
+        }
+
+        if (!map_list[state->map_num].valid) {
+            continue;
+        }
+
+        auto success = set_map(state->map_num);
+        if (!success) {
+            continue;
+        };
+
+        return;
+    }
+}
+
+auto map_prev() -> void
+{
+    auto state = State::get_instance();
+    for (;;) {
+        state->map_num--;
+        if (state->map_num < 0) {
+            state->map_num = 127;
+        }
+
+        if (!map_list[state->map_num].valid) {
+            continue;
+        }
+
+        auto success = set_map(state->map_num);
+        if (!success) {
+            continue;
+        };
+
+        return;
+    }
 }
 
 auto input(sapp_event const* event) -> void
@@ -97,16 +143,10 @@ auto input(sapp_event const* event) -> void
             sapp_quit();
             break;
         case SAPP_KEYCODE_J:
-            mapidx--;
-            if (!map_list[mapidx].valid)
-                mapidx--;
-            set_map(mapidx);
+            map_prev();
             break;
         case SAPP_KEYCODE_K:
-            mapidx++;
-            if (!map_list[mapidx].valid)
-                mapidx++;
-            set_map(mapidx);
+            map_next();
             break;
         default:
             break;

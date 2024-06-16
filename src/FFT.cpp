@@ -199,6 +199,7 @@ auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
             // we should?
             if (map->vertices.size() == 0) {
                 map->vertices = resource.read_vertices();
+                return nullptr;
             }
             break;
         default:
@@ -253,7 +254,10 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
     // 0xC4 is always the primary mesh pointer.
     offset = 0x40;
     uint32_t primary_mesh_ptr = read_u32();
-    assert(primary_mesh_ptr == 0xC4);
+    if (primary_mesh_ptr != 0xC4) {
+        return {};
+    }
+
     offset = primary_mesh_ptr;
 
     // The number of each type of polygon.
@@ -671,9 +675,9 @@ const FFTMapDesc map_list[128] = {
     { 114, 55383, "END", true },
     { 115, 56051, "Banished Fort", true },
     { 116, 56123, "Arena", true },
-    { 117, 56201, "???", false },
-    { 118, 56279, "???", false },
-    { 119, 56356, "???", false },
+    { 117, 56201, "???", true },
+    { 118, 56279, "???", true },
+    { 119, 56356, "???", true },
     { 120, 0, "???", false },
     { 121, 0, "???", false },
     { 122, 0, "???", false },
