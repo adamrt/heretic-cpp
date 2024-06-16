@@ -55,12 +55,14 @@ enum class MapWeather {
 
 // Record represents a GNS record.
 struct Record {
-    int sector;
-    uint64_t len;
-    ResourceType type;
-    int arrangement;
-    MapTime time;
-    MapWeather weather;
+    std::array<uint8_t, 20> data;
+
+    auto sector() -> int;
+    auto length() -> uint64_t;
+    auto resource_type() -> ResourceType;
+    auto arrangement() -> int;
+    auto time() -> MapTime;
+    auto weather() -> MapWeather;
 };
 
 std::string map_weather_str(MapWeather value);
@@ -95,8 +97,9 @@ extern const FFTMapDesc map_list[128];
 // BinFile represents a file in a BIN file.
 class BinFile {
 public:
-    auto read_u8()
-        -> uint8_t;
+    auto read_bytes(int num) -> std::array<uint8_t, 20>;
+
+    auto read_u8() -> uint8_t;
     auto read_u16() -> uint16_t;
     auto read_u32() -> uint32_t;
     auto read_i8() -> int8_t;

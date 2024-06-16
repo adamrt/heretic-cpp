@@ -68,6 +68,15 @@ auto BinReader::read_file(uint32_t sector_num, uint32_t size) -> BinFile
     return out_file;
 }
 
+auto BinFile::read_bytes(int num) -> std::array<uint8_t, 20>
+{
+    std::array<uint8_t, 20> bytes = {};
+    for (int i = 0; i < num; i++) {
+        bytes.at(i) = read_u8();
+    }
+    return bytes;
+}
+
 auto BinFile::read_u8() -> uint8_t
 {
     uint8_t value;
@@ -174,10 +183,10 @@ auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
 
     map->records = records;
 
-    for (const auto& record : records) {
-        auto resource = read_file(record.sector, record.len);
+    for (auto& record : records) {
+        auto resource = read_file(record.sector(), record.length());
 
-        switch (record.type) {
+        switch (record.resource_type()) {
         case ResourceType::MeshPrimary: {
             map->vertices = resource.read_vertices();
             map->palette = resource.read_palette();
@@ -215,30 +224,11 @@ auto BinFile::read_records() -> std::vector<Record>
     std::vector<Record> records;
 
     while (true) {
-        uint16_t header_unknown = read_u16();
-        assert(header_unknown == 0x22 || header_unknown == 0x30 || header_unknown == 0x70);
-
-        uint8_t arrangement = read_u8();
-        uint8_t time_weather = read_u8();
-        uint16_t file_type = read_u16();
-        (void)read_u16(); // padding
-        uint16_t file_sector = read_u16();
-        (void)read_u16(); // padding
-        uint32_t file_length = read_u32();
-        (void)read_u32(); // padding
-
+        Record record { read_bytes(20) };
         // This record type marks the end of the records for this GNS file.
-        if (file_type == (int)ResourceType::End) {
+        if (record.resource_type() == ResourceType::End) {
             return records;
         }
-
-        Record record = {};
-        record.arrangement = arrangement;
-        record.time = MapTime((time_weather >> 7) & 0x1);
-        record.weather = MapWeather((time_weather >> 4) & 0x7);
-        record.type = ResourceType(file_type);
-        record.sector = file_sector;
-        record.len = file_length;
 
         records.push_back(record);
 
@@ -735,3 +725,10 @@ std::string map_weather_str(MapWeather value)
         return "Unknown";
     }
 }
+
+auto Record::sector() -> int { return data[8] | (data[9] << 8); }
+auto Record::length() -> uint64_t { return static_cast<uint32_t>(data[12]) | (static_cast<uint32_t>(data[13]) << 8) | (static_cast<uint32_t>(data[14]) << 16) | (static_cast<uint32_t>(data[15]) << 24); }
+auto Record::resource_type() -> ResourceType { return static_cast<ResourceType>(data[4] | (data[5] << 8)); }
+auto Record::arrangement() -> int { return data[0]; }
+auto Record::time() -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
+auto Record::weather() -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
