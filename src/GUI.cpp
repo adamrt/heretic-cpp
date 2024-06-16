@@ -104,6 +104,8 @@ auto GUI::draw() -> void
     auto state = State::get_instance();
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Hello, world!");
+    auto map_desc = map_list[state->map_num];
+    ImGui::Text("%d. %s", map_desc.id, map_desc.name.c_str());
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
         state->camera.projection = Projection::Perspective;
