@@ -1,4 +1,5 @@
 #include "GUI.h"
+#include "FFT.h"
 #include "Model.h"
 #include "ResourceManager.h"
 #include "State.h"
@@ -38,6 +39,62 @@ auto GUI::render() -> void
 
     draw();
     simgui_render();
+}
+
+auto GUI::draw_records() -> void
+{
+
+    auto state = State::get_instance();
+
+    ImGui::Begin("Records");
+
+    // Begin a table
+    if (ImGui::BeginTable("Records", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        // Set up column headers
+        ImGui::TableSetupColumn("Sector");
+        ImGui::TableSetupColumn("Length");
+        ImGui::TableSetupColumn("Type");
+        ImGui::TableSetupColumn("Arrangement");
+        ImGui::TableSetupColumn("Time");
+        ImGui::TableSetupColumn("Weather");
+
+        ImGui::TableHeadersRow();
+
+        // Populate table with data
+        for (const auto& record : state->records) {
+            ImGui::TableNextRow();
+
+            // Column 0: ID
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%d", record.sector);
+
+            // Column 1: Length
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%ld", record.len);
+
+            // Column 2: Type
+            ImGui::TableSetColumnIndex(2);
+            ImGui::Text("%s", resource_type_str(record.type).c_str());
+
+            // Column 3: Arrangement
+            ImGui::TableSetColumnIndex(3);
+            ImGui::Text("%d", record.arrangement);
+
+            // Column 4: Time
+            ImGui::TableSetColumnIndex(4);
+            ImGui::Text("%s", map_time_str(record.time).c_str());
+
+            // Column 5: Weather
+            ImGui::TableSetColumnIndex(5);
+            ImGui::Text("%s", map_weather_str(record.weather).c_str());
+        }
+
+        // End the table
+        ImGui::EndTable();
+    }
+
+    // End the window
+    ImGui::End();
 }
 
 auto GUI::draw() -> void
@@ -104,4 +161,8 @@ auto GUI::draw() -> void
         sapp_toggle_fullscreen();
     }
     ImGui::End();
+
+    if (state->records.size() > 0) {
+        draw_records();
+    }
 }

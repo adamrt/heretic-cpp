@@ -10,4 +10,5 @@ public:
 
 private:
     auto draw() -> void;
+    auto draw_records() -> void;
 };

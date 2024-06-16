@@ -11,6 +11,21 @@
 
 #include "FFT.h"
 
+// process_tex_coords has two functions:
+//
+// 1. Update the v coordinate to the specific page of the texture. FFT
+//    Textures have 4 pages (256x1024) and the original V specifies
+//    the pixel on one of the 4 pages. Multiply the page by the height
+//    of a single page (256).
+// 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
+//    divide them by their max to get a 0.0-1.0 value.
+static glm::vec2 process_tex_coords(float u, float v, uint8_t page)
+{
+    u = u / 255.0f;
+    v = (v + (page * 256)) / 1023.0f;
+    return { u, v };
+}
+
 BinReader::BinReader(std::string filename)
 {
 
@@ -148,21 +163,6 @@ auto BinFile::read_rgb8() -> glm::vec3
     return { r, g, b };
 }
 
-// process_tex_coords has two functions:
-//
-// 1. Update the v coordinate to the specific page of the texture. FFT
-//    Textures have 4 pages (256x1024) and the original V specifies
-//    the pixel on one of the 4 pages. Multiply the page by the height
-//    of a single page (256).
-// 2. Normalize the coordinates that can be U:0-255 and V:0-1023. Just
-//    divide them by their max to get a 0.0-1.0 value.
-static glm::vec2 process_tex_coords(float u, float v, uint8_t page)
-{
-    u = u / 255.0f;
-    v = (v + (page * 256)) / 1023.0f;
-    return { u, v };
-}
-
 auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
 {
     int sector = map_list[mapnum].sector;
@@ -172,24 +172,25 @@ auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
 
     auto map = std::make_shared<FFTMap>();
 
+    map->records = records;
+
     for (const auto& record : records) {
         auto resource = read_file(record.sector, record.len);
 
         switch (record.type) {
-        case ResourceMeshPrimary: {
+        case ResourceType::MeshPrimary: {
             map->vertices = resource.read_vertices();
             map->palette = resource.read_palette();
             map->lights = resource.read_lights();
             auto bg = resource.read_background();
             map->background_top = bg.first;
             map->background_bottom = bg.second;
-
             break;
         }
-        case ResourceTexture:
+        case ResourceType::Texture:
             map->texture = resource.read_texture();
             break;
-        case ResourceMeshOverride:
+        case ResourceType::MeshOverride:
             // Sometimes there is no primary mesh (ie MAP002.GNS), there is
             // only an override. Usually a non-battle map. So we treat this
             // one as the primary, only if the primary hasn't been set. Kinda
@@ -206,36 +207,6 @@ auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
     }
 
     return map;
-}
-
-void print_record(Record r)
-{
-    char weather[7];
-    switch (r.weather) {
-    case 0x0:
-        strcpy(weather, "No");
-        break;
-    case 0x1:
-        strcpy(weather, "NoAlt");
-        break;
-    case 0x2:
-        strcpy(weather, "Light");
-        break;
-    case 0x3:
-        strcpy(weather, "Normal");
-        break;
-    case 0x4:
-        strcpy(weather, "Heavy");
-        break;
-    }
-
-    printf("-------------------------------\n");
-    printf("type: %x\n", r.type);
-    printf("arng: %x\n", r.arrangement);
-    printf("time: %s\n", r.time == 0 ? "Day" : "Night");
-    printf("wthr: %s\n", weather);
-    printf("sect: %d\n", r.sector);
-    printf("len: %ld\n", (long)r.len);
 }
 
 auto BinFile::read_records() -> std::vector<Record>
@@ -256,15 +227,15 @@ auto BinFile::read_records() -> std::vector<Record>
         (void)read_u32(); // padding
 
         // This record type marks the end of the records for this GNS file.
-        if (file_type == ResourceEnd) {
+        if (file_type == (int)ResourceType::End) {
             return records;
         }
 
         Record record = {};
         record.arrangement = arrangement;
-        record.time = (time_weather >> 7) & 0x1;
-        record.weather = (time_weather >> 4) & 0x7;
-        record.type = file_type;
+        record.time = MapTime((time_weather >> 7) & 0x1);
+        record.weather = MapWeather((time_weather >> 4) & 0x7);
+        record.type = ResourceType(file_type);
         record.sector = file_sector;
         record.len = file_length;
 
@@ -712,3 +683,51 @@ const FFTMapDesc map_list[128] = {
     { 126, 0, "???", false },
     { 127, 0, "???", false },
 };
+
+std::string resource_type_str(ResourceType value)
+{
+    switch (value) {
+    case ResourceType::Texture:
+        return "Texture";
+    case ResourceType::MeshPrimary:
+        return "MeshPrimary";
+    case ResourceType::MeshOverride:
+        return "MeshOverride";
+    case ResourceType::MeshAlt:
+        return "MeshAlt";
+    case ResourceType::End:
+        return "End";
+    default:
+        return "Unknown";
+    }
+}
+
+std::string map_time_str(MapTime value)
+{
+    switch (value) {
+    case MapTime::Day:
+        return "Day";
+    case MapTime::Night:
+        return "Night";
+    default:
+        return "Unknown";
+    }
+}
+
+std::string map_weather_str(MapWeather value)
+{
+    switch (value) {
+    case MapWeather::None:
+        return "None";
+    case MapWeather::NoneAlt:
+        return "NoneAlt";
+    case MapWeather::Normal:
+        return "Normal";
+    case MapWeather::Strong:
+        return "Strong";
+    case MapWeather::VeryStrong:
+        return "VeryStrong";
+    default:
+        return "Unknown";
+    }
+}

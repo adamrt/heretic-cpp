@@ -32,32 +32,46 @@
 #define SECTOR_SIZE_RAW 2352
 #define SECTOR_HEADER_SIZE 24
 
-enum Resource {
-    ResourceTexture = 0x1701,
-    ResourceMeshPrimary = 0x2E01,
-    ResourceMeshOverride = 0x2F01,
-    ResourceMeshAlt = 0x3001,
-    ResourceEnd = 0x3101,
+enum class ResourceType : int {
+    Texture = 0x1701,
+    MeshPrimary = 0x2E01,
+    MeshOverride = 0x2F01,
+    MeshAlt = 0x3001,
+    End = 0x3101,
 };
 
-enum TimeOfDay {
-    TimeDay,
-    TimeNight,
+enum class MapTime {
+    Day = 0x0,
+    Night = 0x1,
+};
+
+enum class MapWeather {
+    None = 0x0,
+    NoneAlt = 0x1,
+    Normal = 0x2,
+    Strong = 0x3,
+    VeryStrong = 0x4,
 };
 
 // Record represents a GNS record.
 struct Record {
-    uint16_t sector;
+    int sector;
     uint64_t len;
-    uint16_t type;
-    uint8_t arrangement;
-    uint8_t time;
-    uint8_t weather;
+    ResourceType type;
+    int arrangement;
+    MapTime time;
+    MapWeather weather;
 };
+
+std::string map_weather_str(MapWeather value);
+std::string map_time_str(MapTime value);
+std::string resource_type_str(ResourceType value);
 
 class FFTMap {
 public:
     std::vector<Vertex> vertices = {};
+
+    std::vector<Record> records = {};
 
     std::shared_ptr<Texture> texture = {};
     std::shared_ptr<Texture> palette = {};

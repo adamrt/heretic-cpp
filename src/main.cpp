@@ -63,6 +63,7 @@ auto set_map(int mapnum) -> void
     map_model->scale = map_mesh->normalized_scale();
     map_model->translation = map_mesh->center_translation();
 
+    state->records = map->records;
     state->scene.clear();
     state->scene.add_model(map_model);
 

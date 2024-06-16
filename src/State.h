@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Camera.h"
+#include "FFT.h"
 #include "GUI.h"
 #include "Renderer.h"
 #include "Scene.h"
@@ -34,6 +35,8 @@ public:
     float ambient_strength = 0.5f;
     int render_mode = 0;
     bool use_lighting = true;
+
+    std::vector<Record> records = {};
 
 private:
     State() {};
