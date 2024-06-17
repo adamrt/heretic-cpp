@@ -199,6 +199,9 @@ auto GUI::draw() -> void
     ImGui::SliderFloat("Rotation", &state->rotation_speed, 0.0f, 2.0f);
     ImGui::ColorEdit3("Background", &state->clear_color.r);
     if (ImGui::CollapsingHeader("Lighting")) {
+
+        ImGui::Checkbox("Lighting Enabled", &state->use_lighting);
+        ImGui::SameLine();
         if (ImGui::Button(state->scene.lights.size() < 10 ? "Add Light" : "Max Lights!")) {
             if (state->scene.lights.size() < 10) {
                 auto cube_mesh = resources->get_mesh("cube");
@@ -209,9 +212,9 @@ auto GUI::draw() -> void
             }
         }
 
-        ImGui::Checkbox("Enabled", &state->use_lighting);
-        ImGui::ColorEdit4("Ambient Color", &state->ambient_color[0]);
-        ImGui::SliderFloat("Ambient Strength", &state->ambient_strength, 0.0f, 1.0f);
+        ImGui::SeparatorText("Ambient Lighting");
+        ImGui::ColorEdit4("Color", &state->ambient_color[0]);
+        ImGui::SliderFloat("Strength", &state->ambient_strength, 0.0f, 1.0f);
 
         for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);
