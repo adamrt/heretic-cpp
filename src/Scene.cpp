@@ -28,7 +28,9 @@ auto Scene::render() -> void
     }
 
     for (auto& light : lights) {
-        light->render();
+        if (light->is_enabled) {
+            light->render();
+        }
     }
 }
 

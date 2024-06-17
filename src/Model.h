@@ -68,4 +68,6 @@ public:
     Light(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
 
     bool is_valid() { return color.x + color.y + color.z > 0.0f; }
+
+    bool is_enabled = true;
 };

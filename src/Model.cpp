@@ -1,3 +1,5 @@
+#include <algorithm>
+
 #include "Model.h"
 #include "ResourceManager.h"
 #include "State.h"
@@ -73,10 +75,15 @@ auto TexturedModel::render() -> void
     fs_params.u_render_mode = state->render_mode;
     fs_params.u_use_lighting = state->use_lighting;
 
-    fs_params.u_light_count = state->scene.lights.size();
-    for (size_t i = 0; i < state->scene.lights.size(); i++) {
-        fs_params.u_light_colors[i] = state->scene.lights[i]->color;
-        fs_params.u_light_positions[i] = glm::vec4(state->scene.lights[i]->translation, 1.0f);
+    std::vector<std::shared_ptr<Light>> enabled_lights;
+
+    std::copy_if(state->scene.lights.begin(), state->scene.lights.end(), std::back_inserter(enabled_lights),
+        [](const std::shared_ptr<Light>& item) { return item->is_enabled; });
+
+    fs_params.u_light_count = enabled_lights.size();
+    for (size_t i = 0; i < enabled_lights.size(); i++) {
+        fs_params.u_light_colors[i] = enabled_lights[i]->color;
+        fs_params.u_light_positions[i] = glm::vec4(enabled_lights[i]->translation, 1.0f);
     }
 
     bindings.fs.images[SLOT_tex] = texture->image;
@@ -117,10 +124,15 @@ auto PalettedModel::render() -> void
     fs_params.u_render_mode = state->render_mode;
     fs_params.u_use_lighting = state->use_lighting;
 
-    fs_params.u_light_count = state->scene.lights.size();
-    for (size_t i = 0; i < state->scene.lights.size(); i++) {
-        fs_params.u_light_colors[i] = state->scene.lights[i]->color;
-        fs_params.u_light_positions[i] = glm::vec4(state->scene.lights[i]->translation, 1.0f);
+    std::vector<std::shared_ptr<Light>> enabled_lights;
+
+    std::copy_if(state->scene.lights.begin(), state->scene.lights.end(), std::back_inserter(enabled_lights),
+        [](const std::shared_ptr<Light>& item) { return item->is_enabled; });
+
+    fs_params.u_light_count = enabled_lights.size();
+    for (size_t i = 0; i < enabled_lights.size(); i++) {
+        fs_params.u_light_colors[i] = enabled_lights[i]->color;
+        fs_params.u_light_positions[i] = glm::vec4(enabled_lights[i]->translation, 1.0f);
     }
 
     bindings.fs.images[SLOT_tex] = texture->image;

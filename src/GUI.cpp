@@ -220,9 +220,7 @@ auto GUI::draw() -> void
             ImGui::SeparatorText(title);
             ImGui::SliderFloat3("Position", &state->scene.lights[i]->translation[0], -50.0f, 50.0f, "%0.2f", 0);
             ImGui::ColorEdit4("Color", &state->scene.lights[i]->color[0], ImGuiColorEditFlags_None);
-            if (ImGui::Button("Delete")) {
-                state->scene.lights.erase(state->scene.lights.begin() + i);
-            }
+            ImGui::Checkbox("Enabled", &state->scene.lights[i]->is_enabled);
             ImGui::PopID();
         }
     }
