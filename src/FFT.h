@@ -55,7 +55,7 @@ enum class MapWeather {
 
 // Record represents a GNS record.
 struct Record {
-    std::array<uint8_t, 20> data;
+    std::vector<uint8_t> data;
 
     auto sector() -> int;
     auto length() -> uint64_t;
@@ -63,6 +63,24 @@ struct Record {
     auto arrangement() -> int;
     auto time() -> MapTime;
     auto weather() -> MapWeather;
+};
+
+struct Scenario {
+    std::vector<uint8_t> data;
+
+    auto repr() -> std::string;
+    auto id() -> int;
+    auto map() -> int;
+    auto weather() -> MapWeather;
+    auto time() -> MapTime;
+    auto first_music() -> int;
+    auto second_music() -> int;
+    auto entd() -> int;
+    auto first_grid() -> int;
+    auto second_grid() -> int;
+    auto require_ramza_unknown() -> int;
+    auto event_script() -> int;
+    // There is more from the "last line". Is it the next 24 bytes or what?
 };
 
 std::string map_weather_str(MapWeather value);
@@ -74,6 +92,7 @@ public:
     std::vector<Vertex> vertices = {};
 
     std::vector<Record> records = {};
+    std::vector<Scenario> scenarios = {};
 
     std::shared_ptr<Texture> texture = {};
     std::shared_ptr<Texture> palette = {};
@@ -97,7 +116,7 @@ extern const FFTMapDesc map_list[128];
 // BinFile represents a file in a BIN file.
 class BinFile {
 public:
-    auto read_bytes(int num) -> std::array<uint8_t, 20>;
+    auto read_bytes(int num) -> std::vector<uint8_t>;
 
     auto read_u8() -> uint8_t;
     auto read_u16() -> uint16_t;
@@ -112,13 +131,13 @@ public:
     auto read_rgb15() -> glm::vec4;
     auto read_rgb8() -> glm::vec3;
 
+    auto read_scenarios() -> std::vector<Scenario>;
     auto read_records() -> std::vector<Record>;
     auto read_vertices() -> std::vector<Vertex>;
     auto read_texture() -> std::shared_ptr<Texture>;
     auto read_palette() -> std::shared_ptr<Texture>;
     auto read_lights() -> std::vector<std::shared_ptr<Light>>;
     auto read_background() -> std::pair<glm::vec4, glm::vec4>;
-
     std::vector<uint8_t> data;
     uint64_t length;
     uint64_t offset;
@@ -130,6 +149,7 @@ public:
     ~BinReader();
 
     auto read_map(int mapnum) -> std::shared_ptr<FFTMap>;
+    auto read_scenarios() -> std::vector<Scenario>;
 
 private:
     FILE* file;

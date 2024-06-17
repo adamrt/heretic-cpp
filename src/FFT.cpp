@@ -2,6 +2,8 @@
 
 #include <array>
 #include <assert.h>
+#include <iomanip>
+#include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -68,9 +70,11 @@ auto BinReader::read_file(uint32_t sector_num, uint32_t size) -> BinFile
     return out_file;
 }
 
-auto BinFile::read_bytes(int num) -> std::array<uint8_t, 20>
+auto BinFile::read_bytes(int num) -> std::vector<uint8_t>
 {
-    std::array<uint8_t, 20> bytes = {};
+    std::vector<uint8_t> bytes = {};
+    bytes.resize(num);
+
     for (int i = 0; i < num; i++) {
         bytes.at(i) = read_u8();
     }
@@ -172,6 +176,15 @@ auto BinFile::read_rgb8() -> glm::vec3
     return { r, g, b };
 }
 
+// https://ffhacktics.com/wiki/ATTACK.OUT
+auto BinReader::read_scenarios() -> std::vector<Scenario>
+{
+    const int attack_offset = 0x10938;
+    auto attack_out = read_file(2448, 125956);
+    attack_out.data.erase(attack_out.data.begin(), attack_out.data.begin() + attack_offset);
+    return attack_out.read_scenarios();
+}
+
 auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
 {
     int sector = map_list[mapnum].sector;
@@ -236,6 +249,17 @@ auto BinFile::read_records() -> std::vector<Record>
         assert(records.size() < RECORD_MAX_NUM);
     }
     return records;
+}
+
+auto BinFile::read_scenarios() -> std::vector<Scenario>
+{
+    std::vector<Scenario> scenarios;
+    for (int i = 0; i < 300; i++) {
+        auto bytes = read_bytes(24);
+        Scenario scenario { bytes };
+        scenarios.push_back(scenario);
+    }
+    return scenarios;
 }
 
 auto BinFile::read_vertices() -> std::vector<Vertex>
@@ -732,3 +756,21 @@ auto Record::resource_type() -> ResourceType { return static_cast<ResourceType>(
 auto Record::arrangement() -> int { return data[0]; }
 auto Record::time() -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
 auto Record::weather() -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
+
+auto Scenario::repr() -> std::string
+{
+    std::ostringstream oss;
+    oss << std::setw(3) << std::setfill('0') << id() << " " << map_list[map()].name;
+    return oss.str();
+}
+auto Scenario::id() -> int { return data[0] | (data[1] << 8); }
+auto Scenario::map() -> int { return data[2]; }
+auto Scenario::weather() -> MapWeather { return static_cast<MapWeather>(data[3]); }
+auto Scenario::time() -> MapTime { return static_cast<MapTime>(data[4]); }
+auto Scenario::first_music() -> int { return data[5]; }
+auto Scenario::second_music() -> int { return data[6]; }
+auto Scenario::entd() -> int { return data[7] | (data[8] << 8); }
+auto Scenario::first_grid() -> int { return data[9] | (data[10] << 8); }
+auto Scenario::second_grid() -> int { return data[11] | (data[12] << 8); }
+auto Scenario::require_ramza_unknown() -> int { return data[17]; }
+auto Scenario::event_script() -> int { return data[22] | (data[23] << 8); }

@@ -1,5 +1,9 @@
-#include "GUI.h"
+#include <algorithm>
+#include <iomanip>
+#include <sstream>
+
 #include "FFT.h"
+#include "GUI.h"
 #include "Model.h"
 #include "ResourceManager.h"
 #include "State.h"
@@ -41,6 +45,51 @@ auto GUI::render() -> void
     simgui_render();
 }
 
+auto GUI::draw_scenarios() -> void
+{
+
+    auto state = State::get_instance();
+
+    ImGui::Begin("Scenarios");
+
+    // Begin a table
+    if (ImGui::BeginTable("Scenarios", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        // Set up column headers
+        ImGui::TableSetupColumn("ID");
+        ImGui::TableSetupColumn("Time");
+        ImGui::TableSetupColumn("Weather");
+        ImGui::TableSetupColumn("Map");
+
+        ImGui::TableHeadersRow();
+
+        // Populate table with data
+        for (auto& scenario : state->scenarios) {
+            ImGui::TableNextRow();
+
+            // Column 0: ID
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("%d", scenario.id());
+
+            // Column 1: Time
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", map_time_str(scenario.time()).c_str());
+
+            // Column 2: Weather
+            ImGui::TableSetColumnIndex(2);
+            ImGui::Text("%s", map_weather_str(scenario.weather()).c_str());
+
+            // Column 3: Map
+            ImGui::TableSetColumnIndex(3);
+            ImGui::Text("%s", map_list[scenario.map()].name.c_str());
+        }
+
+        // End the table
+        ImGui::EndTable();
+    }
+
+    // End the window
+    ImGui::End();
+}
 auto GUI::draw_records() -> void
 {
 
@@ -104,6 +153,27 @@ auto GUI::draw() -> void
     auto state = State::get_instance();
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Hello, world!");
+
+    std::vector<std::string> scenario_names;
+    scenario_names.reserve(state->scenarios.size());
+
+    std::transform(
+        state->scenarios.begin(),
+        state->scenarios.end(),
+        std::back_inserter(scenario_names),
+        [](Scenario& s) { return s.repr(); });
+
+    std::vector<const char*> scenario_name_ptrs;
+    scenario_name_ptrs.reserve(scenario_names.size());
+    for (const auto& name : scenario_names) {
+        scenario_name_ptrs.push_back(name.c_str());
+    }
+
+    if (ImGui::Combo("Select Scenario", &state->current_scenario, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
+        // Item selected, handle selection here
+        std::cout << "Selected item: " << map_list[state->scenarios[state->current_scenario].map()].name << std::endl;
+    }
+
     auto map_desc = map_list[state->map_num];
     ImGui::Text("%d. %s", map_desc.id, map_desc.name.c_str());
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
@@ -159,12 +229,29 @@ auto GUI::draw() -> void
         }
     }
 
+    if (ImGui::Button("Show Map Records")) {
+        state->show_records_table = !state->show_records_table;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Show All Scenarios")) {
+        state->show_scenario_table = !state->show_scenario_table;
+    }
+
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }
+
     ImGui::End();
 
-    if (state->records.size() > 0) {
-        draw_records();
+    if (state->show_records_table) {
+        if (state->records.size() > 0) {
+            draw_records();
+        }
+    }
+
+    if (state->show_scenario_table) {
+        if (state->scenarios.size() > 0) {
+            draw_scenarios();
+        }
     }
 }

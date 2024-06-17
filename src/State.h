@@ -37,8 +37,12 @@ public:
     bool use_lighting = true;
 
     std::vector<Record> records = {};
+    std::vector<Scenario> scenarios = {};
 
     int map_num = 49;
+    bool show_scenario_table = false;
+    bool show_records_table = false;
+    int current_scenario = 0;
 
 private:
     State() {};
