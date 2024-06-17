@@ -1,6 +1,4 @@
 #include <algorithm>
-#include <iomanip>
-#include <sstream>
 
 #include "FFT.h"
 #include "GUI.h"

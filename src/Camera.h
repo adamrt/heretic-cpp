@@ -17,7 +17,7 @@ public:
     static constexpr float MIN_LAT = -85.0f;
     static constexpr float MAX_LAT = 85.0f;
 
-    Projection projection = Projection::Perspective;
+    Projection projection = Projection::Orthographic;
 
     auto update() -> void;
     auto orbit(float dx, float dy) -> void;

@@ -188,7 +188,7 @@ auto frame() -> void
     state->camera.update();
     state->scene.update(delta);
     for (auto& model : state->scene.models) {
-        model->rotation += state->rotation_speed * delta;
+        model->rotation.y += state->rotation_speed * delta;
         model->update(delta);
     }
 
