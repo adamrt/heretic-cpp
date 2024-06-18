@@ -17,6 +17,7 @@ class Mesh {
 public:
     Mesh(std::string filename);
     Mesh(std::vector<Vertex> vertices);
+    Mesh(std::vector<glm::vec3> vertices);
     ~Mesh()
     {
         sg_destroy_buffer(vertex_buffer);
@@ -29,4 +30,5 @@ public:
 
     sg_buffer vertex_buffer = {};
     std::vector<Vertex> vertices = {};
+    std::vector<glm::vec3> vertices_float = {};
 };

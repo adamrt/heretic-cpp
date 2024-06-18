@@ -2,6 +2,17 @@
 
 #include "shader.glsl.h"
 
+// CCW
+std::vector<glm::vec3> background_vertices = {
+    { -1.0f, 1.0f, 0.0f },  // Top-left corner
+    { -1.0f, -1.0f, 0.0f }, // Bottom-left corner
+    { 1.0f, 1.0f, 0.0f },   // Top-right corner
+
+    { 1.0f, 1.0f, 0.0f },   // Top-right corner
+    { -1.0f, -1.0f, 0.0f }, // Bottom-left corner
+    { 1.0f, -1.0f, 0.0f }   // Bottom-right corner
+};
+
 ResourceManager* ResourceManager::instance = nullptr;
 
 ResourceManager::ResourceManager()
@@ -15,7 +26,11 @@ ResourceManager::ResourceManager()
     auto paletted_shader = add_shader("paletted", std::make_shared<Shader>(paletted_shader_desc(sg_query_backend())));
     add_pipeline("paletted", std::make_shared<Pipeline>(paletted_shader));
 
+    auto background_shader = add_shader("background", std::make_shared<Shader>(background_shader_desc(sg_query_backend())));
+    add_pipeline("background", std::make_shared<Pipeline>(background_shader, Pipeline::background_desc()));
+
     add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
+    add_mesh("background", std::make_shared<Mesh>(background_vertices));
 }
 
 auto ResourceManager::get_instance() -> ResourceManager*

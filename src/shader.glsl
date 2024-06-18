@@ -32,6 +32,17 @@ void main() {
 }
 @end
 
+@vs vs_background
+in vec3 a_position;
+
+out vec2 v_uv;
+
+void main() {
+    gl_Position = vec4(a_position, 1.0);
+    v_uv = a_position.xy;
+}
+@end
+
 @fs fs_textured
 uniform fs_textured_params {
     int   u_render_mode;
@@ -169,6 +180,22 @@ void main() {
 }
 @end
 
-@program textured vs_standard fs_textured
-@program paletted vs_standard fs_paletted
-@program colored  vs_standard fs_colored
+@fs fs_background
+uniform fs_background_params {
+    vec4 u_top_color;
+    vec4 u_bottom_color;
+};
+
+in vec2 v_uv;
+
+out vec4 frag_color;
+
+void main() {
+    frag_color = mix(u_bottom_color, u_top_color, v_uv.y);
+}
+@end
+
+@program textured   vs_standard   fs_textured
+@program paletted   vs_standard   fs_paletted
+@program colored    vs_standard   fs_colored
+@program background vs_background fs_background

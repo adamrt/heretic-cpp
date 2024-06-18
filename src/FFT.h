@@ -100,8 +100,8 @@ public:
     std::vector<std::shared_ptr<Light>> lights = {};
 
     glm::vec3 ambient_light_color = {};
-    glm::vec3 background_top = {};
-    glm::vec3 background_bottom = {};
+    glm::vec4 background_top = {};
+    glm::vec4 background_bottom = {};
 };
 
 struct FFTMapDesc {

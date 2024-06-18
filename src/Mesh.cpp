@@ -29,6 +29,16 @@ Mesh::Mesh(std::vector<Vertex> _vertices)
     vertex_buffer = sg_make_buffer(&vbuf_desc);
 }
 
+Mesh::Mesh(std::vector<glm::vec3> _vertices)
+{
+    vertices_float = _vertices;
+
+    sg_buffer_desc vbuf_desc = {};
+    vbuf_desc.data = sg_range { _vertices.data(), _vertices.size() * sizeof(glm::vec3) };
+    vbuf_desc.label = "vertex-buffer";
+    vertex_buffer = sg_make_buffer(&vbuf_desc);
+}
+
 std::vector<Vertex> Mesh::parse_obj(const std::string filename)
 {
     FILE* file = fopen(filename.c_str(), "r");

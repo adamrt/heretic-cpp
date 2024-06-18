@@ -148,3 +148,29 @@ auto PalettedModel::render() -> void
     sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_textured_params, &fs_range);
     sg_draw(0, mesh->vertices.size(), 1);
 }
+
+Background::Background(glm::vec4 _top, glm::vec4 _bottom)
+    : Model(glm::vec3 { 0, 0, 0 })
+    , top(_top)
+    , bottom(_bottom)
+{
+    auto resources = ResourceManager::get_instance();
+
+    mesh = resources->get_mesh("background");
+    pipeline = resources->get_pipeline("background")->get_pipeline();
+    bindings.vertex_buffers[0] = mesh->vertex_buffer;
+}
+
+auto Background::render() -> void
+{
+    fs_background_params_t fs_params;
+    fs_params.u_top_color = top;
+    fs_params.u_bottom_color = bottom;
+
+    sg_apply_pipeline(pipeline);
+    sg_apply_bindings(&bindings);
+
+    sg_range fs_range = SG_RANGE(fs_params);
+    sg_apply_uniforms(SG_SHADERSTAGE_FS, SLOT_fs_background_params, &fs_range);
+    sg_draw(0, mesh->vertices_float.size(), 1);
+}

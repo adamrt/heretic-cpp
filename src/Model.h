@@ -71,3 +71,13 @@ public:
 
     bool is_enabled = true;
 };
+
+class Background : public Model {
+public:
+    Background(glm::vec4 top, glm::vec4 bottom);
+
+    auto render() -> void override;
+
+    glm::vec4 top = {};
+    glm::vec4 bottom = {};
+};

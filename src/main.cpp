@@ -56,6 +56,7 @@ auto set_map(int mapnum) -> bool
     if (map == nullptr) {
         return false;
     }
+    auto background = std::make_shared<Background>(map->background_top, map->background_bottom);
     auto map_mesh = std::make_shared<Mesh>(map->vertices);
 
     std::shared_ptr<Model> map_model;
@@ -70,6 +71,7 @@ auto set_map(int mapnum) -> bool
 
     state->records = map->records;
     state->scene.clear();
+    state->scene.add_model(background);
     state->scene.add_model(map_model);
 
     for (std::shared_ptr<Light> light : map->lights) {
