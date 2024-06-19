@@ -70,10 +70,10 @@ auto TexturedModel::render() -> void
     vs_params.u_model = model_matrix;
 
     fs_textured_params_t fs_params;
-    fs_params.u_ambient_color = state->ambient_color;
-    fs_params.u_ambient_strength = state->ambient_strength;
-    fs_params.u_render_mode = state->render_mode;
-    fs_params.u_use_lighting = state->use_lighting;
+    fs_params.u_ambient_color = state->scene.ambient_color;
+    fs_params.u_ambient_strength = state->scene.ambient_strength;
+    fs_params.u_render_mode = state->renderer.render_mode;
+    fs_params.u_use_lighting = state->scene.use_lighting;
 
     std::vector<std::shared_ptr<Light>> enabled_lights;
 
@@ -119,10 +119,10 @@ auto PalettedModel::render() -> void
     vs_params.u_model = model_matrix;
 
     fs_paletted_params_t fs_params;
-    fs_params.u_ambient_color = state->ambient_color;
-    fs_params.u_ambient_strength = state->ambient_strength;
-    fs_params.u_render_mode = state->render_mode;
-    fs_params.u_use_lighting = state->use_lighting;
+    fs_params.u_ambient_color = state->scene.ambient_color;
+    fs_params.u_ambient_strength = state->scene.ambient_strength;
+    fs_params.u_render_mode = state->renderer.render_mode;
+    fs_params.u_use_lighting = state->scene.use_lighting;
 
     std::vector<std::shared_ptr<Light>> enabled_lights;
 

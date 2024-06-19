@@ -167,12 +167,12 @@ auto GUI::draw() -> void
         scenario_name_ptrs.push_back(name.c_str());
     }
 
-    if (ImGui::Combo("Select Scenario", &state->current_scenario, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
+    if (ImGui::Combo("Select Scenario", &current_scenario, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
         // Item selected, handle selection here
-        std::cout << "Selected item: " << map_list[state->scenarios[state->current_scenario].map()].name << std::endl;
+        std::cout << "Selected item: " << map_list[state->scenarios[current_scenario].map()].name << std::endl;
     }
 
-    auto map_desc = map_list[state->map_num];
+    auto map_desc = map_list[state->scene.map_num];
     ImGui::Text("%d. %s", map_desc.id, map_desc.name.c_str());
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
@@ -184,23 +184,23 @@ auto GUI::draw() -> void
     }
 
     // Render Mode
-    if (ImGui::RadioButton("Textured", state->render_mode == 0)) {
-        state->render_mode = 0;
+    if (ImGui::RadioButton("Textured", state->renderer.render_mode == 0)) {
+        state->renderer.render_mode = 0;
     }
     ImGui::SameLine();
-    if (ImGui::RadioButton("Colored", state->render_mode == 1)) {
-        state->render_mode = 1;
+    if (ImGui::RadioButton("Colored", state->renderer.render_mode == 1)) {
+        state->renderer.render_mode = 1;
     }
     ImGui::SameLine();
-    if (ImGui::RadioButton("Normals", state->render_mode == 2)) {
-        state->render_mode = 2;
+    if (ImGui::RadioButton("Normals", state->renderer.render_mode == 2)) {
+        state->renderer.render_mode = 2;
     }
 
-    ImGui::SliderFloat("Rotation", &state->rotation_speed, 0.0f, 2.0f);
-    ImGui::ColorEdit3("Background", &state->clear_color.r);
+    ImGui::SliderFloat("Rotation", &state->scene.rotation_speed, 0.0f, 2.0f);
+    ImGui::ColorEdit3("Background", &state->renderer.clear_color.r);
     if (ImGui::CollapsingHeader("Lighting")) {
 
-        ImGui::Checkbox("Lighting Enabled", &state->use_lighting);
+        ImGui::Checkbox("Lighting Enabled", &state->scene.use_lighting);
         ImGui::SameLine();
         if (ImGui::Button(state->scene.lights.size() < 10 ? "Add Light" : "Max Lights!")) {
             if (state->scene.lights.size() < 10) {
@@ -213,8 +213,8 @@ auto GUI::draw() -> void
         }
 
         ImGui::SeparatorText("Ambient Lighting");
-        ImGui::ColorEdit4("Color", &state->ambient_color[0]);
-        ImGui::SliderFloat("Strength", &state->ambient_strength, 0.0f, 1.0f);
+        ImGui::ColorEdit4("Color", &state->scene.ambient_color[0]);
+        ImGui::SliderFloat("Strength", &state->scene.ambient_strength, 0.0f, 1.0f);
 
         for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);
@@ -229,11 +229,11 @@ auto GUI::draw() -> void
     }
 
     if (ImGui::Button("Show Map Records")) {
-        state->show_records_table = !state->show_records_table;
+        show_records_table = !show_records_table;
     }
     ImGui::SameLine();
     if (ImGui::Button("Show All Scenarios")) {
-        state->show_scenario_table = !state->show_scenario_table;
+        show_scenario_table = !show_scenario_table;
     }
 
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
@@ -242,13 +242,13 @@ auto GUI::draw() -> void
 
     ImGui::End();
 
-    if (state->show_records_table) {
+    if (show_records_table) {
         if (state->records.size() > 0) {
             draw_records();
         }
     }
 
-    if (state->show_scenario_table) {
+    if (show_scenario_table) {
         if (state->scenarios.size() > 0) {
             draw_scenarios();
         }

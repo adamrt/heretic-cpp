@@ -87,23 +87,23 @@ auto init() -> void
     ResourceManager::get_instance()->set_bin_reader(std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin"));
 
     // set_model("res/drone.obj", "res/drone.png");
-    set_map(state->map_num);
+    set_map(state->scene.map_num);
 }
 
 auto map_next() -> void
 {
     auto state = State::get_instance();
     for (;;) {
-        state->map_num++;
-        if (state->map_num > 127) {
-            state->map_num = 0;
+        state->scene.map_num++;
+        if (state->scene.map_num > 127) {
+            state->scene.map_num = 0;
         }
 
-        if (!map_list[state->map_num].valid) {
+        if (!map_list[state->scene.map_num].valid) {
             continue;
         }
 
-        auto success = set_map(state->map_num);
+        auto success = set_map(state->scene.map_num);
         if (!success) {
             continue;
         };
@@ -116,16 +116,16 @@ auto map_prev() -> void
 {
     auto state = State::get_instance();
     for (;;) {
-        state->map_num--;
-        if (state->map_num < 0) {
-            state->map_num = 127;
+        state->scene.map_num--;
+        if (state->scene.map_num < 0) {
+            state->scene.map_num = 127;
         }
 
-        if (!map_list[state->map_num].valid) {
+        if (!map_list[state->scene.map_num].valid) {
             continue;
         }
 
-        auto success = set_map(state->map_num);
+        auto success = set_map(state->scene.map_num);
         if (!success) {
             continue;
         };
@@ -190,7 +190,7 @@ auto frame() -> void
     state->camera.update();
     state->scene.update(delta);
     for (auto& model : state->scene.models) {
-        model->rotation.y += state->rotation_speed * delta;
+        model->rotation.y += state->scene.rotation_speed * delta;
         model->update(delta);
     }
 

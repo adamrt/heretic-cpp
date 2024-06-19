@@ -14,4 +14,11 @@ public:
 
     std::vector<std::shared_ptr<Model>> models = {};
     std::vector<std::shared_ptr<Light>> lights = {};
+
+    float rotation_speed = 0.0f;
+
+    int map_num = 49;
+    bool use_lighting = true;
+    glm::vec4 ambient_color = { 1.0, 1.0, 1.0, 1.0f };
+    float ambient_strength = 0.5f;
 };

@@ -22,9 +22,8 @@ Renderer::~Renderer()
 
 auto Renderer::begin_frame() -> void
 {
-    auto state = State::get_instance();
     sg_pass pass = {};
-    pass.action.colors[0].clear_value = state->clear_color;
+    pass.action.colors[0].clear_value = clear_color;
     pass.action.colors[0].load_action = SG_LOADACTION_CLEAR;
     pass.swapchain = sglue_swapchain();
     sg_begin_pass(&pass);

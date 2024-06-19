@@ -28,21 +28,8 @@ public:
     Scene scene = {};
     Camera camera = {};
 
-    float rotation_speed = 0.0f;
-    sg_color clear_color = { 0.0f, 0.5f, 0.7f, 1.0f };
-
-    glm::vec4 ambient_color = { 1.0, 1.0, 1.0, 1.0f };
-    float ambient_strength = 0.5f;
-    int render_mode = 0;
-    bool use_lighting = true;
-
     std::vector<Record> records = {};
     std::vector<Scenario> scenarios = {};
-
-    int map_num = 49;
-    bool show_scenario_table = false;
-    bool show_records_table = false;
-    int current_scenario = 0;
 
 private:
     State() {};
