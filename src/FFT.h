@@ -18,14 +18,6 @@
 #define GNS_MAX_SIZE 2388
 #define RECORD_MAX_NUM 100
 
-#define TEXTURE_WIDTH 256
-#define TEXTURE_HEIGHT 1024
-#define TEXTURE_NUM_PIXELS 262144      // 256 * 1024
-#define TEXTURE_NUM_BYTES (262144 * 4) // 256 * 1024 * 4
-#define TEXTURE_RAW_SIZE (TEXTURE_NUM_PIXELS / 2)
-
-#define PALETTE_NUM_BYTES (16 * 16 * 4)
-
 // Max size of any resource file.
 #define FILE_MAX_SIZE 131072
 #define SECTOR_SIZE 2048

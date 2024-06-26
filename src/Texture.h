@@ -7,16 +7,21 @@
 #include "sokol_gfx.h"
 #include "stb_image.h"
 
-#define TEXTURE_NUM_PIXELS 262144      // 256 * 1024
-#define TEXTURE_NUM_BYTES (262144 * 4) // 256 * 1024 * 4
-#define TEXTURE_WIDTH 256
-#define TEXTURE_HEIGHT 1024
-#define PALETTE_NUM_BYTES (16 * 16 * 4)
+// FFT Texture dimensions are always 256 * 256 * 4 pages (256*1024).
+constexpr int FFT_TEXTURE_WIDTH = 256;
+constexpr int FFT_TEXTURE_HEIGHT = 1024;
+constexpr int FFT_TEXTURE_NUM_PIXELS = (256 * 1024);                // 262144
+constexpr int FFT_TEXTURE_NUM_BYTES = (FFT_TEXTURE_NUM_PIXELS * 4); // Pixel * 4 bytes per pixel (RGBA8).
+constexpr int FFT_TEXTURE_RAW_SIZE = (FFT_TEXTURE_NUM_PIXELS / 2);  // Each pixel on disk 1/2 a byte.
+
+// FFT Palette dimensions are always 256 * 1.
+constexpr int FFT_PALETTE_NUM_PIXELS = (16 * 16);
+constexpr int FFT_PALETTE_NUM_BYTES = (FFT_PALETTE_NUM_PIXELS * 4);
 
 struct Texture {
     Texture(std::string filename);
-    Texture(std::array<uint8_t, TEXTURE_NUM_BYTES> data);
-    Texture(std::array<uint8_t, PALETTE_NUM_BYTES> data);
+    Texture(std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> data);
+    Texture(std::array<uint8_t, FFT_PALETTE_NUM_BYTES> data);
     ~Texture();
 
     sg_image load_png(const char* filename);

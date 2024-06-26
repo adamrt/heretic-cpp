@@ -471,7 +471,7 @@ auto BinFile::read_palette() -> std::shared_ptr<Texture>
     uint32_t intra_file_ptr = read_u32();
     offset = intra_file_ptr;
 
-    std::array<uint8_t, PALETTE_NUM_BYTES> pixels = {};
+    std::array<uint8_t, FFT_PALETTE_NUM_BYTES> pixels = {};
 
     for (int i = 0; i < 16 * 16 * 4; i = i + 4) {
         glm::vec4 c = read_rgb15();
@@ -550,9 +550,9 @@ auto BinFile::read_background() -> std::pair<glm::vec4, glm::vec4>
 
 auto BinFile::read_texture() -> std::shared_ptr<Texture>
 {
-    std::array<uint8_t, TEXTURE_NUM_BYTES> pixels = {};
+    std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> pixels = {};
 
-    for (int i = 0, j = 0; i < TEXTURE_RAW_SIZE; i++, j += 8) {
+    for (int i = 0, j = 0; i < FFT_TEXTURE_RAW_SIZE; i++, j += 8) {
         uint8_t raw_pixel = data.at(i);
         uint8_t right = ((raw_pixel & 0x0F));
         uint8_t left = ((raw_pixel & 0xF0) >> 4);
