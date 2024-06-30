@@ -66,18 +66,23 @@ struct Event {
 struct Scenario {
     std::vector<uint8_t> data;
 
+    bool operator==(const Scenario& other) const
+    {
+        return id() == other.id();
+    }
+
     auto repr() -> std::string;
-    auto id() -> int;
-    auto map() -> int;
+    auto id() const -> int;
+    auto map_id() -> int;
     auto weather() -> MapWeather;
     auto time() -> MapTime;
     auto first_music() -> int;
     auto second_music() -> int;
-    auto entd() -> int;
+    auto entd_id() -> int;
     auto first_grid() -> int;
     auto second_grid() -> int;
     auto require_ramza_unknown() -> int;
-    auto event_script() -> int;
+    auto event_id() -> int;
     // There is more from the "last line". Is it the next 24 bytes or what?
 };
 
@@ -85,21 +90,22 @@ std::string map_weather_str(MapWeather value);
 std::string map_time_str(MapTime value);
 std::string resource_type_str(ResourceType value);
 
-class FFTMap {
-public:
-    std::vector<Vertex> vertices = {};
-
-    std::vector<Record> records = {};
-    std::vector<Scenario> scenarios = {};
-
-    std::shared_ptr<Texture> texture = {};
-    std::shared_ptr<Texture> palette = {};
-
-    std::vector<std::shared_ptr<Light>> lights = {};
-
-    glm::vec3 ambient_light_color = {};
+struct FFTMesh {
+    std::vector<Vertex> vertices;
+    std::shared_ptr<Texture> texture = nullptr;
+    std::shared_ptr<Texture> palette = nullptr;
+    std::vector<std::shared_ptr<Light>> lights;
     glm::vec4 background_top = {};
     glm::vec4 background_bottom = {};
+    // Add ambient_light_color
+};
+
+class FFTMap {
+public:
+    std::vector<Record> records = {};
+
+    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<Texture>> textures = {};
+    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<FFTMesh>> meshes = {};
 };
 
 struct FFTMapDesc {
@@ -138,13 +144,15 @@ public:
     auto read_rgb8() -> glm::vec3;
 
     auto read_scenarios() -> std::vector<Scenario>;
-    auto read_events() -> std::vector<Event>;
+    auto read_event() -> Event;
     auto read_records() -> std::vector<Record>;
+    auto read_mesh() -> std::shared_ptr<FFTMesh>;
     auto read_vertices() -> std::vector<Vertex>;
     auto read_texture() -> std::shared_ptr<Texture>;
     auto read_palette() -> std::shared_ptr<Texture>;
     auto read_lights() -> std::vector<std::shared_ptr<Light>>;
     auto read_background() -> std::pair<glm::vec4, glm::vec4>;
+
     std::vector<uint8_t> data;
     uint64_t length;
     uint64_t offset;
@@ -155,7 +163,7 @@ public:
     BinReader(std::string filename);
     ~BinReader();
 
-    auto read_map(int mapnum) -> std::shared_ptr<FFTMap>;
+    auto read_map(int mapnum, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>;
     auto read_scenarios() -> std::vector<Scenario>;
     auto read_events() -> std::vector<Event>;
 

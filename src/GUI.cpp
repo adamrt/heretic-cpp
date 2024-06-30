@@ -51,10 +51,11 @@ auto GUI::draw_scenarios() -> void
     ImGui::Begin("Scenarios");
 
     // Begin a table
-    if (ImGui::BeginTable("Scenarios", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+    if (ImGui::BeginTable("Scenarios", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         // Set up column headers
         ImGui::TableSetupColumn("ID");
         ImGui::TableSetupColumn("Map");
+        ImGui::TableSetupColumn("EventID");
         ImGui::TableSetupColumn("Time");
         ImGui::TableSetupColumn("Weather");
 
@@ -69,12 +70,15 @@ auto GUI::draw_scenarios() -> void
             ImGui::Text("%d", scenario.id());
 
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%s", map_list[scenario.map()].name.c_str());
+            ImGui::Text("%s", map_list[scenario.map_id()].name.c_str());
 
             ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%s", map_time_str(scenario.time()).c_str());
+            ImGui::Text("%d", scenario.event_id());
 
             ImGui::TableSetColumnIndex(3);
+            ImGui::Text("%s", map_time_str(scenario.time()).c_str());
+
+            ImGui::TableSetColumnIndex(4);
             ImGui::Text("%s", map_weather_str(scenario.weather()).c_str());
         }
 
@@ -237,13 +241,16 @@ auto GUI::draw() -> void
         scenario_name_ptrs.push_back(name.c_str());
     }
 
-    if (ImGui::Combo("Select Scenario", &current_scenario, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
-        // Item selected, handle selection here
-        std::cout << "Selected item: " << map_list[state->scenarios[current_scenario].map()].name << std::endl;
+    if (ImGui::Combo("Select Scenario", &state->current_scenario_index, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
+        auto new_scenario = state->scenarios[state->current_scenario_index];
+        state->set_scenario(new_scenario);
     }
 
-    auto map_desc = map_list[state->scene.map_num];
-    ImGui::Text("%d. %s", map_desc.id, map_desc.name.c_str());
+    ImGui::Text("Time: %s", map_time_str(state->current_scenario.time()).c_str());
+    ImGui::SameLine();
+    ImGui::Text("Weather: %s", map_weather_str(state->current_scenario.weather()).c_str());
+    ImGui::Separator();
+
     ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
     if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
         state->camera.projection = Projection::Perspective;
@@ -268,6 +275,7 @@ auto GUI::draw() -> void
 
     ImGui::SliderFloat("Rotation", &state->scene.rotation_speed, 0.0f, 2.0f);
     ImGui::ColorEdit3("Background", &state->renderer.clear_color.r);
+
     if (ImGui::CollapsingHeader("Lighting")) {
 
         ImGui::Checkbox("Lighting Enabled", &state->scene.use_lighting);

@@ -1,8 +1,10 @@
 #include <math.h>
 
+#include <algorithm>
 #include <array>
 #include <assert.h>
 #include <iomanip>
+#include <optional>
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -179,59 +181,63 @@ auto BinFile::read_rgb8() -> glm::vec3
 // https://ffhacktics.com/wiki/ATTACK.OUT
 auto BinReader::read_scenarios() -> std::vector<Scenario>
 {
-    const int attack_offset = 0x10938;
-    auto attack_out = read_file(2448, 125956);
-    attack_out.data.erase(attack_out.data.begin(), attack_out.data.begin() + attack_offset);
+    constexpr int attack_out_sector = 2448;
+    constexpr int attack_out_size = 125956;
+    constexpr int attack_intra_file_offset = 0x10938;
+
+    auto attack_out = read_file(attack_out_sector, attack_out_size);
+    attack_out.data.erase(attack_out.data.begin(), attack_out.data.begin() + attack_intra_file_offset);
     return attack_out.read_scenarios();
 }
 
-// https://ffhacktics.com/wiki/ATTACK.OUT
+// https://ffhacktics.com/wiki/TEST.EVT
 auto BinReader::read_events() -> std::vector<Event>
 {
-    auto test_evt = read_file(3707, 4096000);
-    // test_evt.data.erase(test_evt.data.begin(), test_evt.data.begin() + attack_offset);
-    return test_evt.read_events();
+    const int test_evt_sector = 3707;
+    const int test_evt_size = 4096000;
+
+    std::vector<Event> events = {};
+    for (int event_id = 0; event_id < 100; event_id++) {
+        auto test_evt = read_file((event_id * 4) + test_evt_sector, test_evt_size);
+        events.push_back(test_evt.read_event());
+    }
+    return events;
 }
 
-auto BinReader::read_map(int mapnum) -> std::shared_ptr<FFTMap>
+auto BinReader::read_map(int mapnum, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>
 {
     int sector = map_list[mapnum].sector;
 
-    auto gns = read_file(sector, GNS_MAX_SIZE);
-    auto records = gns.read_records();
-
     auto map = std::make_shared<FFTMap>();
+    auto gns_file = read_file(sector, GNS_MAX_SIZE);
 
-    map->records = records;
+    map->records = gns_file.read_records();
 
-    for (auto& record : records) {
+    for (auto& record : map->records) {
         auto resource = read_file(record.sector(), record.length());
 
         switch (record.resource_type()) {
         case ResourceType::MeshPrimary: {
-            map->vertices = resource.read_vertices();
-            map->palette = resource.read_palette();
-            map->lights = resource.read_lights();
-            auto bg = resource.read_background();
-            map->background_top = bg.first;
-            map->background_bottom = bg.second;
+            // Primary Mesh is always Day/None
+            map->meshes[std::make_tuple(record.time(), record.weather())] = resource.read_mesh();
             break;
         }
-        case ResourceType::Texture:
-            map->texture = resource.read_texture();
-            break;
-        case ResourceType::MeshOverride:
-            // Sometimes there is no primary mesh (ie MAP002.GNS), there is
-            // only an override. Usually a non-battle map. So we treat this
-            // one as the primary, only if the primary hasn't been set. Kinda
-            // Hacky until we start treating each GNS Record as a Scenario.
-            // NOTE: We used to check mesh.is_valid, but we don't anymore. Maybe
-            // we should?
-            if (map->vertices.size() == 0) {
-                map->vertices = resource.read_vertices();
-                return nullptr;
+        case ResourceType::Texture: {
+            if (map->textures.find(std::make_tuple(record.time(), record.weather())) == map->textures.end()) {
+                map->textures[std::make_tuple(record.time(), record.weather())] = resource.read_texture();
             }
             break;
+        }
+        case ResourceType::MeshOverride: {
+            // FIXME: This hack to get around the fact that the primary mesh
+            // already set the mesh for this time/weather combination. This
+            // needs to manipulate the primary mesh instead of adding a new one.
+            if (map->meshes.find(std::make_tuple(record.time(), record.weather())) == map->meshes.end()) {
+                map->meshes[std::make_tuple(record.time(), record.weather())] = resource.read_mesh();
+            }
+
+            break;
+        }
         default:
             break;
         }
@@ -261,29 +267,49 @@ auto BinFile::read_records() -> std::vector<Record>
 
 auto BinFile::read_scenarios() -> std::vector<Scenario>
 {
+    constexpr int scenario_num = 225;
     constexpr int scenario_size = 24;
+
     std::vector<Scenario> scenarios;
-    // FIXME: Why 300?
-    for (int i = 0; i < 300; i++) {
+    for (int i = 0; i < scenario_num; i++) {
         auto bytes = read_bytes(scenario_size);
         Scenario scenario { bytes };
+
+        // 104 is a bad scenario and 118 should work but might be my bin file.
+        if (i == 104 || i == 118) {
+            continue;
+        }
+
+        // We don't care about the test map as it doesn't have a texture. Skip
+        // all its scenarios.
+        if (scenario.map_id() == 0) {
+            continue;
+        }
+
         scenarios.push_back(scenario);
     }
     return scenarios;
 }
 
-auto BinFile::read_events() -> std::vector<Event>
+auto BinFile::read_event() -> Event
 {
     constexpr int event_size = 8192;
-    int event_id = 1;
-    std::vector<Event> events;
-    for (int i = 1; i < 100; i++) {
-        offset = i * 4;
-        auto bytes = read_bytes(event_size);
-        Event event { bytes };
-        events.push_back(event);
-    }
-    return events;
+
+    auto bytes = read_bytes(event_size);
+    Event event { bytes };
+    return event;
+}
+
+auto BinFile::read_mesh() -> std::shared_ptr<FFTMesh>
+{
+    auto mesh = std::make_shared<FFTMesh>();
+    mesh->vertices = read_vertices();
+    mesh->palette = read_palette();
+    mesh->lights = read_lights();
+    auto bg = read_background();
+    mesh->background_top = bg.first;
+    mesh->background_bottom = bg.second;
+    return mesh;
 }
 
 auto BinFile::read_vertices() -> std::vector<Vertex>
@@ -291,12 +317,12 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
     offset = 0x40;
-    uint32_t primary_mesh_ptr = read_u32();
-    if (primary_mesh_ptr != 0xC4) {
+    uint32_t intra_file_ptr = read_u32();
+    if (intra_file_ptr == 0) {
         return {};
     }
 
-    offset = primary_mesh_ptr;
+    offset = intra_file_ptr;
 
     // The number of each type of polygon.
     uint16_t N = read_u16(); // Textured triangles
@@ -493,6 +519,9 @@ auto BinFile::read_palette() -> std::shared_ptr<Texture>
 {
     offset = 0x44;
     uint32_t intra_file_ptr = read_u32();
+    if (intra_file_ptr == 0) {
+        return nullptr;
+    }
     offset = intra_file_ptr;
 
     std::array<uint8_t, FFT_PALETTE_NUM_BYTES> pixels = {};
@@ -513,6 +542,10 @@ auto BinFile::read_lights() -> std::vector<std::shared_ptr<Light>>
 {
     offset = 0x64;
     uint32_t intra_file_ptr = read_u32();
+    if (intra_file_ptr == 0) {
+        return {};
+    }
+
     offset = intra_file_ptr;
 
     glm::vec4 a_color = {};
@@ -1365,17 +1398,17 @@ auto Event::id() -> int { return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((
 auto Scenario::repr() -> std::string
 {
     std::ostringstream oss;
-    oss << std::setw(3) << std::setfill('0') << id() << " " << map_list[map()].name;
+    oss << std::setw(3) << std::setfill('0') << id() << " " << map_list[map_id()].name;
     return oss.str();
 }
-auto Scenario::id() -> int { return data[0] | (data[1] << 8); }
-auto Scenario::map() -> int { return data[2]; }
+auto Scenario::id() const -> int { return data[0] | (data[1] << 8); }
+auto Scenario::map_id() -> int { return data[2]; }
 auto Scenario::weather() -> MapWeather { return static_cast<MapWeather>(data[3]); }
 auto Scenario::time() -> MapTime { return static_cast<MapTime>(data[4]); }
 auto Scenario::first_music() -> int { return data[5]; }
 auto Scenario::second_music() -> int { return data[6]; }
-auto Scenario::entd() -> int { return data[7] | (data[8] << 8); }
+auto Scenario::entd_id() -> int { return data[7] | (data[8] << 8); }
 auto Scenario::first_grid() -> int { return data[9] | (data[10] << 8); }
 auto Scenario::second_grid() -> int { return data[11] | (data[12] << 8); }
 auto Scenario::require_ramza_unknown() -> int { return data[17]; }
-auto Scenario::event_script() -> int { return data[22] | (data[23] << 8); }
+auto Scenario::event_id() -> int { return data[22] | (data[23] << 8); }

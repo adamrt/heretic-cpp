@@ -23,14 +23,23 @@ public:
         }
         return instance;
     }
+
+    auto set_scenario(const Scenario scenario) -> void;
+    auto set_map_from_scenario(const Scenario scenario) -> bool;
+    auto next_scenario() -> void;
+    auto previous_scenario() -> void;
+
     Renderer renderer = {};
     GUI gui = {};
     Scene scene = {};
     Camera camera = {};
 
-    std::vector<Record> records = {};
     std::vector<Scenario> scenarios = {};
     std::vector<Event> events = {};
+    std::vector<Record> records = {};
+
+    int current_scenario_index = 0;
+    Scenario current_scenario = {};
 
 private:
     State() {};

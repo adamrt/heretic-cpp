@@ -18,6 +18,5 @@ private:
     bool show_scenario_table = false;
     bool show_records_table = false;
     bool show_instructions_table = false;
-    bool show_events_table = true;
-    int current_scenario = 0;
+    bool show_events_table = false;
 };

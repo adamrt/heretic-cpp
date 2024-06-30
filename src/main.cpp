@@ -28,109 +28,19 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
-auto set_model(std::string const& model_path, std::string const& texture_path) -> void
-{
-    auto state = State::get_instance();
-    auto resources = ResourceManager::get_instance();
-    auto reader = resources->get_bin_reader();
-
-    auto mesh = std::make_shared<Mesh>(model_path);
-    auto texture = std::make_shared<Texture>(texture_path);
-    auto model = std::make_shared<TexturedModel>(mesh, texture);
-
-    state->scene.clear();
-    state->scene.add_model(model);
-}
-
-auto set_map(int mapnum) -> bool
-{
-    auto state = State::get_instance();
-    auto resources = ResourceManager::get_instance();
-    auto reader = resources->get_bin_reader();
-
-    state->scenarios = reader->read_scenarios();
-    state->events = reader->read_events();
-
-    auto map = reader->read_map(mapnum);
-    if (map == nullptr) {
-        return false;
-    }
-    auto background = std::make_shared<Background>(map->background_top, map->background_bottom);
-    auto map_mesh = std::make_shared<Mesh>(map->vertices);
-
-    std::shared_ptr<Model> map_model;
-    if (map->texture != nullptr && map->palette != nullptr) {
-        map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->palette);
-    } else {
-        map_model = std::make_shared<ColoredModel>(map_mesh);
-    }
-
-    map_model->scale = map_mesh->normalized_scale();
-    map_model->translation = map_mesh->center_translation();
-
-    state->records = map->records;
-    state->scene.clear();
-    state->scene.add_model(background);
-    state->scene.add_model(map_model);
-
-    for (std::shared_ptr<Light> light : map->lights) {
-        state->scene.add_light(light);
-    }
-    return true;
-}
-
 auto init() -> void
 {
 
     auto state = State::get_instance();
     ResourceManager::get_instance()->set_bin_reader(std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin"));
 
-    // set_model("res/drone.obj", "res/drone.png");
-    set_map(state->scene.map_num);
-}
+    auto resources = ResourceManager::get_instance();
+    auto reader = resources->get_bin_reader();
 
-auto map_next() -> void
-{
-    auto state = State::get_instance();
-    for (;;) {
-        state->scene.map_num++;
-        if (state->scene.map_num > 127) {
-            state->scene.map_num = 0;
-        }
+    state->scenarios = reader->read_scenarios();
+    state->events = reader->read_events();
 
-        if (!map_list[state->scene.map_num].valid) {
-            continue;
-        }
-
-        auto success = set_map(state->scene.map_num);
-        if (!success) {
-            continue;
-        };
-
-        return;
-    }
-}
-
-auto map_prev() -> void
-{
-    auto state = State::get_instance();
-    for (;;) {
-        state->scene.map_num--;
-        if (state->scene.map_num < 0) {
-            state->scene.map_num = 127;
-        }
-
-        if (!map_list[state->scene.map_num].valid) {
-            continue;
-        }
-
-        auto success = set_map(state->scene.map_num);
-        if (!success) {
-            continue;
-        };
-
-        return;
-    }
+    state->set_scenario(state->scenarios[194]);
 }
 
 auto input(sapp_event const* event) -> void
@@ -148,10 +58,10 @@ auto input(sapp_event const* event) -> void
             sapp_quit();
             break;
         case SAPP_KEYCODE_J:
-            map_prev();
+            state->previous_scenario();
             break;
         case SAPP_KEYCODE_K:
-            map_next();
+            state->next_scenario();
             break;
         default:
             break;
