@@ -30,6 +30,7 @@ public:
 
     std::vector<Record> records = {};
     std::vector<Scenario> scenarios = {};
+    std::vector<Event> events = {};
 
 private:
     State() {};

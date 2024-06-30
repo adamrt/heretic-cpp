@@ -48,9 +48,8 @@ auto set_map(int mapnum) -> bool
     auto resources = ResourceManager::get_instance();
     auto reader = resources->get_bin_reader();
 
-    auto scenarios = reader->read_scenarios();
-
-    state->scenarios = scenarios;
+    state->scenarios = reader->read_scenarios();
+    state->events = reader->read_events();
 
     auto map = reader->read_map(mapnum);
     if (map == nullptr) {

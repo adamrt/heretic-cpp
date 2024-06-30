@@ -4,6 +4,7 @@
 #include <array>
 #include <cstdint>
 #include <cstdio>
+#include <map>
 #include <memory>
 #include <string.h>
 #include <string>
@@ -20,9 +21,9 @@
 
 // Max size of any resource file.
 #define FILE_MAX_SIZE 131072
-#define SECTOR_SIZE 2048
-#define SECTOR_SIZE_RAW 2352
-#define SECTOR_HEADER_SIZE 24
+constexpr size_t SECTOR_SIZE = 2048;
+constexpr size_t SECTOR_SIZE_RAW = 2352;
+constexpr size_t SECTOR_HEADER_SIZE = 24;
 
 enum class ResourceType : int {
     Texture = 0x1701,
@@ -55,6 +56,11 @@ struct Record {
     auto arrangement() -> int;
     auto time() -> MapTime;
     auto weather() -> MapWeather;
+};
+
+struct Event {
+    std::vector<uint8_t> data;
+    auto id() -> int;
 };
 
 struct Scenario {
@@ -103,7 +109,15 @@ struct FFTMapDesc {
     bool valid;
 };
 
+struct Instruction {
+    std::string name;
+    std::string description;
+    std::string usage;
+};
+
 extern const FFTMapDesc map_list[128];
+extern std::map<int, std::string> scenario_list;
+extern std::map<int, Instruction> instruction_list;
 
 // BinFile represents a file in a BIN file.
 class BinFile {
@@ -124,6 +138,7 @@ public:
     auto read_rgb8() -> glm::vec3;
 
     auto read_scenarios() -> std::vector<Scenario>;
+    auto read_events() -> std::vector<Event>;
     auto read_records() -> std::vector<Record>;
     auto read_vertices() -> std::vector<Vertex>;
     auto read_texture() -> std::shared_ptr<Texture>;
@@ -142,6 +157,7 @@ public:
 
     auto read_map(int mapnum) -> std::shared_ptr<FFTMap>;
     auto read_scenarios() -> std::vector<Scenario>;
+    auto read_events() -> std::vector<Event>;
 
 private:
     FILE* file;

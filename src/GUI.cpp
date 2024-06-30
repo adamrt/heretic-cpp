@@ -54,9 +54,9 @@ auto GUI::draw_scenarios() -> void
     if (ImGui::BeginTable("Scenarios", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
         // Set up column headers
         ImGui::TableSetupColumn("ID");
+        ImGui::TableSetupColumn("Map");
         ImGui::TableSetupColumn("Time");
         ImGui::TableSetupColumn("Weather");
-        ImGui::TableSetupColumn("Map");
 
         ImGui::TableHeadersRow();
 
@@ -68,17 +68,87 @@ auto GUI::draw_scenarios() -> void
             ImGui::TableSetColumnIndex(0);
             ImGui::Text("%d", scenario.id());
 
-            // Column 1: Time
             ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", map_list[scenario.map()].name.c_str());
+
+            ImGui::TableSetColumnIndex(2);
             ImGui::Text("%s", map_time_str(scenario.time()).c_str());
 
-            // Column 2: Weather
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%s", map_weather_str(scenario.weather()).c_str());
-
-            // Column 3: Map
             ImGui::TableSetColumnIndex(3);
-            ImGui::Text("%s", map_list[scenario.map()].name.c_str());
+            ImGui::Text("%s", map_weather_str(scenario.weather()).c_str());
+        }
+
+        // End the table
+        ImGui::EndTable();
+    }
+
+    // End the window
+    ImGui::End();
+}
+
+auto GUI::draw_instructions() -> void
+{
+
+    auto state = State::get_instance();
+    ImGui::SetNextWindowSize(ImVec2(1175.0f, 800.0f));
+    ImGui::Begin("Instructions");
+
+    // Begin a table
+    if (ImGui::BeginTable("Instructions", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        // Set up column headers
+        ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50.0f);
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
+        ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthFixed, 1000.0f);
+
+        ImGui::TableHeadersRow();
+
+        // Populate table with data
+        for (auto& [key, value] : instruction_list) {
+            ImGui::TableNextRow();
+
+            // Column 0: ID
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("0x%X", key);
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", value.name.c_str());
+
+            ImGui::TableSetColumnIndex(2);
+            ImGui::Text("%s", value.description.c_str());
+        }
+
+        // End the table
+        ImGui::EndTable();
+    }
+
+    // End the window
+    ImGui::End();
+}
+
+auto GUI::draw_events() -> void
+{
+
+    auto state = State::get_instance();
+    ImGui::SetNextWindowSize(ImVec2(1175.0f, 800.0f));
+    ImGui::Begin("Events");
+
+    // Begin a table
+    if (ImGui::BeginTable("Events", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+        // Set up column headers
+        ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+
+        ImGui::TableHeadersRow();
+
+        // Populate table with data
+        for (auto& event : state->events) {
+            if (event.id() != 0xF2F2F2F2) {
+                continue;
+            }
+            ImGui::TableNextRow();
+
+            // Column 0: ID
+            ImGui::TableSetColumnIndex(0);
+            ImGui::Text("0x%X", event.id());
         }
 
         // End the table
@@ -235,6 +305,12 @@ auto GUI::draw() -> void
     if (ImGui::Button("Show All Scenarios")) {
         show_scenario_table = !show_scenario_table;
     }
+    if (ImGui::Button("Show Instructions")) {
+        show_instructions_table = !show_instructions_table;
+    }
+    if (ImGui::Button("Show Events")) {
+        show_events_table = !show_events_table;
+    }
 
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
@@ -251,6 +327,16 @@ auto GUI::draw() -> void
     if (show_scenario_table) {
         if (state->scenarios.size() > 0) {
             draw_scenarios();
+        }
+    }
+
+    if (show_instructions_table) {
+        draw_instructions();
+    }
+
+    if (show_events_table) {
+        if (state->events.size() > 0) {
+            draw_events();
         }
     }
 }
