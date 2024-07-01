@@ -31,34 +31,23 @@ auto State::set_map_from_scenario(Scenario scenario) -> bool
 
     auto map = reader->read_map(scenario.map_id(), scenario.time(), scenario.weather());
     if (map == nullptr) {
+        std::cout << "Failed to load map" << std::endl;
         return false;
     }
 
-    // Get texture or fall back to default
-    auto texture = map->textures[std::make_tuple(scenario.time(), scenario.weather())];
-    if (texture == nullptr) {
-        texture = map->textures[std::make_tuple(MapTime::Day, MapWeather::None)];
-    }
-
-    // Get mesh or fall back to default
-    auto mesh = map->meshes[std::make_tuple(scenario.time(), scenario.weather())];
-    if (mesh == nullptr) {
-        mesh = map->meshes[std::make_tuple(MapTime::Day, MapWeather::None)];
-    }
-
-    auto map_mesh = std::make_shared<Mesh>(mesh->vertices);
-    auto map_model = std::make_shared<PalettedModel>(map_mesh, texture, mesh->palette);
-    auto background = std::make_shared<Background>(mesh->background_top, mesh->background_bottom);
+    auto map_mesh = std::make_shared<Mesh>(map->mesh->vertices);
+    auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->mesh->palette);
+    auto background = std::make_shared<Background>(map->mesh->background_top, map->mesh->background_bottom);
 
     map_model->scale = map_mesh->normalized_scale();
     map_model->translation = map_mesh->center_translation();
 
-    state->records = map->records;
+    state->records = map->gns_records;
 
     state->scene.clear();
     state->scene.add_model(background);
     state->scene.add_model(map_model);
-    for (std::shared_ptr<Light> light : mesh->lights) {
+    for (std::shared_ptr<Light> light : map->mesh->lights) {
         state->scene.add_light(light);
     }
 

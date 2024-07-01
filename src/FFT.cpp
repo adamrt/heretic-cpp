@@ -204,44 +204,76 @@ auto BinReader::read_events() -> std::vector<Event>
     return events;
 }
 
-auto BinReader::read_map(int mapnum, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>
+auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>
 {
-    int sector = map_list[mapnum].sector;
+    auto key = std::make_tuple(time, weather);
+    auto default_key = std::make_tuple(MapTime::Day, MapWeather::None);
 
-    auto map = std::make_shared<FFTMap>();
+    int sector = map_list[map_num].sector;
     auto gns_file = read_file(sector, GNS_MAX_SIZE);
+    auto gns_records = gns_file.read_records();
 
-    map->records = gns_file.read_records();
+    std::shared_ptr<FFTMesh> primary_mesh = nullptr;
+    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<FFTMesh>> meshes;
+    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<Texture>> textures;
 
-    for (auto& record : map->records) {
+    for (auto& record : gns_records) {
         auto resource = read_file(record.sector(), record.length());
 
         switch (record.resource_type()) {
         case ResourceType::MeshPrimary: {
             // Primary Mesh is always Day/None
-            map->meshes[std::make_tuple(record.time(), record.weather())] = resource.read_mesh();
+            primary_mesh = resource.read_mesh();
             break;
         }
         case ResourceType::Texture: {
-            if (map->textures.find(std::make_tuple(record.time(), record.weather())) == map->textures.end()) {
-                map->textures[std::make_tuple(record.time(), record.weather())] = resource.read_texture();
+            // There can be duplicate textures for the same time/weather. Use the first one.
+            if (textures.find(key) == textures.end()) {
+                textures[key] = resource.read_texture();
             }
+            break;
+        }
+        case ResourceType::MeshAlt: {
             break;
         }
         case ResourceType::MeshOverride: {
-            // FIXME: This hack to get around the fact that the primary mesh
-            // already set the mesh for this time/weather combination. This
-            // needs to manipulate the primary mesh instead of adding a new one.
-            if (map->meshes.find(std::make_tuple(record.time(), record.weather())) == map->meshes.end()) {
-                map->meshes[std::make_tuple(record.time(), record.weather())] = resource.read_mesh();
-            }
-
+            meshes[key] = resource.read_mesh();
+            break;
+        }
+        case ResourceType::End: {
             break;
         }
         default:
-            break;
+            std::cout << "Unknown resource type: " << std::endl;
         }
     }
+
+    if (primary_mesh == nullptr) {
+        primary_mesh = std::make_shared<FFTMesh>();
+    }
+
+    auto texture = textures[key];
+    if (texture == nullptr) {
+        texture = textures[default_key];
+    }
+
+    auto override_mesh = meshes[key];
+    if (override_mesh != nullptr) {
+        if (override_mesh->vertices.size() > 0) {
+            primary_mesh->vertices.insert(primary_mesh->vertices.end(), override_mesh->vertices.begin(), override_mesh->vertices.end());
+        }
+        if (override_mesh->lights.size() > 0) {
+            primary_mesh->lights = override_mesh->lights;
+        }
+        if (override_mesh->palette != nullptr) {
+            primary_mesh->palette = override_mesh->palette;
+        }
+    }
+
+    auto map = std::make_shared<FFTMap>();
+    map->gns_records = gns_records;
+    map->texture = texture;
+    map->mesh = primary_mesh;
 
     return map;
 }
@@ -267,7 +299,7 @@ auto BinFile::read_records() -> std::vector<Record>
 
 auto BinFile::read_scenarios() -> std::vector<Scenario>
 {
-    constexpr int scenario_num = 225;
+    constexpr int scenario_num = 500;
     constexpr int scenario_size = 24;
 
     std::vector<Scenario> scenarios;

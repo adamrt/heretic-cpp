@@ -92,7 +92,6 @@ std::string resource_type_str(ResourceType value);
 
 struct FFTMesh {
     std::vector<Vertex> vertices;
-    std::shared_ptr<Texture> texture = nullptr;
     std::shared_ptr<Texture> palette = nullptr;
     std::vector<std::shared_ptr<Light>> lights;
     glm::vec4 background_top = {};
@@ -102,10 +101,9 @@ struct FFTMesh {
 
 class FFTMap {
 public:
-    std::vector<Record> records = {};
-
-    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<Texture>> textures = {};
-    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<FFTMesh>> meshes = {};
+    std::vector<Record> gns_records = {};
+    std::shared_ptr<Texture> texture = {};
+    std::shared_ptr<FFTMesh> mesh = {};
 };
 
 struct FFTMapDesc {
