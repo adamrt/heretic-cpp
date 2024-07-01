@@ -40,7 +40,7 @@ auto init() -> void
     state->scenarios = reader->read_scenarios();
     state->events = reader->read_events();
 
-    state->set_scenario(state->scenarios[25]);
+    state->set_scenario(state->scenarios[0]);
 }
 
 auto input(sapp_event const* event) -> void

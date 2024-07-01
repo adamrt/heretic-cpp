@@ -50,6 +50,7 @@ enum class MapWeather {
 struct Record {
     std::vector<uint8_t> data;
 
+    auto repr() -> std::string;
     auto sector() -> int;
     auto length() -> uint64_t;
     auto resource_type() -> ResourceType;
@@ -111,6 +112,8 @@ struct FFTMapDesc {
     uint16_t sector;
     std::string name;
     bool valid;
+
+    auto repr() const -> std::string;
 };
 
 struct Instruction {
@@ -119,7 +122,7 @@ struct Instruction {
     std::string usage;
 };
 
-extern const FFTMapDesc map_list[128];
+extern std::array<FFTMapDesc, 128> map_list;
 extern std::map<int, std::string> scenario_list;
 extern std::map<int, Instruction> instruction_list;
 

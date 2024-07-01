@@ -23,13 +23,13 @@ auto State::set_scenario(Scenario scenario) -> void
     set_map_from_scenario(scenario);
 }
 
-auto State::set_map_from_scenario(Scenario scenario) -> bool
+auto State::set_map(int map_num, MapTime time, MapWeather weather) -> bool
 {
     auto state = State::get_instance();
     auto resources = ResourceManager::get_instance();
     auto reader = resources->get_bin_reader();
 
-    auto map = reader->read_map(scenario.map_id(), scenario.time(), scenario.weather());
+    auto map = reader->read_map(map_num, time, weather);
     if (map == nullptr) {
         std::cout << "Failed to load map" << std::endl;
         return false;
@@ -52,6 +52,11 @@ auto State::set_map_from_scenario(Scenario scenario) -> bool
     }
 
     return true;
+}
+
+auto State::set_map_from_scenario(Scenario scenario) -> bool
+{
+    return set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 
 auto State::next_scenario() -> void

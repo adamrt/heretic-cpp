@@ -25,6 +25,7 @@ public:
     }
 
     auto set_scenario(const Scenario scenario) -> void;
+    auto set_map(int map_num, MapTime time = MapTime::Day, MapWeather weather = MapWeather::None) -> bool;
     auto set_map_from_scenario(const Scenario scenario) -> bool;
     auto next_scenario() -> void;
     auto previous_scenario() -> void;
@@ -39,6 +40,8 @@ public:
     std::vector<Record> records = {};
 
     int current_scenario_index = 0;
+    int current_map_index = 1;
+    int current_style_index = 0;
     Scenario current_scenario = {};
 
 private:

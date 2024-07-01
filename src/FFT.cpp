@@ -206,7 +206,7 @@ auto BinReader::read_events() -> std::vector<Event>
 
 auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>
 {
-    auto key = std::make_tuple(time, weather);
+    auto requested_key = std::make_tuple(time, weather);
     auto default_key = std::make_tuple(MapTime::Day, MapWeather::None);
 
     int sector = map_list[map_num].sector;
@@ -218,6 +218,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
     std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<Texture>> textures;
 
     for (auto& record : gns_records) {
+        auto record_key = std::make_tuple(record.time(), record.weather());
         auto resource = read_file(record.sector(), record.length());
 
         switch (record.resource_type()) {
@@ -228,8 +229,8 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         }
         case ResourceType::Texture: {
             // There can be duplicate textures for the same time/weather. Use the first one.
-            if (textures.find(key) == textures.end()) {
-                textures[key] = resource.read_texture();
+            if (textures.find(record_key) == textures.end()) {
+                textures[record_key] = resource.read_texture();
             }
             break;
         }
@@ -237,7 +238,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
             break;
         }
         case ResourceType::MeshOverride: {
-            meshes[key] = resource.read_mesh();
+            meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::End: {
@@ -252,12 +253,12 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         primary_mesh = std::make_shared<FFTMesh>();
     }
 
-    auto texture = textures[key];
+    auto texture = textures[requested_key];
     if (texture == nullptr) {
         texture = textures[default_key];
     }
 
-    auto override_mesh = meshes[key];
+    auto override_mesh = meshes[requested_key];
     if (override_mesh != nullptr) {
         if (override_mesh->vertices.size() > 0) {
             primary_mesh->vertices.insert(primary_mesh->vertices.end(), override_mesh->vertices.begin(), override_mesh->vertices.end());
@@ -267,6 +268,10 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         }
         if (override_mesh->palette != nullptr) {
             primary_mesh->palette = override_mesh->palette;
+        }
+        if (override_mesh->background_top != glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) && override_mesh->background_bottom != glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) {
+            primary_mesh->background_top = override_mesh->background_top;
+            primary_mesh->background_bottom = override_mesh->background_bottom;
         }
     }
 
@@ -626,6 +631,7 @@ auto BinFile::read_lights() -> std::vector<std::shared_ptr<Light>>
 
     // FIXME! Get ambient light somewhere else
     // mesh->ambient_light_color = read_rgb8();
+    read_rgb8(); // Skip ambient light color so backgrounds work
     //
     return lights;
 }
@@ -659,136 +665,136 @@ auto BinFile::read_texture() -> std::shared_ptr<Texture>
     return texture;
 }
 
-const FFTMapDesc map_list[128] = {
-    { 0, 10026, "???", true },
-    { 1, 11304, "At Main Gate of Igros Castle", true },
-    { 2, 12656, "Back Gate of Lesalia Castle", true },
-    { 3, 12938, "Hall of St. Murond Temple", true },
-    { 4, 13570, "Office of Lesalia Castle", true },
-    { 5, 14239, "Roof of Riovanes Castle", true },
-    { 6, 14751, "At the Gate of Riovanes Castle", true },
-    { 7, 15030, "Inside of Riovanes Castle", true },
-    { 8, 15595, "Riovanes Castle", true },
-    { 9, 16262, "Citadel of Igros Castle", true },
-    { 10, 16347, "Inside of Igros Castle", true },
-    { 11, 16852, "Office of Igros Castle", true },
-    { 12, 17343, "At the Gate of Lionel Castle", true },
-    { 13, 17627, "Inside of Lionel Castle", true },
-    { 14, 18175, "Office of Lionel Castle", true },
-    { 15, 19510, "At the Gate of Limberry Castle (1)", true },
-    { 16, 20075, "Inside of Limberry Castle", true },
-    { 17, 20162, "Underground Cemetary of Limberry Castle", true },
-    { 18, 20745, "Office of Limberry Castle", true },
-    { 19, 21411, "At the Gate of Limberry Castle (2)", true },
-    { 20, 21692, "Inside of Zeltennia Castle", true },
-    { 21, 22270, "Zeltennia Castle", true },
-    { 22, 22938, "Magic City Gariland", true },
-    { 23, 23282, "Belouve Residence", true },
-    { 24, 23557, "Military Academy's Auditorium", true },
-    { 25, 23899, "Yardow Fort City", true },
-    { 26, 23988, "Weapon Storage of Yardow", true },
-    { 27, 24266, "Goland Coal City", true },
-    { 28, 24544, "Colliery Underground First Floor", true },
-    { 29, 24822, "Colliery Underground Second Floor", true },
-    { 30, 25099, "Colliery Underground Third Floor", true },
-    { 31, 25764, "Dorter Trade City", true },
-    { 32, 26042, "Slums in Dorter", true },
-    { 33, 26229, "Hospital in Slums", true },
-    { 34, 26362, "Cellar of Sand Mouse", true },
-    { 35, 27028, "Zaland Fort City", true },
-    { 36, 27643, "Church Outside of Town", true },
-    { 37, 27793, "Ruins Outside Zaland", true },
-    { 38, 28467, "Goug Machine City", true },
-    { 39, 28555, "Underground Passage in Goland", true },
-    { 40, 29165, "Slums in Goug", true },
-    { 41, 29311, "Besrodio's House", true },
-    { 42, 29653, "Warjilis Trade City", true },
-    { 43, 29807, "Port of Warjilis", true },
-    { 44, 30473, "Bervenia Free City", true },
-    { 45, 30622, "Ruins of Zeltennia Castle's Church", true },
-    { 46, 30966, "Cemetary of Heavenly Knight, Balbanes", true },
-    { 47, 31697, "Zarghidas Trade City", true },
-    { 48, 32365, "Slums of Zarghidas", true },
-    { 49, 33032, "Fort Zeakden", true },
-    { 50, 33701, "St. Murond Temple", true },
-    { 51, 34349, "St. Murond Temple", true },
-    { 52, 34440, "Chapel of St. Murond Temple", true },
+std::array<FFTMapDesc, 128> map_list = {
+    FFTMapDesc { 0, 10026, "???", false },
+    FFTMapDesc { 1, 11304, "At Main Gate of Igros Castle", true },
+    FFTMapDesc { 2, 12656, "Back Gate of Lesalia Castle", true },
+    FFTMapDesc { 3, 12938, "Hall of St. Murond Temple", true },
+    FFTMapDesc { 4, 13570, "Office of Lesalia Castle", true },
+    FFTMapDesc { 5, 14239, "Roof of Riovanes Castle", true },
+    FFTMapDesc { 6, 14751, "At the Gate of Riovanes Castle", true },
+    FFTMapDesc { 7, 15030, "Inside of Riovanes Castle", true },
+    FFTMapDesc { 8, 15595, "Riovanes Castle", true },
+    FFTMapDesc { 9, 16262, "Citadel of Igros Castle", true },
+    FFTMapDesc { 10, 16347, "Inside of Igros Castle", true },
+    FFTMapDesc { 11, 16852, "Office of Igros Castle", true },
+    FFTMapDesc { 12, 17343, "At the Gate of Lionel Castle", true },
+    FFTMapDesc { 13, 17627, "Inside of Lionel Castle", true },
+    FFTMapDesc { 14, 18175, "Office of Lionel Castle", true },
+    FFTMapDesc { 15, 19510, "At the Gate of Limberry Castle (1)", true },
+    FFTMapDesc { 16, 20075, "Inside of Limberry Castle", true },
+    FFTMapDesc { 17, 20162, "Underground Cemetary of Limberry Castle", true },
+    FFTMapDesc { 18, 20745, "Office of Limberry Castle", true },
+    FFTMapDesc { 19, 21411, "At the Gate of Limberry Castle (2)", true },
+    FFTMapDesc { 20, 21692, "Inside of Zeltennia Castle", true },
+    FFTMapDesc { 21, 22270, "Zeltennia Castle", true },
+    FFTMapDesc { 22, 22938, "Magic City Gariland", true },
+    FFTMapDesc { 23, 23282, "Belouve Residence", true },
+    FFTMapDesc { 24, 23557, "Military Academy's Auditorium", true },
+    FFTMapDesc { 25, 23899, "Yardow Fort City", true },
+    FFTMapDesc { 26, 23988, "Weapon Storage of Yardow", true },
+    FFTMapDesc { 27, 24266, "Goland Coal City", true },
+    FFTMapDesc { 28, 24544, "Colliery Underground First Floor", true },
+    FFTMapDesc { 29, 24822, "Colliery Underground Second Floor", true },
+    FFTMapDesc { 30, 25099, "Colliery Underground Third Floor", true },
+    FFTMapDesc { 31, 25764, "Dorter Trade City", true },
+    FFTMapDesc { 32, 26042, "Slums in Dorter", true },
+    FFTMapDesc { 33, 26229, "Hospital in Slums", true },
+    FFTMapDesc { 34, 26362, "Cellar of Sand Mouse", true },
+    FFTMapDesc { 35, 27028, "Zaland Fort City", true },
+    FFTMapDesc { 36, 27643, "Church Outside of Town", true },
+    FFTMapDesc { 37, 27793, "Ruins Outside Zaland", true },
+    FFTMapDesc { 38, 28467, "Goug Machine City", true },
+    FFTMapDesc { 39, 28555, "Underground Passage in Goland", true },
+    FFTMapDesc { 40, 29165, "Slums in Goug", true },
+    FFTMapDesc { 41, 29311, "Besrodio's House", true },
+    FFTMapDesc { 42, 29653, "Warjilis Trade City", true },
+    FFTMapDesc { 43, 29807, "Port of Warjilis", true },
+    FFTMapDesc { 44, 30473, "Bervenia Free City", true },
+    FFTMapDesc { 45, 30622, "Ruins of Zeltennia Castle's Church", true },
+    FFTMapDesc { 46, 30966, "Cemetary of Heavenly Knight, Balbanes", true },
+    FFTMapDesc { 47, 31697, "Zarghidas Trade City", true },
+    FFTMapDesc { 48, 32365, "Slums of Zarghidas", true },
+    FFTMapDesc { 49, 33032, "Fort Zeakden", true },
+    FFTMapDesc { 50, 33701, "St. Murond Temple", true },
+    FFTMapDesc { 51, 34349, "St. Murond Temple", true },
+    FFTMapDesc { 52, 34440, "Chapel of St. Murond Temple", true },
     // MAP053 doesn't have expected primary mesh pointer
-    { 53, 34566, "Entrance to Death City", true },
-    { 54, 34647, "Lost Sacred Precincts", true },
-    { 55, 34745, "Graveyard of Airships", true },
-    { 56, 35350, "Orbonne Monastery", true },
-    { 57, 35436, "Underground Book Storage First Floor", true },
-    { 58, 35519, "Underground Book Storage Second Floor", true },
-    { 59, 35603, "Underground Book Storage Third Floor", true },
-    { 60, 35683, "Underground Book Storge Fourth Floor", true },
-    { 61, 35765, "Underground Book Storage Fifth Floor", true },
-    { 62, 36052, "Chapel of Orbonne Monastery", true },
-    { 63, 36394, "Golgorand Execution Site", true },
-    { 64, 36530, "In Front of Bethla Garrison's Sluice", true },
-    { 65, 36612, "Granary of Bethla Garrison", true },
-    { 66, 37214, "South Wall of Bethla Garrison", true },
-    { 67, 37817, "Noth Wall of Bethla Garrison", true },
-    { 68, 38386, "Bethla Garrison", true },
-    { 69, 38473, "Murond Death City", true },
-    { 70, 38622, "Nelveska Temple", true },
-    { 71, 39288, "Dolbodar Swamp", true },
-    { 72, 39826, "Fovoham Plains", true },
-    { 73, 40120, "Inside of Windmill Shed", true },
-    { 74, 40724, "Sweegy Woods", true },
-    { 75, 41391, "Bervenia Volcano", true },
-    { 76, 41865, "Zeklaus Desert", true },
-    { 77, 42532, "Lenalia Plateau", true },
-    { 78, 43200, "Zigolis Swamp", true },
-    { 79, 43295, "Yuguo Woods", true },
-    { 80, 43901, "Araguay Woods", true },
-    { 81, 44569, "Grog Hill", true },
-    { 82, 45044, "Bed Desert", true },
-    { 83, 45164, "Zirekile Falls", true },
-    { 84, 45829, "Bariaus Hill", true },
-    { 85, 46498, "Mandalia Plains", true },
-    { 86, 47167, "Doguola Pass", true },
-    { 87, 47260, "Bariaus Valley", true },
-    { 88, 47928, "Finath River", true },
-    { 89, 48595, "Poeskas Lake", true },
-    { 90, 49260, "Germinas Peak", true },
-    { 91, 49538, "Thieves Fort", true },
-    { 92, 50108, "Igros-Belouve Residence", true },
-    { 93, 50387, "Broke Down Shed-Wooden Building", true },
-    { 94, 50554, "Broke Down Shed-Stone Building", true },
-    { 95, 51120, "Church", true },
-    { 96, 51416, "Pub", true },
-    { 97, 52082, "Inside Castle Gate in Lesalia", true },
-    { 98, 52749, "Outside Castle Gate in Lesalia", true },
-    { 99, 53414, "Main Street of Lesalia", true },
-    { 100, 53502, "Public Cemetary", true },
-    { 101, 53579, "Tutorial (1)", true },
-    { 102, 53659, "Tutorial (2)", true },
-    { 103, 54273, "Windmill Shed", true },
-    { 104, 54359, "Belouve Residence", true },
-    { 105, 54528, "TERMINATE", true },
-    { 106, 54621, "DELTA", true },
-    { 107, 54716, "NOGIAS", true },
-    { 108, 54812, "VOYAGE", true },
-    { 109, 54909, "BRIDGE", true },
-    { 110, 55004, "VALKYRIES", true },
-    { 111, 55097, "MLAPAN", true },
-    { 112, 55192, "TIGER", true },
-    { 113, 55286, "HORROR", true },
-    { 114, 55383, "END", true },
-    { 115, 56051, "Banished Fort", true },
-    { 116, 56123, "Arena", true },
-    { 117, 56201, "???", true },
-    { 118, 56279, "???", true },
-    { 119, 56356, "???", true },
-    { 120, 0, "???", false },
-    { 121, 0, "???", false },
-    { 122, 0, "???", false },
-    { 123, 0, "???", false },
-    { 124, 0, "???", false },
-    { 125, 56435, "???", true },
-    { 126, 0, "???", false },
-    { 127, 0, "???", false },
+    FFTMapDesc { 53, 34566, "Entrance to Death City", true },
+    FFTMapDesc { 54, 34647, "Lost Sacred Precincts", true },
+    FFTMapDesc { 55, 34745, "Graveyard of Airships", true },
+    FFTMapDesc { 56, 35350, "Orbonne Monastery", true },
+    FFTMapDesc { 57, 35436, "Underground Book Storage First Floor", true },
+    FFTMapDesc { 58, 35519, "Underground Book Storage Second Floor", true },
+    FFTMapDesc { 59, 35603, "Underground Book Storage Third Floor", true },
+    FFTMapDesc { 60, 35683, "Underground Book Storge Fourth Floor", true },
+    FFTMapDesc { 61, 35765, "Underground Book Storage Fifth Floor", true },
+    FFTMapDesc { 62, 36052, "Chapel of Orbonne Monastery", true },
+    FFTMapDesc { 63, 36394, "Golgorand Execution Site", true },
+    FFTMapDesc { 64, 36530, "In Front of Bethla Garrison's Sluice", true },
+    FFTMapDesc { 65, 36612, "Granary of Bethla Garrison", true },
+    FFTMapDesc { 66, 37214, "South Wall of Bethla Garrison", true },
+    FFTMapDesc { 67, 37817, "Noth Wall of Bethla Garrison", true },
+    FFTMapDesc { 68, 38386, "Bethla Garrison", true },
+    FFTMapDesc { 69, 38473, "Murond Death City", true },
+    FFTMapDesc { 70, 38622, "Nelveska Temple", true },
+    FFTMapDesc { 71, 39288, "Dolbodar Swamp", true },
+    FFTMapDesc { 72, 39826, "Fovoham Plains", true },
+    FFTMapDesc { 73, 40120, "Inside of Windmill Shed", true },
+    FFTMapDesc { 74, 40724, "Sweegy Woods", true },
+    FFTMapDesc { 75, 41391, "Bervenia Volcano", true },
+    FFTMapDesc { 76, 41865, "Zeklaus Desert", true },
+    FFTMapDesc { 77, 42532, "Lenalia Plateau", true },
+    FFTMapDesc { 78, 43200, "Zigolis Swamp", true },
+    FFTMapDesc { 79, 43295, "Yuguo Woods", true },
+    FFTMapDesc { 80, 43901, "Araguay Woods", true },
+    FFTMapDesc { 81, 44569, "Grog Hill", true },
+    FFTMapDesc { 82, 45044, "Bed Desert", true },
+    FFTMapDesc { 83, 45164, "Zirekile Falls", true },
+    FFTMapDesc { 84, 45829, "Bariaus Hill", true },
+    FFTMapDesc { 85, 46498, "Mandalia Plains", true },
+    FFTMapDesc { 86, 47167, "Doguola Pass", true },
+    FFTMapDesc { 87, 47260, "Bariaus Valley", true },
+    FFTMapDesc { 88, 47928, "Finath River", true },
+    FFTMapDesc { 89, 48595, "Poeskas Lake", true },
+    FFTMapDesc { 90, 49260, "Germinas Peak", true },
+    FFTMapDesc { 91, 49538, "Thieves Fort", true },
+    FFTMapDesc { 92, 50108, "Igros-Belouve Residence", true },
+    FFTMapDesc { 93, 50387, "Broke Down Shed-Wooden Building", true },
+    FFTMapDesc { 94, 50554, "Broke Down Shed-Stone Building", true },
+    FFTMapDesc { 95, 51120, "Church", true },
+    FFTMapDesc { 96, 51416, "Pub", true },
+    FFTMapDesc { 97, 52082, "Inside Castle Gate in Lesalia", true },
+    FFTMapDesc { 98, 52749, "Outside Castle Gate in Lesalia", true },
+    FFTMapDesc { 99, 53414, "Main Street of Lesalia", true },
+    FFTMapDesc { 100, 53502, "Public Cemetary", true },
+    FFTMapDesc { 101, 53579, "Tutorial (1)", true },
+    FFTMapDesc { 102, 53659, "Tutorial (2)", true },
+    FFTMapDesc { 103, 54273, "Windmill Shed", true },
+    FFTMapDesc { 104, 54359, "Belouve Residence", true },
+    FFTMapDesc { 105, 54528, "TERMINATE", true },
+    FFTMapDesc { 106, 54621, "DELTA", true },
+    FFTMapDesc { 107, 54716, "NOGIAS", true },
+    FFTMapDesc { 108, 54812, "VOYAGE", true },
+    FFTMapDesc { 109, 54909, "BRIDGE", true },
+    FFTMapDesc { 110, 55004, "VALKYRIES", true },
+    FFTMapDesc { 111, 55097, "MLAPAN", true },
+    FFTMapDesc { 112, 55192, "TIGER", true },
+    FFTMapDesc { 113, 55286, "HORROR", true },
+    FFTMapDesc { 114, 55383, "END", true },
+    FFTMapDesc { 115, 56051, "Banished Fort", true },
+    FFTMapDesc { 116, 56123, "Arena", true },
+    FFTMapDesc { 117, 56201, "???", true },
+    FFTMapDesc { 118, 56279, "???", true },
+    FFTMapDesc { 119, 56356, "???", true },
+    FFTMapDesc { 120, 0, "???", false },
+    FFTMapDesc { 121, 0, "???", false },
+    FFTMapDesc { 122, 0, "???", false },
+    FFTMapDesc { 123, 0, "???", false },
+    FFTMapDesc { 124, 0, "???", false },
+    FFTMapDesc { 125, 56435, "???", true },
+    FFTMapDesc { 126, 0, "???", false },
+    FFTMapDesc { 127, 0, "???", false },
 };
 
 std::map<int, Instruction> instruction_list = {
@@ -1418,12 +1424,25 @@ std::string map_weather_str(MapWeather value)
     }
 }
 
+auto FFTMapDesc::repr() const -> std::string
+{
+    std::ostringstream oss;
+    oss << std::setw(3) << std::setfill('0') << std::to_string(id) << " " << name;
+    return oss.str();
+}
+
 auto Record::sector() -> int { return data[8] | (data[9] << 8); }
 auto Record::length() -> uint64_t { return static_cast<uint32_t>(data[12]) | (static_cast<uint32_t>(data[13]) << 8) | (static_cast<uint32_t>(data[14]) << 16) | (static_cast<uint32_t>(data[15]) << 24); }
 auto Record::resource_type() -> ResourceType { return static_cast<ResourceType>(data[4] | (data[5] << 8)); }
 auto Record::arrangement() -> int { return data[0]; }
 auto Record::time() -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
 auto Record::weather() -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
+auto Record::repr() -> std::string
+{
+    std::ostringstream oss;
+    oss << map_time_str(time()) << " " << map_weather_str(weather()) << " " << arrangement();
+    return oss.str();
+}
 
 auto Event::id() -> int { return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24); }
 
