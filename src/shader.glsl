@@ -72,7 +72,7 @@ void main() {
     vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
     for (int i = 0; i < u_light_count; i++) {
         vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
-        float intensity = max(dot(norm, direction), 0.0);
+        float intensity = clamp(dot(norm, direction), 0.0, 1.0);
         diffuse_light += u_light_colors[i] * intensity;
     }
     vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
@@ -124,7 +124,7 @@ void main() {
     vec4 diffuse_light = vec4(0.0, 0.0, 0.0, 1.0);
     for (int i = 0; i < u_light_count; i++) {
         vec3 direction = normalize(u_light_positions[i].xyz - v_position.xyz);
-        float intensity = max(dot(norm, direction), 0.0);
+        float intensity = clamp(dot(norm, direction), 0.0, 1.0);
         diffuse_light += u_light_colors[i] * intensity;
     }
     vec4 light = u_ambient_color * u_ambient_strength + diffuse_light;
