@@ -249,16 +249,21 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         }
     }
 
-    if (primary_mesh == nullptr) {
-        primary_mesh = std::make_shared<FFTMesh>();
-    }
-
     auto texture = textures[requested_key];
     if (texture == nullptr) {
         texture = textures[default_key];
+        assert(texture != nullptr);
     }
 
     auto override_mesh = meshes[requested_key];
+    if (primary_mesh == nullptr) {
+        primary_mesh = std::make_shared<FFTMesh>();
+        if (override_mesh == nullptr) {
+            override_mesh = meshes[default_key];
+            assert(override_mesh != nullptr);
+        }
+    }
+
     if (override_mesh != nullptr) {
         if (override_mesh->vertices.size() > 0) {
             primary_mesh->vertices.insert(primary_mesh->vertices.end(), override_mesh->vertices.begin(), override_mesh->vertices.end());
