@@ -55,8 +55,11 @@ struct Record {
     auto length() -> uint64_t;
     auto resource_type() -> ResourceType;
     auto arrangement() -> int;
-    auto time() -> MapTime;
-    auto weather() -> MapWeather;
+    auto time() const -> MapTime;
+    auto weather() const -> MapWeather;
+
+    bool operator<(const Record& other) const;
+    bool operator==(const Record& other) const;
 };
 
 struct Event {

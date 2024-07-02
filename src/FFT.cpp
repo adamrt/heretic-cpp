@@ -784,14 +784,33 @@ auto FFTMapDesc::repr() const -> std::string
 auto Record::sector() -> int { return data[8] | (data[9] << 8); }
 auto Record::length() -> uint64_t { return static_cast<uint32_t>(data[12]) | (static_cast<uint32_t>(data[13]) << 8) | (static_cast<uint32_t>(data[14]) << 16) | (static_cast<uint32_t>(data[15]) << 24); }
 auto Record::resource_type() -> ResourceType { return static_cast<ResourceType>(data[4] | (data[5] << 8)); }
-auto Record::arrangement() -> int { return data[0]; }
-auto Record::time() -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
-auto Record::weather() -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
+auto Record::arrangement() -> int { return data[1]; }
+auto Record::time() const -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
+auto Record::weather() const -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
 auto Record::repr() -> std::string
 {
     std::ostringstream oss;
     oss << map_time_str(time()) << " " << map_weather_str(weather()) << " " << arrangement();
     return oss.str();
+}
+
+bool Record::operator<(const Record& other) const
+{
+    auto t = time();
+    auto w = weather();
+    auto ot = other.time();
+    auto ow = other.weather();
+    return std::tie(t, w) < std::tie(ot, ow);
+}
+
+// Equality operator for unique
+bool Record::operator==(const Record& other) const
+{
+    auto t = time();
+    auto w = weather();
+    auto ot = other.time();
+    auto ow = other.weather();
+    return std::tie(t, w) == std::tie(ot, ow);
 }
 
 auto Event::id() -> int { return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24); }
