@@ -31,7 +31,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather) -> bool
 
     auto map = reader->read_map(map_num, time, weather);
     if (map == nullptr) {
-        std::cout << "Failed to load map" << std::endl;
+        std::cout << "Failed to load map: " << map_num << std::endl;
         return false;
     }
 

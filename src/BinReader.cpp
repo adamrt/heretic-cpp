@@ -206,10 +206,10 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
             break;
         }
         case ResourceType::MeshAlt: {
+            meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::MeshOverride: {
-            meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::End: {
@@ -254,7 +254,16 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         }
     }
 
-    assert(primary_mesh->vertices.size() > 0);
+    // FIXME: There are no vertices in primary or alt. Ex: Map 104.
+    if (primary_mesh->vertices.size() == 0) {
+        return nullptr;
+    }
+
+    // FIXME: Another hack. How are we getting a null palette?
+    if (primary_mesh->palette == nullptr) {
+        return nullptr;
+    }
+
     auto map = std::make_shared<FFTMap>();
     map->gns_records = gns_records;
     map->texture = texture;
