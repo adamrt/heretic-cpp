@@ -118,7 +118,7 @@ sapp_desc sokol_main(int argc, char* argv[])
     desc.init_cb = init;
     desc.frame_cb = frame;
     desc.event_cb = input;
-    desc.window_title = "Dear ImGui (sokol-app)";
+    desc.window_title = "Heretic: Final Fantasy Tactics Toolkit";
     desc.ios_keyboard_resizes_canvas = false;
     desc.icon.sokol_default = true;
     desc.enable_clipboard = true;

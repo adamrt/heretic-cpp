@@ -227,7 +227,7 @@ auto GUI::draw() -> void
 
     auto state = State::get_instance();
     ImGui::SetNextWindowSize(ImVec2(0, 0));
-    ImGui::Begin("Hello, world!");
+    ImGui::Begin("Heretic");
 
     if (ImGui::RadioButton("Scenarios", scenarios_or_maps == 0)) {
         scenarios_or_maps = 0;
@@ -311,36 +311,34 @@ auto GUI::draw() -> void
         }
     }
 
-    ImGui::Text("Time: %s", map_time_str(state->current_scenario.time()).c_str());
-    ImGui::SameLine();
-    ImGui::Text("Weather: %s", map_weather_str(state->current_scenario.weather()).c_str());
+    ImGui::NewLine();
     ImGui::Separator();
+    if (ImGui::CollapsingHeader("Rendering")) {
+        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+        if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
+            state->camera.projection = Projection::Perspective;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Orthographic", state->camera.projection == Projection::Orthographic)) {
+            state->camera.projection = Projection::Orthographic;
+        }
 
-    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-    if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
-        state->camera.projection = Projection::Perspective;
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Orthographic", state->camera.projection == Projection::Orthographic)) {
-        state->camera.projection = Projection::Orthographic;
-    }
+        // Render Mode
+        if (ImGui::RadioButton("Textured", state->renderer.render_mode == 0)) {
+            state->renderer.render_mode = 0;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Colored", state->renderer.render_mode == 1)) {
+            state->renderer.render_mode = 1;
+        }
+        ImGui::SameLine();
+        if (ImGui::RadioButton("Normals", state->renderer.render_mode == 2)) {
+            state->renderer.render_mode = 2;
+        }
 
-    // Render Mode
-    if (ImGui::RadioButton("Textured", state->renderer.render_mode == 0)) {
-        state->renderer.render_mode = 0;
+        ImGui::SliderFloat("Rotation", &state->scene.rotation_speed, 0.0f, 2.0f);
+        // ImGui::ColorEdit3("Background", &state->renderer.clear_color.r);
     }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Colored", state->renderer.render_mode == 1)) {
-        state->renderer.render_mode = 1;
-    }
-    ImGui::SameLine();
-    if (ImGui::RadioButton("Normals", state->renderer.render_mode == 2)) {
-        state->renderer.render_mode = 2;
-    }
-
-    ImGui::SliderFloat("Rotation", &state->scene.rotation_speed, 0.0f, 2.0f);
-    ImGui::ColorEdit3("Background", &state->renderer.clear_color.r);
-
     if (ImGui::CollapsingHeader("Lighting")) {
         ImGui::Checkbox("Lighting Enabled", &state->scene.use_lighting);
         ImGui::SameLine();
@@ -370,16 +368,17 @@ auto GUI::draw() -> void
         }
     }
 
+    ImGui::NewLine();
+    ImGui::Separator();
+
     if (ImGui::Button("Show Map Records")) {
         show_records_table = !show_records_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Show All Scenarios")) {
-        show_scenario_table = !show_scenario_table;
-    }
     if (ImGui::Button("Show Instructions")) {
         show_instructions_table = !show_instructions_table;
     }
+    ImGui::SameLine();
     if (ImGui::Button("Show Events")) {
         show_events_table = !show_events_table;
     }
