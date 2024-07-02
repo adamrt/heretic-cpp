@@ -25,7 +25,7 @@ public:
     }
 
     auto set_scenario(const Scenario scenario) -> void;
-    auto set_map(int map_num, MapTime time = MapTime::Day, MapWeather weather = MapWeather::None) -> bool;
+    auto set_map(int map_num, MapTime time = MapTime::Day, MapWeather weather = MapWeather::None, int arrangement = 0) -> bool;
     auto set_map_from_scenario(const Scenario scenario) -> bool;
     auto next_scenario() -> void;
     auto previous_scenario() -> void;

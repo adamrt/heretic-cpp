@@ -175,21 +175,21 @@ auto BinReader::read_events() -> std::vector<Event>
     return events;
 }
 
-auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>
+auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>
 {
-    auto requested_key = std::make_tuple(time, weather);
-    auto default_key = std::make_tuple(MapTime::Day, MapWeather::None);
+    auto requested_key = std::make_tuple(time, weather, arrangement);
+    auto default_key = std::make_tuple(MapTime::Day, MapWeather::None, 0);
 
     int sector = map_list[map_num].sector;
     auto gns_file = read_file(sector, GNS_MAX_SIZE);
     auto gns_records = gns_file.read_records();
 
     std::shared_ptr<FFTMesh> primary_mesh = nullptr;
-    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<FFTMesh>> meshes;
-    std::map<std::tuple<MapTime, MapWeather>, std::shared_ptr<Texture>> textures;
+    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> meshes;
+    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
 
     for (auto& record : gns_records) {
-        auto record_key = std::make_tuple(record.time(), record.weather());
+        auto record_key = std::make_tuple(record.time(), record.weather(), record.arrangement());
         auto resource = read_file(record.sector(), record.length());
 
         switch (record.resource_type()) {

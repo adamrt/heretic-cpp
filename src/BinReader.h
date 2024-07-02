@@ -48,7 +48,7 @@ public:
     BinReader(std::string filename);
     ~BinReader();
 
-    auto read_map(int mapnum, MapTime time, MapWeather weather) -> std::shared_ptr<FFTMap>;
+    auto read_map(int mapnum, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>;
     auto read_scenarios() -> std::vector<Scenario>;
     auto read_events() -> std::vector<Event>;
 
