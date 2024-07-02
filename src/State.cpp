@@ -53,6 +53,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
         state->scene.add_light(light);
     }
 
+    current_map_index = map_num;
     return true;
 }
 
