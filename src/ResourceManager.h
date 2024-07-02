@@ -5,6 +5,7 @@
 #include <memory>
 #include <string>
 
+#include "BinReader.h"
 #include "FFT.h"
 #include "Mesh.h"
 #include "Pipeline.h"
