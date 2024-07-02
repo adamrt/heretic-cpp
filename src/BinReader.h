@@ -26,7 +26,7 @@ public:
     auto read_position() -> glm::vec3;
     auto read_normal() -> glm::vec3;
     auto read_rgb15() -> glm::vec4;
-    auto read_rgb8() -> glm::vec3;
+    auto read_rgb8() -> glm::vec4;
 
     auto read_scenarios() -> std::vector<Scenario>;
     auto read_event() -> Event;
@@ -35,7 +35,7 @@ public:
     auto read_vertices() -> std::vector<Vertex>;
     auto read_texture() -> std::shared_ptr<Texture>;
     auto read_palette() -> std::shared_ptr<Texture>;
-    auto read_lights() -> std::vector<std::shared_ptr<Light>>;
+    auto read_lights() -> std::tuple<std::vector<std::shared_ptr<Light>>, glm::vec4, std::pair<glm::vec4, glm::vec4>>;
     auto read_background() -> std::pair<glm::vec4, glm::vec4>;
 
     std::vector<uint8_t> data;

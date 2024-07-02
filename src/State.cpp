@@ -37,7 +37,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather) -> bool
 
     auto map_mesh = std::make_shared<Mesh>(map->mesh->vertices);
     auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->mesh->palette);
-    auto background = std::make_shared<Background>(map->mesh->background_top, map->mesh->background_bottom);
+    auto background = std::make_shared<Background>(map->mesh->background);
 
     map_model->scale = map_mesh->normalized_scale();
     map_model->translation = map_mesh->center_translation();
@@ -47,6 +47,8 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather) -> bool
     state->scene.clear();
     state->scene.add_model(background);
     state->scene.add_model(map_model);
+    state->scene.ambient_color = map->mesh->ambient_color;
+
     for (std::shared_ptr<Light> light : map->mesh->lights) {
         state->scene.add_light(light);
     }

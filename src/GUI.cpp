@@ -349,7 +349,7 @@ auto GUI::draw() -> void
 
         ImGui::SeparatorText("Ambient Lighting");
         ImGui::ColorEdit4("Color", &state->scene.ambient_color[0]);
-        ImGui::SliderFloat("Strength", &state->scene.ambient_strength, 0.0f, 1.0f);
+        ImGui::SliderFloat("Strength", &state->scene.ambient_strength, 0.0f, 2.0f);
 
         for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);

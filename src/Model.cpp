@@ -149,6 +149,11 @@ auto PalettedModel::render() -> void
     sg_draw(0, mesh->vertices.size(), 1);
 }
 
+Background::Background(std::pair<glm::vec4, glm::vec4> background)
+    : Background(background.first, background.second)
+{
+}
+
 Background::Background(glm::vec4 _top, glm::vec4 _bottom)
     : Model(glm::vec3 { 0, 0, 0 })
     , top(_top)

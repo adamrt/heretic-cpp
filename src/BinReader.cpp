@@ -141,12 +141,12 @@ auto BinFile::read_rgb15() -> glm::vec4
     return { r, g, b, a };
 }
 
-auto BinFile::read_rgb8() -> glm::vec3
+auto BinFile::read_rgb8() -> glm::vec4
 {
     float r = (float)read_u8() / 255.0f;
     float g = (float)read_u8() / 255.0f;
     float b = (float)read_u8() / 255.0f;
-    return { r, g, b };
+    return { r, g, b, 1.0f };
 }
 
 // https://ffhacktics.com/wiki/ATTACK.OUT
@@ -245,12 +245,16 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather) -> std::
         if (override_mesh->palette != nullptr) {
             primary_mesh->palette = override_mesh->palette;
         }
-        if (override_mesh->background_top != glm::vec4(0.0f, 0.0f, 0.0f, 1.0f) && override_mesh->background_bottom != glm::vec4(0.0f, 0.0f, 0.0f, 1.0f)) {
-            primary_mesh->background_top = override_mesh->background_top;
-            primary_mesh->background_bottom = override_mesh->background_bottom;
+        // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
+        if (override_mesh->ambient_color.w == 1.0f) {
+            primary_mesh->ambient_color = override_mesh->ambient_color;
+        }
+        if (override_mesh->background.first.w == 1.0f) {
+            primary_mesh->background = override_mesh->background;
         }
     }
 
+    assert(primary_mesh->vertices.size() > 0);
     auto map = std::make_shared<FFTMap>();
     map->gns_records = gns_records;
     map->texture = texture;
@@ -318,10 +322,12 @@ auto BinFile::read_mesh() -> std::shared_ptr<FFTMesh>
     auto mesh = std::make_shared<FFTMesh>();
     mesh->vertices = read_vertices();
     mesh->palette = read_palette();
-    mesh->lights = read_lights();
-    auto bg = read_background();
-    mesh->background_top = bg.first;
-    mesh->background_bottom = bg.second;
+
+    auto [lights, ambient_color, background] = read_lights();
+    mesh->lights = lights;
+    mesh->ambient_color = ambient_color;
+    mesh->background = background;
+
     return mesh;
 }
 
@@ -551,7 +557,7 @@ auto BinFile::read_palette() -> std::shared_ptr<Texture>
     return palette;
 }
 
-auto BinFile::read_lights() -> std::vector<std::shared_ptr<Light>>
+auto BinFile::read_lights() -> std::tuple<std::vector<std::shared_ptr<Light>>, glm::vec4, std::pair<glm::vec4, glm::vec4>>
 {
     offset = 0x64;
     uint32_t intra_file_ptr = read_u32();
@@ -593,30 +599,29 @@ auto BinFile::read_lights() -> std::vector<std::shared_ptr<Light>>
     auto b = std::make_shared<Light>(cube_mesh, b_color, b_pos);
     auto c = std::make_shared<Light>(cube_mesh, c_color, c_pos);
 
-    std::vector<std::shared_ptr<Light>> lights = {};
+    std::vector<std::shared_ptr<Light>> directional_lights = {};
 
     if (a->is_valid()) {
-        lights.push_back(a);
+        directional_lights.push_back(a);
     }
     if (b->is_valid()) {
-        lights.push_back(b);
+        directional_lights.push_back(b);
     }
     if (c->is_valid()) {
-        lights.push_back(c);
+        directional_lights.push_back(c);
     }
 
-    // FIXME! Get ambient light somewhere else
-    // mesh->ambient_light_color = read_rgb8();
-    read_rgb8(); // Skip ambient light color so backgrounds work
-    //
-    return lights;
+    auto ambient_color = read_rgb8();
+    auto background = read_background();
+
+    return { directional_lights, ambient_color, background };
 }
 
 auto BinFile::read_background() -> std::pair<glm::vec4, glm::vec4>
 {
     auto top = read_rgb8();
     auto bottom = read_rgb8();
-    return { glm::vec4(top, 1.0f), glm::vec4(bottom, 1.0f) };
+    return { top, bottom };
 }
 
 auto BinFile::read_texture() -> std::shared_ptr<Texture>

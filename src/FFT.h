@@ -95,16 +95,15 @@ struct FFTMesh {
     std::vector<Vertex> vertices;
     std::shared_ptr<Texture> palette = nullptr;
     std::vector<std::shared_ptr<Light>> lights;
-    glm::vec4 background_top = {};
-    glm::vec4 background_bottom = {};
-    // Add ambient_light_color
+    glm::vec4 ambient_color = {};
+    std::pair<glm::vec4, glm::vec4> background = {};
 };
 
 class FFTMap {
 public:
     std::vector<Record> gns_records = {};
-    std::shared_ptr<Texture> texture = {};
-    std::shared_ptr<FFTMesh> mesh = {};
+    std::shared_ptr<Texture> texture = nullptr;
+    std::shared_ptr<FFTMesh> mesh = nullptr;
 };
 
 struct FFTMapDesc {

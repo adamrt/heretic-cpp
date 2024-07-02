@@ -19,6 +19,6 @@ public:
 
     int map_num = 49;
     bool use_lighting = true;
-    glm::vec4 ambient_color = { 1.0, 1.0, 1.0, 1.0f };
-    float ambient_strength = 0.5f;
+    glm::vec4 ambient_color = {};
+    float ambient_strength = 2.0f;
 };

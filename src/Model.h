@@ -74,6 +74,7 @@ public:
 
 class Background : public Model {
 public:
+    Background(std::pair<glm::vec4, glm::vec4> background);
     Background(glm::vec4 top, glm::vec4 bottom);
 
     auto render() -> void override;
