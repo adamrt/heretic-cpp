@@ -301,11 +301,6 @@ auto BinFile::read_scenarios() -> std::vector<Scenario>
         auto bytes = read_bytes(scenario_size);
         Scenario scenario { bytes };
 
-        // 104 is a bad scenario and 118 should work but might be my bin file.
-        if (i == 104 || i == 118) {
-            continue;
-        }
-
         // We don't care about the test map as it doesn't have a texture. Skip
         // all its scenarios.
         if (scenario.map_id() == 0) {

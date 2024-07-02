@@ -148,9 +148,6 @@ auto GUI::draw_events() -> void
 
         // Populate table with data
         for (auto& event : state->events) {
-            if (event.id() != 0xF2F2F2F2) {
-                continue;
-            }
             ImGui::TableNextRow();
 
             // Column 0: ID
