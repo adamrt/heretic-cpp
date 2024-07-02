@@ -257,7 +257,7 @@ auto GUI::draw() -> void
             scenario_name_ptrs.push_back(name.c_str());
         }
 
-        if (ImGui::Combo("Select Scenario", &state->current_scenario_index, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
+        if (ImGui::Combo("Scenario", &state->current_scenario_index, scenario_name_ptrs.data(), scenario_name_ptrs.size())) {
             auto new_scenario = state->scenarios[state->current_scenario_index];
             state->set_scenario(new_scenario);
         }
@@ -277,16 +277,23 @@ auto GUI::draw() -> void
             map_name_ptrs.push_back(name.c_str());
         }
 
-        if (ImGui::Combo("Select Map", &state->current_map_index, map_name_ptrs.data(), map_name_ptrs.size())) {
+        if (ImGui::Combo("Map", &state->current_map_index, map_name_ptrs.data(), map_name_ptrs.size())) {
             auto new_map = map_list[state->current_map_index];
             state->set_map(new_map.id);
         }
 
         std::vector<std::string> style_names;
 
+        auto records_copy = state->records;
+        std::sort(records_copy.begin(), records_copy.end());
+
+        // Remove duplicates
+        auto last = std::unique(records_copy.begin(), records_copy.end());
+        records_copy.erase(last, records_copy.end());
+
         std::transform(
-            state->records.begin(),
-            state->records.end(),
+            records_copy.begin(),
+            records_copy.end(),
             std::back_inserter(style_names),
             [](Record& s) { return s.repr(); });
 
@@ -298,8 +305,8 @@ auto GUI::draw() -> void
             style_name_ptrs.push_back(name.c_str());
         }
 
-        if (ImGui::Combo("Select Style", &state->current_style_index, style_name_ptrs.data(), style_name_ptrs.size())) {
-            auto record = state->records[state->current_style_index];
+        if (ImGui::Combo("Style", &state->current_style_index, style_name_ptrs.data(), style_name_ptrs.size())) {
+            auto record = records_copy[state->current_style_index];
             state->set_map(state->current_map_index, record.time(), record.weather());
         }
     }
