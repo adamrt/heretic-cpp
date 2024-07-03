@@ -1,7 +1,7 @@
 #pragma once
 
 #include <array>
-#include <cstdint>
+#include <memory>
 #include <string>
 
 #include "sokol_gfx.h"
@@ -18,6 +18,13 @@ constexpr int FFT_TEXTURE_RAW_SIZE = (FFT_TEXTURE_NUM_PIXELS / 2);  // Each pixe
 constexpr int FFT_PALETTE_NUM_PIXELS = (16 * 16);
 constexpr int FFT_PALETTE_NUM_BYTES = (FFT_PALETTE_NUM_PIXELS * 4);
 
+struct Sampler {
+    Sampler();
+    ~Sampler();
+
+    sg_sampler sampler = {};
+};
+
 struct Texture {
     Texture(std::string filename);
     Texture(std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> data);
@@ -27,5 +34,5 @@ struct Texture {
     sg_image load_png(const char* filename);
 
     sg_image image = {};
-    sg_sampler sampler = {};
+    std::shared_ptr<Sampler> sampler = nullptr;
 };

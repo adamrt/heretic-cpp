@@ -29,6 +29,8 @@ ResourceManager::ResourceManager()
     auto background_shader = add_shader("background", std::make_shared<Shader>(background_shader_desc(sg_query_backend())));
     add_pipeline("background", std::make_shared<Pipeline>(background_shader, Pipeline::background_desc()));
 
+    add_sampler("default", std::make_shared<Sampler>());
+
     add_mesh("cube", std::make_shared<Mesh>("res/cube.obj"));
     add_mesh("background", std::make_shared<Mesh>(background_vertices));
 }
@@ -95,4 +97,19 @@ auto ResourceManager::set_bin_reader(std::shared_ptr<BinReader> _bin_reader) -> 
 auto ResourceManager::get_bin_reader() -> std::shared_ptr<BinReader>
 {
     return bin_reader;
+}
+
+auto ResourceManager::add_sampler(const std::string& name, std::shared_ptr<Sampler> sampler) -> std::shared_ptr<Sampler>
+{
+    samplers[name] = sampler;
+    return sampler;
+}
+
+auto ResourceManager::get_sampler(const std::string& name) -> std::shared_ptr<Sampler>
+{
+    auto it = samplers.find(name);
+    if (it != samplers.end()) {
+        return it->second;
+    }
+    assert(false);
 }

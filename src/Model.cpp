@@ -87,7 +87,7 @@ auto TexturedModel::render() -> void
     }
 
     bindings.fs.images[SLOT_tex] = texture->image;
-    bindings.fs.samplers[SLOT_smp] = texture->sampler;
+    bindings.fs.samplers[SLOT_smp] = texture->sampler->sampler;
 
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);
@@ -137,7 +137,7 @@ auto PalettedModel::render() -> void
 
     bindings.fs.images[SLOT_tex] = texture->image;
     bindings.fs.images[SLOT_palette] = palette->image;
-    bindings.fs.samplers[SLOT_smp] = texture->sampler;
+    bindings.fs.samplers[SLOT_smp] = texture->sampler->sampler;
 
     sg_apply_pipeline(pipeline);
     sg_apply_bindings(&bindings);

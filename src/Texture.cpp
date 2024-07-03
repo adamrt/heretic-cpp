@@ -1,12 +1,13 @@
 #include <iostream>
 #include <stdexcept>
 
+#include "ResourceManager.h"
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
-Texture::Texture(std::string filename)
+Sampler::Sampler()
 {
     sg_sampler_desc sampler_desc = {};
     sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
@@ -14,6 +15,18 @@ Texture::Texture(std::string filename)
     sampler_desc.min_filter = SG_FILTER_NEAREST;
     sampler_desc.mag_filter = SG_FILTER_NEAREST;
     sampler = sg_make_sampler(&sampler_desc);
+}
+
+Sampler::~Sampler()
+{
+    sg_destroy_sampler(sampler);
+}
+
+Texture::Texture(std::string filename)
+{
+
+    auto resources = ResourceManager::get_instance();
+    sampler = resources->get_sampler("default");
 
     image = load_png(filename.c_str());
     if (image.id == SG_INVALID_ID) {
@@ -24,12 +37,8 @@ Texture::Texture(std::string filename)
 // This is for FFT map textures
 Texture::Texture(std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> data)
 {
-    sg_sampler_desc sampler_desc = {};
-    sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
-    sampler_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
-    sampler_desc.min_filter = SG_FILTER_NEAREST;
-    sampler_desc.mag_filter = SG_FILTER_NEAREST;
-    sampler = sg_make_sampler(&sampler_desc);
+    auto resources = ResourceManager::get_instance();
+    sampler = resources->get_sampler("default");
 
     sg_image_desc image_desc = {};
     image_desc.width = FFT_TEXTURE_WIDTH;
@@ -43,12 +52,8 @@ Texture::Texture(std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> data)
 // This is for FFT Palettes
 Texture::Texture(std::array<uint8_t, FFT_PALETTE_NUM_BYTES> data)
 {
-    sg_sampler_desc sampler_desc = {};
-    sampler_desc.wrap_u = SG_WRAP_CLAMP_TO_EDGE;
-    sampler_desc.wrap_v = SG_WRAP_CLAMP_TO_EDGE;
-    sampler_desc.min_filter = SG_FILTER_NEAREST;
-    sampler_desc.mag_filter = SG_FILTER_NEAREST;
-    sampler = sg_make_sampler(&sampler_desc);
+    auto resources = ResourceManager::get_instance();
+    sampler = resources->get_sampler("default");
 
     sg_image_desc image_desc = {};
     image_desc.width = FFT_PALETTE_NUM_PIXELS;
@@ -62,7 +67,6 @@ Texture::Texture(std::array<uint8_t, FFT_PALETTE_NUM_BYTES> data)
 Texture::~Texture()
 {
     sg_destroy_image(image);
-    sg_destroy_sampler(sampler);
 }
 
 sg_image Texture::load_png(const char* filename)

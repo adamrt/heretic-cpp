@@ -18,6 +18,9 @@ public:
     auto add_shader(const std::string& name, std::shared_ptr<Shader> shader) -> std::shared_ptr<Shader>;
     auto get_shader(const std::string& name) -> std::shared_ptr<Shader>;
 
+    auto add_sampler(const std::string& name, std::shared_ptr<Sampler> sampler) -> std::shared_ptr<Sampler>;
+    auto get_sampler(const std::string& name) -> std::shared_ptr<Sampler>;
+
     auto add_pipeline(const std::string& name, std::shared_ptr<Pipeline> pipeline) -> std::shared_ptr<Pipeline>;
     auto get_pipeline(const std::string& name) -> std::shared_ptr<Pipeline>;
 
@@ -34,6 +37,7 @@ private:
     std::shared_ptr<BinReader> bin_reader = nullptr;
 
     std::map<std::string, std::shared_ptr<Shader>> shaders = {};
+    std::map<std::string, std::shared_ptr<Sampler>> samplers = {};
     std::map<std::string, std::shared_ptr<Pipeline>> pipelines = {};
     std::map<std::string, std::shared_ptr<Mesh>> meshes = {};
 };
