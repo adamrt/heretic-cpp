@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <iostream>
+#include <optional>
 
 #include "FFT.h"
 #include "Model.h"
@@ -68,7 +69,7 @@ auto State::set_map_from_scenario(Scenario scenario) -> bool
 auto State::next_scenario() -> void
 {
     auto state = State::get_instance();
-    Scenario scenario = {};
+    std::optional<Scenario> scenario = {};
 
     if (state->current_scenario_index == scenarios.size() - 1) {
         state->current_scenario_index = 0;
@@ -78,13 +79,13 @@ auto State::next_scenario() -> void
         scenario = scenarios[state->current_scenario_index];
     }
 
-    state->set_scenario(scenario);
+    state->set_scenario(*scenario);
 };
 
 auto State::previous_scenario() -> void
 {
     auto state = State::get_instance();
-    Scenario scenario = {};
+    std::optional<Scenario> scenario = {};
 
     if (state->current_scenario_index == 0) {
         state->current_scenario_index = scenarios.size() - 1;
@@ -94,5 +95,5 @@ auto State::previous_scenario() -> void
         scenario = scenarios[state->current_scenario_index];
     }
 
-    state->set_scenario(scenario);
+    state->set_scenario(*scenario);
 };
