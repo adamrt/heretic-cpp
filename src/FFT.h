@@ -65,30 +65,6 @@ struct Record {
     bool operator==(const Record& other) const;
 };
 
-struct Scenario {
-    std::vector<uint8_t> data;
-
-    bool operator==(const Scenario& other) const
-    {
-        return id() == other.id();
-    }
-
-    auto repr() -> std::string;
-    auto id() const -> int;
-    auto map_id() -> int;
-    auto weather() -> MapWeather;
-    auto time() -> MapTime;
-    auto first_music() -> int;
-    auto second_music() -> int;
-    auto entd_id() -> int;
-    auto first_grid() -> int;
-    auto second_grid() -> int;
-    auto require_ramza_unknown() -> int;
-    auto event_id() -> int;
-    auto next_event_id() -> int;
-    // There is more from the "last line". Is it the next 24 bytes or what?
-};
-
 std::string map_weather_str(MapWeather value);
 std::string map_time_str(MapTime value);
 std::string resource_type_str(ResourceType value);

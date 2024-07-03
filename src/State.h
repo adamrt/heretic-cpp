@@ -8,6 +8,7 @@
 #include "FFT.h"
 #include "GUI.h"
 #include "Renderer.h"
+#include "Scenario.h"
 #include "Scene.h"
 
 #include "sokol_gfx.h"

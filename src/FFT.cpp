@@ -683,22 +683,3 @@ bool Record::operator==(const Record& other) const
     auto ow = other.weather();
     return std::tie(t, w) == std::tie(ot, ow);
 }
-
-auto Scenario::repr() -> std::string
-{
-    std::ostringstream oss;
-    oss << std::setw(3) << std::setfill('0') << id() << " " << map_list[map_id()].name;
-    return oss.str();
-}
-auto Scenario::id() const -> int { return data[0] | (data[1] << 8); }
-auto Scenario::map_id() -> int { return data[2]; }
-auto Scenario::weather() -> MapWeather { return static_cast<MapWeather>(data[3]); }
-auto Scenario::time() -> MapTime { return static_cast<MapTime>(data[4]); }
-auto Scenario::first_music() -> int { return data[5]; }
-auto Scenario::second_music() -> int { return data[6]; }
-auto Scenario::entd_id() -> int { return data[7] | (data[8] << 8); }
-auto Scenario::first_grid() -> int { return data[9] | (data[10] << 8); }
-auto Scenario::second_grid() -> int { return data[11] | (data[12] << 8); }
-auto Scenario::require_ramza_unknown() -> int { return data[17]; }
-auto Scenario::next_event_id() -> int { return data[18] | (data[19] << 8); }
-auto Scenario::event_id() -> int { return data[22] | (data[23] << 8); }

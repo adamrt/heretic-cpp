@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "FFT.h"
+#include "Scenario.h"
 
 // BinFile represents a file in a BIN file.
 class BinFile {

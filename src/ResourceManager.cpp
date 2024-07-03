@@ -1,4 +1,5 @@
 #include "ResourceManager.h"
+#include "Scenario.h"
 
 #include "shader.glsl.h"
 
