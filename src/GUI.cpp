@@ -101,34 +101,48 @@ auto GUI::draw_instructions() -> void
     ImGui::Begin("Instructions");
 
     // Begin a table
-    if (ImGui::BeginTable("Instructions", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-        // Set up column headers
-        ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 50.0f);
-        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 120.0f);
-        ImGui::TableSetupColumn("Description", ImGuiTableColumnFlags_WidthFixed, 1000.0f);
+    if (ImGui::BeginTable("Instructions", 11, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+
+        ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+        ImGui::TableSetupColumn("Param 1", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 2", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 3", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 4", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 5", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 6", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 7", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 8", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 9", ImGuiTableColumnFlags_WidthStretch);
+        ImGui::TableSetupColumn("Param 10", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableHeadersRow();
 
-        // Populate table with data
-        for (auto& [key, value] : instruction_list) {
+        for (auto& instruction : state->event_instructions) {
             ImGui::TableNextRow();
 
-            // Column 0: ID
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("0x%X", key);
+            auto column = 0;
 
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%s", value.name.c_str());
+            ImGui::TableSetColumnIndex(column);
+            ImGui::Text("%s", command_list[instruction.command].name.c_str());
 
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%s", value.description.c_str());
+            for (auto& param : instruction.params) {
+                column++;
+                ImGui::TableSetColumnIndex(column);
+                if (std::holds_alternative<uint8_t>(param)) {
+                    ImGui::Text("0x%02X", std::get<uint8_t>(param));
+                } else if (std::holds_alternative<uint16_t>(param)) {
+                    ImGui::Text("0x%04X", std::get<uint16_t>(param));
+                }
+            }
+
+            for (; column < 10; column++) {
+                ImGui::TableSetColumnIndex(column);
+            }
         }
 
-        // End the table
         ImGui::EndTable();
     }
 
-    // End the window
     ImGui::End();
 }
 
@@ -146,7 +160,6 @@ auto GUI::draw_events() -> void
 
         ImGui::TableHeadersRow();
 
-        // Populate table with data
         for (auto& event : state->events) {
             ImGui::TableNextRow();
 
@@ -155,11 +168,9 @@ auto GUI::draw_events() -> void
             ImGui::Text("0x%X", event.id());
         }
 
-        // End the table
         ImGui::EndTable();
     }
 
-    // End the window
     ImGui::End();
 }
 auto GUI::draw_records() -> void
@@ -368,16 +379,20 @@ auto GUI::draw() -> void
     ImGui::NewLine();
     ImGui::Separator();
 
-    if (ImGui::Button("Show Map Records")) {
+    if (ImGui::Button("Records")) {
         show_records_table = !show_records_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Show Instructions")) {
-        show_instructions_table = !show_instructions_table;
+    if (ImGui::Button("Events")) {
+        show_events_table = !show_events_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Show Events")) {
-        show_events_table = !show_events_table;
+    if (ImGui::Button("Scenarios")) {
+        show_scenarios_table = !show_scenarios_table;
+    }
+    ImGui::SameLine();
+    if (ImGui::Button("Instructions")) {
+        show_instructions_table = !show_instructions_table;
     }
 
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
@@ -392,19 +407,19 @@ auto GUI::draw() -> void
         }
     }
 
-    if (show_scenario_table) {
+    if (show_scenarios_table) {
         if (state->scenarios.size() > 0) {
             draw_scenarios();
         }
-    }
-
-    if (show_instructions_table) {
-        draw_instructions();
     }
 
     if (show_events_table) {
         if (state->events.size() > 0) {
             draw_events();
         }
+    }
+
+    if (show_instructions_table) {
+        draw_instructions();
     }
 }

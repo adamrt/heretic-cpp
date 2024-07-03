@@ -170,7 +170,11 @@ auto BinReader::read_events() -> std::vector<Event>
     std::vector<Event> events = {};
     for (int event_id = 0; event_id < 100; event_id++) {
         auto test_evt = read_file((event_id * 4) + test_evt_sector, test_evt_size);
-        events.push_back(test_evt.read_event());
+        auto event = test_evt.read_event();
+        if (event.should_skip()) {
+            continue;
+        }
+        events.push_back(event);
     }
     return events;
 }

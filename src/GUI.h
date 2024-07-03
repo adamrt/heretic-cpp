@@ -12,13 +12,14 @@ private:
     auto draw() -> void;
     auto draw_scenarios() -> void;
     auto draw_records() -> void;
-    auto draw_instructions() -> void;
+    auto draw_commands() -> void;
     auto draw_events() -> void;
+    auto draw_instructions() -> void;
 
     int scenarios_or_maps = 0;
 
-    bool show_scenario_table = false;
+    bool show_scenarios_table = false;
     bool show_records_table = false;
-    bool show_instructions_table = false;
     bool show_events_table = false;
+    bool show_instructions_table = false;
 };

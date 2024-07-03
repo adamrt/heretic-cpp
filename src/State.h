@@ -2,6 +2,7 @@
 
 #include <array>
 #include <iostream>
+#include <vector>
 
 #include "Camera.h"
 #include "FFT.h"
@@ -37,6 +38,7 @@ public:
 
     std::vector<Scenario> scenarios = {};
     std::vector<Event> events = {};
+    std::vector<Instruction> event_instructions = {};
     std::vector<Record> records = {};
 
     int current_scenario_index = 0;

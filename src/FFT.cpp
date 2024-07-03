@@ -14,6 +14,7 @@
 #include "ResourceManager.h"
 
 #include "FFT.h"
+#include "Texture.h"
 
 std::array<FFTMapDesc, 128> map_list = {
     FFTMapDesc { 0, 10026, "???", false },
@@ -147,136 +148,138 @@ std::array<FFTMapDesc, 128> map_list = {
     FFTMapDesc { 127, 0, "???", false },
 };
 
-std::map<int, Instruction> instruction_list = {
-    { 0x10, { "DisplayMessage", "This instruction is used to display any text stored after the event's instruction in various ways like a character thinking, speaking, or simply printing text on the screen.", R"(DisplayMessage(x10, DialogType, "Message ID": xMSG#,"Unit ID": xID,x00,"Portrait Row": xPR,"X Coordinate": +XXXXX,"Y Coordinate": +YYYYY,"Arrow Position": +ARPOS,"Dialog Box Opening Type": xOT))" } },
-    { 0x11, { "UnitAnim", "This instruction is used load a humanoid shaped sprite off EVTCHR.BIN on a sprite using the original unit's palette.", R"(UnitAnim("Affected Units": xAU,"Multi Targeting": xMT,"Animation ID SEQ/EVTCHR": xANIM,x00))" } },
-    { 0x13, { "ChangeMapBeta", "Changes the map the event is currently played in. Not recommended for use.", R"(ChangeMapBeta("Map": MAP,x00))" } },
-    { 0x16, { "Pause", "Pause the event and resume it when the player presses either O (confirm), X (cancel) or select.", R"(Pause())" } },
-    { 0x18, { "Effect", "Uses an ability or effect on target Unit. Only one Effect can play at a time or the game will freeze.", R"(Effect("Ability/Effect ID": xEFID,"Unit ID": xID,"X Coordinate": XXX,"Y Coordinate": YYY,"Unknown": x00))" } },
-    { 0x19, { "Camera", "Moves camera around the map, like a small helicopter. The coordinates used are the map's absolute coordinates, not relative ones to where the camera currently is. All entry fields can range from -32768 to 32767. Tiles are 28x28, and Camera motion is 4x more precise, so 112 = 1 Tile. 1h is 12 pixels high, so 48 = 1h, and regular units are 3h tall.", R"(Camera("X axis": +XXXXX,"Z axis": +ZZZZZ,"Y axis": +YYYYY,"Angle": +ANGLE,"Map Rotation": +MAPRT,"Camera Rotation": +CAMRT,"Zoom": +ZOOM%,"Time": +TIMER))" } },
-    { 0x1A, { "MapDarkness", "Modifies the color of the map's lighting. Battle-friendly.", R"(MapDarkness("Blending Mode": xBM,"Red": +RED,"Green": +GRN,"Blue": +BLU,"Time"},: TIM))" } },
-    { 0x1B, { "MapLight", "Controls the map's lighting, and has the ability to change the color of the light. Battle-friendly.", R"(MapLight("Unknown Controls Lighting": +00000,"Unknown Controls Lighting": +00000,"Unknown Controls Lighting": ,+?????,"Red": +RRRED,"Green": +GREEN,"Blue": +BBLUE,"Time": +TIMER))" } },
-    { 0x1C, { "EventSpeed", "This instruction determines the speed the event will play. It is only used alongside Lucavi transformation and death Effects to slow them down.", R"(EventSpeed("Speed": xSP))" } },
-    { 0x1D, { "CameraFusionStart", "Place many camera instructions in this block make them transition smoothly.", R"(CameraFusionStart())" } },
-    { 0x1E, { "CameraFusionEnd", "Place many camera instructions in this block make them transition smoothly.", R"(CameraFusionEnd())" } },
-    { 0x1F, { "Focus", "The next Camera instruction will automatically center between Unit 1 and Unit 2. If the two are the same unit, it focuses on that single unit.", R"(Focus("Unit 1 ID": xID,x00,"Unit 2 ID": xID,x00,"Unknown": x00))" } },
-    { 0x21, { "SoundEffect", "Terminate currently playing sound created by this instruction and plays the indexed sound once.", R"(SoundEffect("Sound ID": xSDID))" } },
-    { 0x22, { "SwitchTrack", "Toggle between the first and second song assigned in ATTACK.OUT for the scenario.", R"(SwitchTrack(x01,"Volume": +VOL,"Time": TIM))" } },
-    { 0x27, { "ReloadMapState", "Reloads the map with new, currently stored settings such as map arrangement (Variable x0030), weather and daytime. Map arrangements and daytime can be viewed using map2gl.", R"(ReloadMapState())" } },
-    { 0x28, { "WalkTo", "FIXME", R"(FIXME)" } },
-    { 0x29, { "WaitWalk", "Resumes instructions when the given unit arrives at destination.", R"(WaitWalk("Unit ID": xID,x00))" } },
-    { 0x2A, { "BlockStart", "A block is a portion of the event played in a separate process. When the game finds a block, it will start executing it and will also resume the event whatever there is after the block at the same time.", R"(BlockStart())" } },
-    { 0x2B, { "BlockEnd", "A block is a portion of the event played in a separate process. When the game finds a block, it will start executing it and will also resume the event whatever there is after the block at the same time.", R"(BlockEnd())" } },
-    { 0x2C, { "FaceUnit2", "FIXME", R"(FIXME)" } },
-    { 0x2D, { "RotateUnit", "The unit will rotate to a given direction.", R"(RotateUnit("Affected Units": xAU,"Multi Targeting": xMT,"Dire},ction": xDR,"Clockwise or Counter-clockwise": xCL,"Rotation Speed": xRS,"Delay": xDL))" } },
-    { 0x2E, { "Background", "FIXME", R"(FIXME))" } },
-    { 0x31, { "ColorBGBeta", "Colors Background to new value based on the current coloration, allowing better blending but ineffective on pure-black backgrounds.", R"(ColorBGBeta("Pre-set Color": xPR,"Red": +RED,"Green": +GRN,"Blue": +BLU,"Time": TIM))" } },
-    { 0x32, { "ColorUnit", "Colors a unit gradually depending on its current state. (+127,-128,-128) is red and (+127,+127,+127) is white while (+000,+000,+000) returns the unit to its original color.", R"(ColorUnit("Affected Units": xAU,"Multi Targeting": xMT,"Pre-set Color": xPR,"Red": +RED,"Green": +GRN,"Blue": +BLU,"Time": TIM))" } },
-    { 0x33, { "ColorField", "Colors entire map specified colors. (-128,-128,-128) is black and (+127,+127,+127) is white while (+000,+000,+000) returns the map to its original color.", R"(ColorField("Pre-set Color": xPR,"Red": +RED,"Green": +GRN,"Blue": +BLU,"Time": TIM))" } },
-    { 0x38, { "FocusSpeed", "Sets the traveling speed for the camera instruction using Focus' settings.", R"(FocusSpeed("Travel Speed": +SPEED))" } },
-    { 0x3B, { "SpriteMove", "Moves Target Unit to specified coordinates relative to its starting position, ignoring the field and the units statistics such as Jump.", R"(SpriteMove("Unit ID": xID,x00,"X Movement": +XXXXX,"Z Movement": +ZZZZZ,"Y Movement": +YYYYY,"Movement Type": xMV,"Unknown": x??,"Time": +TIMER))" } },
-    { 0x3C, { "Weather", "Controls the weather's power, but not the weather type.", R"(Weather("Weather Power": xWP,"Unknown": x01))" } },
-    { 0x3D, { "RemoveUnit", "Removes a unit from the field and memory entirely. This differs from BlueRemoveUnit in that it works immediately, allowing you to Add another unit/sprite right away, and that a Removed unit doesn't award its War Trophy.", R"(RemoveUnit("Unit ID": xID,x00))" } },
-    { 0x3E, { "ColorScreen", "Colors the whole screen, in different possible ways. The Initial Color is applied immediately, while the Target Color gradually changes with a given amount of time assigned. (255,255,255) is white while (000,000,000) is no coloration. Not battle-friendly.", R"(ColorScreen("Blending Mode": xBM,"Initial Red": IRD,"Initial Green": IGR,"Initial Blue": IBL,"Target Red": TRD,"Target Green": TGR,"Target Blue": TBL,"Time": +TIMER))" } },
-    { 0x41, { "EarthquakeStart", "Cause a seism with given parameters, but it does not control any sound related to it. Not battle-friendly.", R"(EarthquakeStart("Magnitude": MAG,"Mercalli Intensity Scale": MER,"Secondary Shock Magnitude": SMG,"Secondary Shock Delay": SSD))" } },
-    { 0x42, { "EarthquakeEnd", "Stops an ongoing earthquake.", R"(EarthquakeEnd())" } },
-    { 0x43, { "CallFunction", "Can call various different functions to alter many different things in the game.", R"(CallFunction("Function": xFC))" } },
-    { 0x44, { "Draw", "Draws a loaded unit that is currently not being displayed.", R"(Draw("Unit ID": xID,x00))" } },
-    { 0x45, { "AddUnit", "Adds a unit to the event that is not currently loaded.", R"(AddUnit("Unit ID": xID,x00,"Drawing": xDR))" } },
-    { 0x46, { "Erase", "Erase a unit whose sprite is currently being displayed. Unit can be re-drawn later.", R"(Erase("Unit ID": xID,x00))" } },
-    { 0x47, { "AddGhostUnit", "Adds a fake unit on the map which can be mostly controlled like a regular unit, with some exceptions. In battle, the unit cannot take action or be targeted, and units will be able to walk through it. You can use any spritesheet you want, but be warned: Adding a new spritesheet will leave you with the impossibility of removing the spritesheet even if you remove the Ghost Unit.", R"(AddGhostUnit("Spritesheet ID": xSP,x00,"Assigned Unit ID": xID,"X Coordinate": XXX,"Y Coordinate": YYY,"Elevation": xEL,"Facing Direction": xFD,"Drawing": xDR))" } },
-    { 0x48, { "WaitAddUnit", "Waits until a normal or ghost unit is loaded into the event before resuming.", R"(WaitAddUnit())" } },
-    { 0x49, { "AddUnitStart", "Creates an independently running block inside the event to load one or many units in the game. Does not slow down the event in any way, but make sure to use FIXME", R"(AddUnitStart())" } },
-    { 0x4A, { "AddUnitEnd", "Creates an independently running block inside the event to load one or many units in the game. Does not slow down the event in any way, but make sure to use FIXME", R"(AddUnitEnd())" } },
-    { 0x4B, { "WaitAddUnitEnd", "Waits until a currently running FIXME", R"(WaitAddUnitEnd())" } },
-    { 0x4C, { "ChangeMap", "Fades to black, then changes the map, reloading all the settings such as Weather or State.", R"(ChangeMap("Map": MAP,x00))" } },
-    { 0x4D, { "Reveal", "Progressively reveals the screen to unveil the scene. Required to start a new scenario.", R"(Reveal("Time": TIM))" } },
-    { 0x4E, { "UnitShadow", "Remove or add back the shadow of a unit. Battle-friendly.", R"(UnitShadow("Unit ID": xID,x00,"Shadow": xSH))" } },
-    { 0x4F, { "SetDaytime", "Stores day or night for the next time you will load/reload a map.", R"(SetDaytime("Daytime": xDT))" } },
-    { 0x50, { "PortraitCol", "Sets the column that will be used to load a custom portrait from EVTFACE.BIN for the following Dialog Boxes.", R"(PortraitCol("Portrait Column": xPC))" } },
-    { 0x51, { "ChangeDialog", "Changes the content of a Dialog Box or closes it.", R"(ChangeDialog("Target Dialog Box": xDB,"New Message ID": xMSG#,"Portrai},t Row": xPR,"Portrait Palette": xPP))" } },
-    { 0x53, { "FaceUnit", "Makes unit(s) rotate to face a specified unit. The rotation direction is the shortest one (Clockwise as default).", R"(FaceUnit("Faced Unit ID": xFU,x00,"Affected Units": xAU,"Multi Targeting": xMT,"Clockwise or Counter-clockwise": xCL,"Rotation Spe},ed": xRS,"Delay": xDL))" } },
-    { 0x54, { "Use3DObject", "Use an object that has a 3D animation.", R"(Use3DObject(Object ID: xID,"New State": xST))" } },
-    { 0x55, { "UseFieldObject", "Changes the state of an object on the map.", R"(UseFieldObject(State Change ID: xID,x00))" } },
-    { 0x56, { "Wait3DObject", "Waits until all activated 3D objects are done animating before resuming.", R"(Wait3DObject())" } },
-    { 0x57, { "WaitFieldObject", "Waits for an object being used to complete its cycle before resuming.", R"(WaitFieldObject())" } },
-    { 0x58, { "LoadEVTCHR", "Loads an EVTCHR slot from the CD to temporary memory.", R"(LoadEVTCHR("Memory Block": xBL,"EVTCHR Slot": xEV,x00))" } },
-    { 0x59, { "SaveEVTCHR", "Saves the loaded EVTCHR Slot to a specific block in order to use its frames and animations.", R"(SaveEVTCHR("Memory Block": xBL))" } },
-    { 0x5A, { "SaveEVTCHRClear", "Allows to save an EVTCHR slot once more in the given memory block.", R"(SaveEVTCHRClear("Memory Block": xBL,x00))" } },
-    { 0x5B, { "LoadEVTCHRClear", "Allows to load an EVTCHR slot once more in the given memory block.", R"(LoadEVTCHRClear("Memory Block": xBL,x00))" } },
-    { 0x5E, { "EndTrack", "Terminates the currently playing song immediately.", R"(EndTrack("Unknown": x??))" } },
-    { 0x5F, { "WarpUnit", "Warps a unit to a new location instantly.", R"(WarpUnit("UnitID": xID,x00,"X Coordinate": XXX,"Y Coordina},te": YYY,"Elevation": xEL,"Facing Direction": xFD))" } },
-    { 0x60, { "FadeSound", "Progressively fade sounds and music until they stop playing completely.", R"(FadeSound(x00,"Time": TIM))" } },
-    { 0x63, { "CameraSpeedCurve", "Sets the acceleration strength and type of the next Camera instruction. The first digit affects the strength; a value of 0 is unnoticeable, a value of F is the most noticeable. The second digit determines the type of acceleration: None, Immediate, or Delayed.", R"(CameraSpeedCurve("Parameters": xPA))" } },
-    { 0x64, { "WaitRotateUnit", "Waits for a unit to finish rotating/facing another unit before resuming.", R"(WaitRotateUnit("Unit ID": xID,x00))" } },
-    { 0x65, { "WaitRotateAll", "Waits for every unit to finish rotating/facing another unit before resuming.", R"(WaitRotateAll())" } },
-    { 0x68, { "MirrorSprite", "Mirrors a sprite and all its animations/ETVCHR as if they were facing left instead of right, and vice versa.", R"(MirrorSprite("Unit ID": xID,x00,"Mirror": xMI))" } },
-    { 0x69, { "FaceTile", "Makes unit(s) rotate to face a specified tile. The rotation direction is the shortest one (Clockwise as default).", R"(FaceTile("Affected Units": xAU,"Multi Targeting": xMT,"X Coordinate": XXX,"Y Coordinate": YYY,"Unknown": x00,"Clockwise or Counter},-clockwise": xCL,"Rotation Speed": xRS,"Delay": xDL))" } },
-    { 0x6A, { "EditBGSound", "Edits a currently playing Background sound.", R"(EditBGSound("Sound ID": xSD,"Echo": +ECH,"Volume": +VOL,"Unknow},n": x00,"Unknown": xWT))" } },
-    { 0x6B, { "BGSound", "Plays the indexed background sound effect.", R"(BGSound("Sound ID": xSD,"Echo": +ECH,"Volume": +VOL,"Sound}, Stacking": xST,"Time": TIM))" } },
-    { 0x6E, { "SpriteMoveBeta", "Very similar to its sister instruction, but instead uses different movement types and uses speed instead of time. Moves Target Unit to specified coordinates relative to its starting position, ignoring the field and the units statistics such as Jump.", R"(SpriteMoveBeta("Unit ID": xID,x00,"X Movement": +XXXXX,"Z Movement": +ZZZZZ,"Y Movement": +YYYYY,"Movement Type": xMV,"Unknown": x??,"Speed": +SPEED))" } },
-    { 0x6F, { "WaitSpriteMove", "Wait for a unit to complete its custom movement before resuming.", R"(WaitSpriteMove("Unit ID": xID,x00))" } },
-    { 0x70, { "Jump", "The given unit will jump up or down 1-4 tiles distance. It works perfectly for jumping down, but might look weird when trying to jump to tiles too height. Does not have an elevation parameter. If the height difference is very minimal, the unit will just walk instead. If the target tile is off the map, the unit will freeze in its frame and slide off the screen.", R"(Jump("Unit ID": xID,x00,"Distance": DST,"Direction": xDR))" } },
-    { 0x76, { "DarkScreen", "Create a dark screen that allows units to join your party, display winning conditions and save your party back to formation.", R"(DarkScreen(x00,"Shape": xSH,"Screen Expansion Speed": ESP,"Rotation Speed": RTS,x00,"Square Expansion Speed": SES))" } },
-    { 0x77, { "RemoveDarkScreen", "Removes the dark screen with the same parameters it was called with.", R"(RemoveDarkScreen())" } },
-    { 0x78, { "DisplayConditions", "Display a Winning condition, Congratulations, War Trophies or Bonus Money received after the battle.", R"(DisplayConditions("Message": xMG,"Display Time": DST))" } },
-    { 0x79, { "WalkToAnim", "Applies a normal or an EVTCHR animation to a given unit when it arrives at destination.", R"(FIXME)" } },
-    { 0x7A, { "DismissUnit", "Removes the first unit which matches the given Special Job ID from the player's roster.", R"(DismissUnit("Special Job ID": xJB,x00))" } },
-    { 0x7D, { "ShowGraphic", "Gradually prints a graphic on the screen, and erases it the same way.", R"(ShowGraphic("Graphic ID": xGR))" } },
-    { 0x7E, { "WaitValue", "Waits until a given value has reached at least a certain amount before resuming.", R"(WaitValue("Address": xADDR,"Value": xVALU))" } },
-    { 0x7F, { "EVTCHRPalette", "Changes the palette of a character by loading one from an EVTCHR Block.", R"(EVTCHRPalette("UnitID": xID,x00,"EVTCHR Block": xBL,"Palette ID": xPL))" } },
-    { 0x80, { "March", "Make units start their walking animation, ready to fight. Even if not called, this instruction is automatically executed when a battle starts with 0 frames between units.", R"(March("Affected Units": xAU,"Multi Targeting": xMT,"Time": TIM))" } },
-    { 0x83, { "ChangeStats", "Change the stats of affected units.", R"(ChangeStats("Affected Units": xAU,"Multi Targeting": xM},T,"Stat": xST,"Value": +VALUE))" } },
-    { 0x84, { "PlayTune", "Plays a song file. Don't get excited, the list is very short and mostly useless.", R"(PlayTune("Song ID": xSG))" } },
-    { 0x85, { "UnlockDate", "Sets the unlocking date of a treasure/land to the current day.", R"(UnlockDate("Treasure/Land": xTL))" } },
-    { 0x86, { "TempWeapon", "Gives unit a temporary weapon to swing. Does not affect equipped items.", R"(TempWeapon("Unit ID": xID,x00,"Item ID": xIT))" } },
-    { 0x87, { "Arrow", "Adds an arrow or bolt the next time a unit that has a bow (arrow) or a crossbow (bolt) shoots with a SEQ animation of x53, x54 or x55.", R"(Arrow("Target's Unit ID": xTG,x00,"Shooter's Unit ID": xSH,x00))" } },
-    { 0x88, { "MapUnfreeze", "Allows animations of a map again.", R"(MapUnfreeze())" } },
-    { 0x89, { "MapFreeze", "Freezes all animations of a map.", R"(MapFreeze())" } },
-    { 0x8A, { "EffectStart", "Must be used in a block to activate the animation of a previously set Effect file.", R"(EffectStart())" } },
-    { 0x8B, { "EffectEnd", "Must be used in a block to activate the animation of a previously set Effect file.", R"(EffectEnd())" } },
-    { 0x8C, { "UnitAnimRotate", "Makes the unit immediately rotate to a certain direction and execute an animation.", R"(UnitAnimRotate("Unit ID": xID,x00,"Direction": xDR,"Animation ID": xANIM,x00))" } },
-    { 0x8E, { "WaitGraphicPrint", "FIXME", R"(WaitGraphicPrint())" } },
-    { 0x91, { "ShowMapTitle", "Displays a 256x20 4bit image (EVENT/MAPTITLE.BIN) of the current map's title on the screen. Only Map 1 to 120 have a graphic assigned to them. Trying to display the title of other maps will result in rubbish.", R"(ShowMapTitle(X Axis: XXX,Y Axis: +YYY,Speed: +SPD))" } },
-    { 0x92, { "InflictStatus", "Inflict a status on a given unit.", R"(InflictStatus("Unit ID": xID,x00,"Status": xSS,"Unknown},": x0C,x00))" } },
-    { 0x94, { "TeleportOut", "Unit will teleport out of the field.", R"(TeleportOut("Unit ID": xID,x00))" } },
-    { 0x96, { "AppendMapState ", "FIXME", R"(AppendMapState())" } },
-    { 0x97, { "ResetPalette", "Resets the palette color of a unit to its original state.", R"(ResetPalette("Unit ID": xID,x00))" } },
-    { 0x98, { "TeleportIn", "Unit will teleport onto the field.", R"(TeleportIn("Unit ID": xID,x00))" } },
-    { 0x99, { "BlueRemoveUnit", "Remove a non-Charmed enemy team unit from the map with a blue hueing. This differs from RemoveUnit in that it takes longer, so you can't Add another unit/sprite in immediately afterwards, and that a BlueRemoved unit will still award their War Trophies at the end.", R"(BlueRemoveUnit("Unit ID": xID,x00))" } },
-    { 0xA0, { "LTE", "Less Than or Equal | Variable 0x0000 = If ( Variable 0x0000 <= Variable 0x0001 )", R"(LTE())" } },
-    { 0xA1, { "GTE", "", R"(GTE())" } },
-    { 0xA2, { "EQ", "Equal | Variable 0x0000 = If ( Variable 0x0000 == Variable 0x0001 )", R"(EQ())" } },
-    { 0xA3, { "NEQ", "Not Equal | Variable 0x0000 = If ( Variable 0x0000 != Variable 0x0001 )", R"(NEQ())" } },
-    { 0xA4, { "LT", "Less Than | Variable 0x0000 = If ( Variable 0x0000 < Variable 0x0001 )", R"(LT())" } },
-    { 0xA5, { "GT", "Greater Than | Variable 0x0000 = If ( Variable 0x0000", R"(GT())" } },
-    { 0xB0, { "ADD", "Add Immediate | Variable = Variable + ImmediateValue (Can overflow)", R"(ADD("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xB1, { "ADDVar", "Add Variable | Variable1 = Variable1 + Variable2 (Can overflow)", R"(ADDVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xB2, { "SUB", "Subtract Immediate | Variable = Variable - ImmediateValue (Can overflow)", R"(SUB("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xB3, { "SUBVar", "Subtract Variable | Variable1 = Variable1 - Variable2 (Can overflow)", R"(SUBVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xB4, { "MULT", "Multiply Immediate | Variable = Variable × ImmediateValue (low 32bit) Use this instruction for general multiplication.", R"(MULT("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xB5, { "MULTVar", "Multiply Variable | Variable1 = Variable1 × Variable2 (low 32bit) Use this instruction for general multiplication.", R"(MULTVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xB6, { "DIV", "Divide Immediate | Variable = Variable ÷ ImmediateValue (low 32bit) Use this instruction for general division.", R"(DIV("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xB7, { "DIVVar", "Divide Variable | Variable1 = Variable1 ÷ Variable2 (low 32bit) Use this instruction for general division.", R"(DIVVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xB8, { "MOD", "Divide Immediate (modulus) | Variable = Variable % ImmediateValue (high 32bit)", R"(MOD("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xB9, { "MODVar", "Divide Immediate | Variable = Variable ÷ ImmediateValue (high 32bit)", R"(MODVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xBA, { "AND", "AND bitwise operand | Variable = Variable AND ImmediateValue This command compares the individual bits of the value within a Variable and a specific ImmediateValue, and produces a single binary output. This makes this a good way to disable a specific bit within a byte without changing the rest of the bits. With AND, the resulting bit outputs are set to 1 (TRUE) only if both values' bit inputs are 1. The bits available within a single byte are: * 0x80 * 0x40 * 0x20 * 0x10 * 0x08 * 0x04 * 0x02 * 0x01 So, for example, if you want to edit a unit's Battle Stats to remove the Dead status (which is bit 0x20), but leave their other statii unchanged, you would UnitAddress their Unit ID, LoadAddress their stats at 0x0058 and 0x01BB into temporary variables (let's say 0x0070 and 0x0071), and then run AND(x0070,x00DF) and AND(x0071,x00DF), before using SaveAddress to put the corrected values back. Because the Dead status is in bit 0x20, a value of DF means that every bit except 0x20 is set to 1. As a result, the other statii in that byte will remain unchanged, but by forcing 0x20 to be set to 1 in the ImmediateValue, it will zero out the Dead bit in the final result.", R"(AND("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xBB, { "ANDVar", "AND Variable bitwise operand | Variable1 = Variable1 AND Variable2 This command compares the individual bits of the value between two Variables, and produces a single binary output. With AND, the resulting bit outputs are set to 1 (TRUE) only if both values' bit inputs are 1. This makes this a good way to disable a specific bit within a byte without changing the rest of the bits. The bits available within a single byte are: * 0x80 * 0x40 * 0x20 * 0x10 * 0x08 * 0x04 * 0x02 * 0x01 So, for example, if you want to edit a unit's Battle Stats to remove the Dead status (which is bit 0x20), but leave their other statii unchanged, you would UnitAddress their Unit ID, LoadAddress their stats at 0x0058 and 0x01BB into temporary variables (let's say 0x0070 and 0x0071), SET(x0072,x00DF), and then run ANDVar(x0070,x0072) and ANDVar(x0071,x0072), before using SaveAddress to put the corrected values back. Because the Dead status is in bit 0x20, a value of DF means that every bit except 0x20 is set to 1. As a result, the other statii in that byte will remain unchanged, but by forcing 0x20 to be set to 1 in the ImmediateValue, it will zero out the Dead bit in the final result.", R"(ANDVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xBC, { "OR", "OR bitwise operand | Variable = Variable OR ImmediateValue This command compares the individual bits of the value between a Variable and a specific ImmediateValue, and produces a single binary output. With OR, the resulting bit outputs are set to 1 (TRUE) if either value's bit input is 1. This makes this a good way to enable a specific bit within a byte without changing the rest of the bits. The bits available within a single byte are: * 0x80 * 0x40 * 0x20 * 0x10 * 0x08 * 0x04 * 0x02 * 0x01 So, for example, if you want to edit a unit's Battle Stats to add the Control flag (which is bit 0x08), but leave the other flags such as their Team untouched, you would LoadAddress the byte into an editable variable, then OR that variable against a value of 0008: OR(xVARI,x0008). This uses a zero value on every bit except 08, which uses a one value, forcing the output to always have Control flagged, while leaving the rest of the bits from the variable unaltered.", R"(OR("Variable": xVARI,"Immediate Value": xVALU))" } },
-    { 0xBD, { "ORVar", "OR Variable bitwise operand | Variable1 = Variable1 OR Variable2 This command compares the individual bits of the value between a Variable and a specific ImmediateValue, and produces a single binary output. With OR, the resulting bit outputs are set to 1 (TRUE) if either value's bit input is 1. This makes this a good way to enable a specific bit within a byte without changing the rest of the bits. The bits available within a single byte are: * 0x80 * 0x40 * 0x20 * 0x10 * 0x08 * 0x04 * 0x02 * 0x01 So, for example, if you want to edit a unit's Battle Stats to add the Control flag (which is bit 0x08), but leave the other flags such as their Team untouched, you would LoadAddress the byte into an editable variable, then OR that variable against a value of 0008: OR(xVARI,x0008). This uses a zero value on every bit except 08, which uses a one value, forcing the output to always have Control flagged, while leaving the rest of the bits from the variable unaltered.", R"(ORVar("Variable 1": xVAR1,"Variable 2": xVAR2))" } },
-    { 0xBE, { "ZERO", "Zero | Variable = 0", R"(ZERO("Variable": xVARI))" } },
-    { 0xD0, { "JumpForwardIfZero", "FIXME", R"(JumpForwardIfZero("JumpForward ID": xJF))" } },
-    { 0xD1, { "JumpForward ", "FIXME", R"(JumpForward("JumpForward ID": xJF))" } },
-    { 0xD2, { "ForwardTarget ", "FIXME", R"(ForwardTarget("JumpForwar},d ID": xJF))" } },
-    { 0xD3, { "JumpBack ", "FIXME", R"(JumpBack("JumpBack ID": xJB))" } },
-    { 0xD5, { "BackTarget ", "FIXME", R"(BackTarget("JumpBack ID": xJB))" } },
-    { 0xDB, { "EventEnd", "Marks the end of the event.", R"(EventEnd())" } },
-    { 0xE3, { "EventEnd2", "A perfect copy of the other EventEnd. Marks the end of the event.", R"(EventEnd2())" } },
-    { 0xE5, { "WaitForInstruction", "Wait for any given instruction type instance to complete before resuming.", R"(WaitForInstruction("Instruction Type": xIN,x00))" } },
-    { 0xF1, { "Wait", "Wait for a given number of frames before resuming.", R"(Wait("Time": TIMER))" } },
-    { 0xF2, { "Pad", "Doesn't do anything. Ideal for hex editing parts of the event out without any risk.", R"(Pad())" } },
+std::map<int, Command> command_list = {
+    { 0x00, { "", {} } },
+    { 0x01, { "Unknown Command!", {} } },
+    { 0x10, { "DisplayMessage", { 1, 1, 2, 1, 1, 1, 2, 2, 2, 1 } } },
+    { 0x11, { "UnitAnim", { 1, 1, 1, 1, 1 } } },
+    { 0x12, { "Chapter 3 Start BS", { 2 } } },
+    { 0x13, { "ChangeMapBeta", { 1, 1 } } },
+    { 0x16, { "Pause", {} } },
+    { 0x18, { "Effect", { 2, 1, 1, 1, 1 } } },
+    { 0x19, { "Camera", { 2, 2, 2, 2, 2, 2, 2, 2 } } },
+    { 0x1A, { "MapDarkness", { 1, 1, 1, 1, 1 } } },
+    { 0x1B, { "MapLight", { 2, 2, 2, 2, 2, 2, 2 } } },
+    { 0x1C, { "EventSpeed", { 1 } } },
+    { 0x1D, { "CameraFusionStart", {} } },
+    { 0x1E, { "CameraFusionEnd", {} } },
+    { 0x1F, { "Focus", { 1, 1, 1, 1, 1 } } },
+    { 0x21, { "SoundEffect", { 2 } } },
+    { 0x22, { "SwitchTrack", { 1, 1, 1 } } },
+    { 0x27, { "ReloadMapState", {} } },
+    { 0x28, { "WalkTo", { 1, 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x29, { "WaitWalk", { 1, 1 } } },
+    { 0x2A, { "BlockStart", {} } },
+    { 0x2B, { "BlockEnd", {} } },
+    { 0x2C, { "FaceUnit2", { 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x2D, { "RotateUnit", { 1, 1, 1, 1, 1, 1 } } },
+    { 0x2E, { "Background", { 1, 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x31, { "ColorBGBeta", { 1, 1, 1, 1, 1 } } },
+    { 0x32, { "ColorUnit", { 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x33, { "ColorField", { 1, 1, 1, 1, 1 } } },
+    { 0x38, { "FocusSpeed", { 2 } } },
+    { 0x3B, { "SpriteMove", { 1, 1, 2, 2, 2, 1, 1, 2 } } },
+    { 0x3C, { "Weather", { 1, 1 } } },
+    { 0x3D, { "RemoveUnit", { 1, 1 } } },
+    { 0x3E, { "ColorScreen", { 1, 1, 1, 1, 1, 1, 1, 2 } } },
+    { 0x41, { "EarthquakeStart", { 1, 1, 1, 1 } } },
+    { 0x42, { "EarthquakeEnd", {} } },
+    { 0x43, { "CallFunction", { 1 } } },
+    { 0x44, { "Draw", { 1, 1 } } },
+    { 0x45, { "AddUnit", { 1, 1, 1 } } },
+    { 0x46, { "Erase", { 1, 1 } } },
+    { 0x47, { "AddGhostUnit", { 1, 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x48, { "WaitAddUnit", {} } },
+    { 0x49, { "AddUnitStart", {} } },
+    { 0x4A, { "AddUnitEnd", {} } },
+    { 0x4B, { "WaitAddUnitEnd", {} } },
+    { 0x4C, { "ChangeMap", { 1, 1 } } },
+    { 0x4D, { "Reveal", { 1 } } },
+    { 0x4E, { "UnitShadow", { 1, 1, 1 } } },
+    { 0x50, { "PortraitCol", { 1 } } },
+    { 0x51, { "ChangeDialog", { 1, 2, 1, 1 } } },
+    { 0x53, { "FaceUnit", { 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x54, { "Use3DObject", { 1, 1 } } },
+    { 0x55, { "UseFieldObject", { 1, 1 } } },
+    { 0x56, { "Wait3DObject", {} } },
+    { 0x57, { "WaitFieldObject", {} } },
+    { 0x58, { "LoadEVTCHR", { 1, 1, 1 } } },
+    { 0x59, { "SaveEVTCHR", { 1 } } },
+    { 0x5A, { "SaveEVTCHRClear", { 1 } } },
+    { 0x5B, { "LoadEVTCHRClear", { 1 } } },
+    { 0x5F, { "WarpUnit", { 1, 1, 1, 1, 1, 1 } } },
+    { 0x60, { "FadeSound", { 1, 1 } } },
+    { 0x63, { "CameraSpeedCurve", { 1 } } },
+    { 0x64, { "WaitRotateUnit", { 1, 1 } } },
+    { 0x65, { "WaitRotateAll", {} } },
+    { 0x68, { "MirrorSprite", { 1, 1, 1 } } },
+    { 0x69, { "FaceTile", { 1, 1, 1, 1, 1, 1, 1, 1 } } },
+    { 0x6A, { "EditBGSound", { 1, 1, 1, 1, 1 } } },
+    { 0x6B, { "BGSound", { 1, 1, 1, 1, 1 } } },
+    { 0x6E, { "SpriteMoveBeta", { 1, 1, 2, 2, 2, 1, 1, 2 } } },
+    { 0x6F, { "WaitSpriteMove", { 1, 1 } } },
+    { 0x70, { "Jump", { 1, 1, 1, 1 } } },
+    { 0x76, { "DarkScreen", { 1, 1, 1, 1, 1, 1 } } },
+    { 0x77, { "RemoveDarkScreen", {} } },
+    { 0x78, { "DisplayConditions", { 1, 1 } } },
+    { 0x79, { "WalkToAnim", { 1, 1, 2 } } },
+    { 0x7A, { "DismissUnit", { 1, 1 } } },
+    { 0x7D, { "ShowGraphic", { 1 } } },
+    { 0x7E, { "WaitValue", { 2, 2 } } },
+    { 0x7F, { "EVTCHRPalette", { 1, 1, 1, 1 } } },
+    { 0x80, { "March", { 1, 1, 1 } } },
+    { 0x83, { "ChangeStats", { 1, 1, 1, 2 } } },
+    { 0x84, { "PlayTune", { 1 } } },
+    { 0x85, { "UnlockDate", { 1 } } },
+    { 0x86, { "TempWeapon", { 1, 1, 1 } } },
+    { 0x87, { "Arrow", { 1, 1, 1, 1 } } },
+    { 0x88, { "MapUnfreeze", {} } },
+    { 0x89, { "MapFreeze", {} } },
+    { 0x8A, { "EffectStart", {} } },
+    { 0x8B, { "EffectEnd", {} } },
+    { 0x8C, { "UnitAnimRotate", { 1, 1, 1, 1, 1, 1 } } },
+    { 0x8E, { "WaitGraphicPrint", {} } },
+    { 0x91, { "ShowMapTitle", { 1, 1, 1 } } },
+    { 0x92, { "InflictStatus", { 1, 1, 1, 1, 1 } } },
+    { 0x94, { "TeleportOut", { 1, 1 } } },
+    { 0x96, { "AppendMapState ", {} } },
+    { 0x97, { "ResetPalette", { 1, 1 } } },
+    { 0x98, { "TeleportIn", { 1, 1 } } },
+    { 0x99, { "BlueRemoveUnit", { 1, 1 } } },
+    { 0xA0, { "LTE", {} } },
+    { 0xA1, { "GTE", {} } },
+    { 0xA2, { "EQ", {} } },
+    { 0xA3, { "NEQ", {} } },
+    { 0xA4, { "LT", {} } },
+    { 0xA5, { "GT", {} } },
+    { 0xB0, { "ADD", { 2, 2 } } },
+    { 0xB1, { "ADDVar", { 2, 2 } } },
+    { 0xB2, { "SUB", { 2, 2 } } },
+    { 0xB3, { "SUBVar", { 2, 2 } } },
+    { 0xB4, { "MULT", { 2, 2 } } },
+    { 0xB5, { "MULTVar", { 2, 2 } } },
+    { 0xB6, { "DIV", { 2, 2 } } },
+    { 0xB7, { "DIVVar", { 2, 2 } } },
+    { 0xB8, { "MOD", { 2, 2 } } },
+    { 0xB9, { "MODVar", { 2, 2 } } },
+    { 0xBA, { "AND", { 2, 2 } } },
+    { 0xBB, { "ANDVar", { 2, 2 } } },
+    { 0xBC, { "OR", { 2, 2 } } },
+    { 0xBD, { "ORVar", { 2, 2 } } },
+    { 0xBE, { "ZERO", { 2 } } },
+    { 0xD0, { "JumpForwardIfZero", { 1 } } },
+    { 0xD1, { "JumpForward ", { 1 } } },
+    { 0xD2, { "ForwardTarget ", { 1 } } },
+    { 0xD3, { "JumpBack ", { 1 } } },
+    { 0xD5, { "BackTarget ", { 1 } } },
+    { 0xDB, { "EventEnd", {} } },
+    { 0xE3, { "EventEnd2", {} } },
+    { 0xE5, { "WaitForInstruction", { 1, 1 } } },
+    { 0xF1, { "Wait", { 2 } } },
+    { 0xF2, { "Pad", {} } },
 };
 
+// FIXME: Use these scenario names instead of just the map name
 std::map<int, std::string> scenario_list = {
     { 0x001, "Dolbodar Swamp East 1" },
     { 0x002, "Dolbodar Swamp East 2" },
@@ -814,6 +817,52 @@ bool Record::operator==(const Record& other) const
 }
 
 auto Event::id() -> int { return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24); }
+auto Event::should_skip() -> bool { return id() == 0xf2f2f2f2; }
+auto Event::text_offset() -> uint32_t
+{
+    assert(!should_skip());
+    return id();
+}
+
+auto Event::next_command() -> Instruction
+{
+    auto bytecode = data[offset];
+    offset++;
+
+    if (command_list.find(bytecode) == command_list.end()) {
+        Instruction instruction = {};
+        instruction.command = 0x01;
+        instruction.params.push_back(bytecode);
+        return instruction;
+    }
+
+    auto command = command_list[bytecode];
+
+    Instruction instruction = {};
+    instruction.command = bytecode;
+    for (auto const& param : command.params) {
+        std::variant<uint8_t, uint16_t> result;
+        if (param == 1) {
+            result = static_cast<uint8_t>(data[offset]);
+        } else if (param == 2) {
+            result = static_cast<uint16_t>(data[offset] | (data[offset + 1] << 8));
+        }
+        offset += param;
+        instruction.params.push_back(result);
+    }
+
+    return instruction;
+}
+
+auto Event::parse_event() -> std::vector<Instruction>
+{
+    std::vector<Instruction> commands;
+    while (offset < text_offset()) {
+        auto command = next_command();
+        commands.push_back(command);
+    }
+    return commands;
+}
 
 auto Scenario::repr() -> std::string
 {
@@ -831,4 +880,5 @@ auto Scenario::entd_id() -> int { return data[7] | (data[8] << 8); }
 auto Scenario::first_grid() -> int { return data[9] | (data[10] << 8); }
 auto Scenario::second_grid() -> int { return data[11] | (data[12] << 8); }
 auto Scenario::require_ramza_unknown() -> int { return data[17]; }
+auto Scenario::next_event_id() -> int { return data[18] | (data[19] << 8); }
 auto Scenario::event_id() -> int { return data[22] | (data[23] << 8); }
