@@ -79,10 +79,10 @@ auto GUI::draw_scenarios() -> void
             ImGui::Text("%d", scenario.event_id());
 
             ImGui::TableSetColumnIndex(3);
-            ImGui::Text("%s", map_time_str(scenario.time()).c_str());
+            ImGui::Text("%s", to_string(scenario.time()).c_str());
 
             ImGui::TableSetColumnIndex(4);
-            ImGui::Text("%s", map_weather_str(scenario.weather()).c_str());
+            ImGui::Text("%s", to_string(scenario.weather()).c_str());
         }
 
         // End the table
@@ -206,7 +206,7 @@ auto GUI::draw_records() -> void
 
             // Column 2: Type
             ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%s", resource_type_str(record.resource_type()).c_str());
+            ImGui::Text("%s", to_string(record.resource_type()).c_str());
 
             // Column 3: Arrangement
             ImGui::TableSetColumnIndex(3);
@@ -214,11 +214,11 @@ auto GUI::draw_records() -> void
 
             // Column 4: Time
             ImGui::TableSetColumnIndex(4);
-            ImGui::Text("%s", map_time_str(record.time()).c_str());
+            ImGui::Text("%s", to_string(record.time()).c_str());
 
             // Column 5: Weather
             ImGui::TableSetColumnIndex(5);
-            ImGui::Text("%s", map_weather_str(record.weather()).c_str());
+            ImGui::Text("%s", to_string(record.weather()).c_str());
         }
 
         // End the table

@@ -36,10 +36,14 @@ enum class ResourceType : int {
     End = 0x3101,
 };
 
+std::string to_string(ResourceType value);
+
 enum class MapTime {
     Day = 0x0,
     Night = 0x1,
 };
+
+std::string to_string(MapTime value);
 
 enum class MapWeather {
     None = 0x0,
@@ -48,6 +52,8 @@ enum class MapWeather {
     Strong = 0x3,
     VeryStrong = 0x4,
 };
+
+std::string to_string(MapWeather value);
 
 // Record represents a GNS record.
 struct Record {
@@ -64,10 +70,6 @@ struct Record {
     bool operator<(const Record& other) const;
     bool operator==(const Record& other) const;
 };
-
-std::string map_weather_str(MapWeather value);
-std::string map_time_str(MapTime value);
-std::string resource_type_str(ResourceType value);
 
 struct FFTMesh {
     std::vector<Vertex> vertices;
@@ -94,4 +96,3 @@ struct FFTMapDesc {
 };
 
 extern std::array<FFTMapDesc, 128> map_list;
-extern std::map<int, std::string> scenario_list;

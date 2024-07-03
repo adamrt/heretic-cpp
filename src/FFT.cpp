@@ -15,6 +15,117 @@
 #include "FFT.h"
 #include "Texture.h"
 
+auto FFTMapDesc::repr() const -> std::string
+{
+    std::ostringstream oss;
+    oss << std::setw(3) << std::setfill('0') << std::to_string(id) << " " << name;
+    return oss.str();
+}
+
+auto Record::repr() -> std::string
+{
+    std::ostringstream oss;
+    oss << to_string(time()) << " " << to_string(weather()) << " " << arrangement();
+    return oss.str();
+}
+
+auto Record::sector() -> int
+{
+    return data[8] | (data[9] << 8);
+}
+
+auto Record::length() -> uint64_t
+{
+    return static_cast<uint32_t>(data[12]) | (static_cast<uint32_t>(data[13]) << 8) | (static_cast<uint32_t>(data[14]) << 16) | (static_cast<uint32_t>(data[15]) << 24);
+}
+
+auto Record::resource_type() -> ResourceType
+{
+    return static_cast<ResourceType>(data[4] | (data[5] << 8));
+}
+
+auto Record::arrangement() -> int
+{
+    return data[1];
+}
+
+auto Record::time() const -> MapTime
+{
+    return static_cast<MapTime>((data[3] >> 7) & 0x1);
+}
+
+auto Record::weather() const -> MapWeather
+{
+    return static_cast<MapWeather>((data[3] >> 4) & 0x7);
+}
+
+bool Record::operator<(const Record& other) const
+{
+    auto t = time();
+    auto w = weather();
+    auto ot = other.time();
+    auto ow = other.weather();
+    return std::tie(t, w) < std::tie(ot, ow);
+}
+
+// Equality operator for unique
+bool Record::operator==(const Record& other) const
+{
+    auto t = time();
+    auto w = weather();
+    auto ot = other.time();
+    auto ow = other.weather();
+    return std::tie(t, w) == std::tie(ot, ow);
+}
+
+std::string to_string(ResourceType value)
+{
+    switch (value) {
+    case ResourceType::Texture:
+        return "Texture";
+    case ResourceType::MeshPrimary:
+        return "MeshPrimary";
+    case ResourceType::MeshOverride:
+        return "MeshOverride";
+    case ResourceType::MeshAlt:
+        return "MeshAlt";
+    case ResourceType::End:
+        return "End";
+    default:
+        return "Unknown";
+    }
+}
+
+std::string to_string(MapTime value)
+{
+    switch (value) {
+    case MapTime::Day:
+        return "Day";
+    case MapTime::Night:
+        return "Night";
+    default:
+        return "Unknown";
+    }
+}
+
+std::string to_string(MapWeather value)
+{
+    switch (value) {
+    case MapWeather::None:
+        return "None";
+    case MapWeather::NoneAlt:
+        return "NoneAlt";
+    case MapWeather::Normal:
+        return "Normal";
+    case MapWeather::Strong:
+        return "Strong";
+    case MapWeather::VeryStrong:
+        return "VeryStrong";
+    default:
+        return "Unknown";
+    }
+}
+
 std::array<FFTMapDesc, 128> map_list = {
     FFTMapDesc { 0, 10026, "???", false },
     FFTMapDesc { 1, 11304, "At Main Gate of Igros Castle", true },
@@ -146,540 +257,3 @@ std::array<FFTMapDesc, 128> map_list = {
     FFTMapDesc { 126, 0, "???", false },
     FFTMapDesc { 127, 0, "???", false },
 };
-
-// FIXME: Use these scenario names instead of just the map name
-std::map<int, std::string> scenario_list = {
-    { 0x001, "Dolbodar Swamp East 1" },
-    { 0x002, "Dolbodar Swamp East 2" },
-    { 0x003, "Dolbodar Swamp East 3" },
-    { 0x004, "Dolbodar Swamp East 4" },
-    { 0x005, "Dolbodar Swamp West 1" },
-    { 0x006, "Dolbodar Swamp West 2" },
-    { 0x007, "Dolbodar Swamp West 3" },
-    { 0x008, "Dolbodar Swamp West 4" },
-    { 0x009, "Tutorial (Charge Time Battle)" },
-    { 0x00A, "Tutorial (How to Cast Spells)" },
-    { 0x00B, "Tutorial (Move and Act)" },
-    { 0x00C, "Tutorial (Online Help)" },
-    { 0x00D, "Fovoham Plains South 1" },
-    { 0x00E, "Fovoham Plains South 2" },
-    { 0x00F, "Fovoham Plains South 3" },
-    { 0x010, "Fovoham Plains South 4" },
-    { 0x011, "Fovoham Plains West 1" },
-    { 0x012, "Fovoham Plains West 2" },
-    { 0x013, "Fovoham Plains West 3" },
-    { 0x014, "Fovoham Plains West 4" },
-    { 0x015, "Fovoham Plains East 1" },
-    { 0x016, "Fovoham Plains East 2" },
-    { 0x017, "Fovoham Plains East 3" },
-    { 0x018, "Fovoham Plains East 4" },
-    { 0x019, "Sweegy Woods East 1" },
-    { 0x01A, "Sweegy Woods East 2" },
-    { 0x01B, "Sweegy Woods East 3" },
-    { 0x01C, "Sweegy Woods East 4" },
-    { 0x01D, "Sweegy Woods West 1" },
-    { 0x01E, "Sweegy Woods West 2" },
-    { 0x01F, "Sweegy Woods West 3" },
-    { 0x020, "Sweegy Woods West 4" },
-    { 0x021, "Tutorial (Battle)" },
-    { 0x025, "Bevernia Volcano North 1" },
-    { 0x026, "Bevernia Volcano North 2" },
-    { 0x027, "Bevernia Volcano North 3" },
-    { 0x028, "Bevernia Volcano North 4" },
-    { 0x029, "Bevernia Volcano South 1" },
-    { 0x02A, "Bevernia Volcano South 2" },
-    { 0x02B, "Bevernia Volcano South 3" },
-    { 0x02C, "Bevernia Volcano South 4" },
-    { 0x02D, "Tutorial (Battlefield Control)" },
-    { 0x02E, "Tutorial (Abnormal Status)" },
-    { 0x02F, "Tutorial (Options)" },
-    { 0x031, "Zeklaus Desert North 1" },
-    { 0x032, "Zeklaus Desert North 2" },
-    { 0x033, "Zeklaus Desert North 3" },
-    { 0x034, "Zeklaus Desert North 4" },
-    { 0x035, "Zeklaus Desert South 1" },
-    { 0x036, "Zeklaus Desert South 2" },
-    { 0x037, "Zeklaus Desert South 3" },
-    { 0x038, "Zeklaus Desert South 4" },
-    { 0x039, "Zeklaus Desert East 1" },
-    { 0x03A, "Zeklaus Desert East 2" },
-    { 0x03B, "Zeklaus Desert East 3" },
-    { 0x03C, "Zeklaus Desert East 4" },
-    { 0x03D, "Lenalia Plateau South 1" },
-    { 0x03E, "Lenalia Plateau South 2" },
-    { 0x03F, "Lenalia Plateau South 3" },
-    { 0x040, "Lenalia Plateau South 4" },
-    { 0x041, "Lenalia Plateau North 1" },
-    { 0x042, "Lenalia Plateau North 2" },
-    { 0x043, "Lenalia Plateau North 3" },
-    { 0x044, "Lenalia Plateau North 4" },
-    //
-    { 0x049, "Zigolis Swamp East 1" },
-    { 0x04A, "Zigolis Swamp East 2" },
-    { 0x04B, "Zigolis Swamp East 3" },
-    { 0x04C, "Zigolis Swamp East 4" },
-    { 0x04D, "Zigolis Swamp West 1" },
-    { 0x04E, "Zigolis Swamp West 2" },
-    { 0x04F, "Zigolis Swamp West 3" },
-    { 0x050, "Zigolis Swamp West 4" },
-    //
-    { 0x052, "Zirekile Falls East 5" },
-    { 0x053, "Barius Hill South 5" },
-    { 0x054, "Lenalia Plateau South 5" },
-    { 0x055, "Yuguo Woods West 1" },
-    { 0x056, "Yuguo Woods West 2" },
-    { 0x057, "Yuguo Woods West 3" },
-    { 0x058, "Yuguo Woods West 4" },
-    { 0x059, "Yuguo Woods East 1" },
-    { 0x05A, "Yuguo Woods East 2" },
-    { 0x05B, "Yuguo Woods East 3" },
-    { 0x05C, "Yuguo Woods East 4" },
-    { 0x05D, "Dolbodar Swamp West 5" },
-    { 0x05E, "Grog Hill South 5" },
-    { 0x05F, "Bevernia Volcano North 5" },
-    { 0x060, "Barius Valley South 5" },
-    { 0x061, "Araguay Woods West 1" },
-    { 0x062, "Araguay Woods West 2" },
-    { 0x063, "Araguay Woods West 3" },
-    { 0x064, "Araguay Woods West 4" },
-    { 0x065, "Araguay Woods East 1" },
-    { 0x066, "Araguay Woods East 2" },
-    { 0x067, "Araguay Woods East 3" },
-    { 0x068, "Araguay Woods East 4" },
-    { 0x069, "Finath River East 5" },
-    { 0x06A, "Germina Peak North 5" },
-    { 0x06B, "Araguay Woods South 5" },
-    { 0x06C, "Yuguo Woods East 5" },
-    { 0x06D, "Grog Hill West 1" },
-    { 0x06E, "Grog Hill West 2" },
-    { 0x06F, "Grog Hill West 3" },
-    { 0x070, "Grog Hill West 4" },
-    { 0x071, "Grog Hill South 1" },
-    { 0x072, "Grog Hill South 2" },
-    { 0x073, "Grog Hill South 3" },
-    { 0x074, "Grog Hill South 4" },
-    { 0x075, "Grog Hill East 1" },
-    { 0x076, "Grog Hill East 2" },
-    { 0x077, "Grog Hill East 3" },
-    { 0x078, "Grog Hill East 4" },
-    { 0x079, "Bed Desert South 1" },
-    { 0x07A, "Bed Desert South 2" },
-    { 0x07B, "Bed Desert South 3" },
-    { 0x07C, "Bed Desert South 4" },
-    { 0x07D, "Bed Desert North 1" },
-    { 0x07E, "Bed Desert North 2" },
-    { 0x07F, "Bed Desert North 3" },
-    { 0x080, "Bed Desert North 4" },
-    { 0x081, "Bed Desert North 5" },
-    { 0x082, "Fovoham Plains West 5" },
-    { 0x083, "Doguola Pass West 5" },
-    { 0x084, "Sweegy Woods East 5" },
-    { 0x085, "Zirekile Falls West 1" },
-    { 0x086, "Zirekile Falls West 2" },
-    { 0x087, "Zirekile Falls West 3" },
-    { 0x088, "Zirekile Falls West 4" },
-    { 0x089, "Zirekile Falls East 1" },
-    { 0x08A, "Zirekile Falls East 2" },
-    { 0x08B, "Zirekile Falls East 3" },
-    { 0x08C, "Zirekile Falls East 4" },
-    { 0x08D, "Zirekile Falls South 1" },
-    { 0x08E, "Zirekile Falls South 2" },
-    { 0x08F, "Zirekile Falls South 3" },
-    { 0x090, "Zirekile Falls South 4" },
-    { 0x091, "Barius Hill North 1" },
-    { 0x092, "Barius Hill North 2" },
-    { 0x093, "Barius Hill North 3" },
-    { 0x094, "Barius Hill North 4" },
-    { 0x095, "Barius Hill South 1" },
-    { 0x096, "Barius Hill South 2" },
-    { 0x097, "Barius Hill South 3" },
-    { 0x098, "Barius Hill South 4" },
-    { 0x099, "Poeskas Lake North 5" },
-    { 0x09A, "Zigolis Swamp West 5" },
-    { 0x09B, "Mandalia Plains South 5" },
-    { 0x09C, "Zeklaus Desert South 5" },
-    { 0x09D, "Mandalia Plains North 1" },
-    { 0x09E, "Mandalia Plains North 2" },
-    { 0x09F, "Mandalia Plains North 3" },
-    { 0x0A0, "Mandalia Plains North 4" },
-    { 0x0A1, "Mandalia Plains South 1" },
-    { 0x0A2, "Mandalia Plains South 2" },
-    { 0x0A3, "Mandalia Plains South 3" },
-    { 0x0A4, "Mandalia Plains South 4" },
-    { 0x0A5, "Mandalia Plains West 1" },
-    { 0x0A6, "Mandalia Plains West 2" },
-    { 0x0A7, "Mandalia Plains West 3" },
-    { 0x0A8, "Mandalia Plains West 4" },
-    { 0x0A9, "Doguola Pass East 1" },
-    { 0x0AA, "Doguola Pass East 2" },
-    { 0x0AB, "Doguola Pass East 3" },
-    { 0x0AC, "Doguola Pass East 4" },
-    { 0x0AD, "Doguola Pass West 1" },
-    { 0x0AE, "Doguola Pass West 2" },
-    { 0x0AF, "Doguola Pass West 3" },
-    { 0x0B0, "Doguola Pass West 4" },
-    { 0x0B1, "End 1" },
-    { 0x0B2, "End 2" },
-    { 0x0B3, "End 3" },
-    { 0x0B4, "End 4" },
-    { 0x0B5, "Barius Valley West 1" },
-    { 0x0B6, "Barius Valley West 2" },
-    { 0x0B7, "Barius Valley West 3" },
-    { 0x0B8, "Barius Valley West 4" },
-    { 0x0B9, "Barius Valley East 1" },
-    { 0x0BA, "Barius Valley East 2" },
-    { 0x0BB, "Barius Valley East 3" },
-    { 0x0BC, "Barius Valley East 4" },
-    { 0x0BD, "Barius Valley South 1" },
-    { 0x0BE, "Barius Valley South 2" },
-    { 0x0BF, "Barius Valley South 3" },
-    { 0x0C0, "Barius Valley South 4" },
-    { 0x0C1, "Finath River West 1" },
-    { 0x0C2, "Finath River West 2" },
-    { 0x0C3, "Finath River West 3" },
-    { 0x0C4, "Finath River West 4" },
-    { 0x0C5, "Finath River East 1" },
-    { 0x0C6, "Finath River East 2" },
-    { 0x0C7, "Finath River East 3" },
-    { 0x0C8, "Finath River East 4" },
-    { 0x0C9, "Horror" },
-    { 0x0CA, "Horror" },
-    { 0x0CB, "Horror" },
-    { 0x0CC, "Horror" },
-    { 0x0CD, "Poeskas Lake North 1" },
-    { 0x0CE, "Poeskas Lake North 2" },
-    { 0x0CF, "Poeskas Lake North 3" },
-    { 0x0D0, "Poeskas Lake North 4" },
-    { 0x0D1, "Poeskas Lake South 1" },
-    { 0x0D2, "Poeskas Lake South 2" },
-    { 0x0D3, "Poeskas Lake South 3" },
-    { 0x0D4, "Poeskas Lake South 4" },
-    { 0x0D5, "Voyage 1" },
-    { 0x0D6, "Voyage 2" },
-    { 0x0D7, "Voyage 3" },
-    { 0x0D8, "Voyage 4" },
-    { 0x0D9, "Germina Peak North 1" },
-    { 0x0DA, "Germina Peak North 2" },
-    { 0x0DB, "Germina Peak North 3" },
-    { 0x0DC, "Germina Peak North 4" },
-    { 0x0DD, "Germina Peak South 1" },
-    { 0x0DE, "Germina Peak South 2" },
-    { 0x0DF, "Germina Peak South 3" },
-    { 0x0E0, "Germina Peak South 4" },
-    { 0x0E1, "Bridge 1" },
-    { 0x0E2, "Bridge 2" },
-    { 0x0E3, "Bridge 3" },
-    { 0x0E4, "Bridge 4" },
-    { 0x0E5, "Tiger 1" },
-    { 0x0E6, "Tiger 2" },
-    { 0x0E7, "Tiger 3" },
-    { 0x0E8, "Tiger 4" },
-    { 0x0E9, "Mlapan 1" },
-    { 0x0EA, "Mlapan 2" },
-    { 0x0EB, "Mlapan 3" },
-    { 0x0EC, "Mlapan 4" },
-    { 0x0ED, "Valkyries 1" },
-    { 0x0EE, "Valkyries 2" },
-    { 0x0EF, "Valkyries 3" },
-    { 0x0F0, "Valkyries 4" },
-    { 0x0F1, "Delta 1" },
-    { 0x0F2, "Delta 2" },
-    { 0x0F3, "Delta 3" },
-    { 0x0F4, "Delta 4" },
-    { 0x0F5, "Terminate 1" },
-    { 0x0F6, "Terminate 2" },
-    { 0x0F7, "Terminate 3" },
-    { 0x0F8, "Terminate 4" },
-    { 0x0F9, "Nogias 1" },
-    { 0x0FA, "Nogias 2" },
-    { 0x0FB, "Nogias 3" },
-    { 0x0FC, "Nogias 4" },
-    //
-    { 0x100, "Orbonne Prayer and BS" },
-    { 0x101, "Larg's Praise and BS" },
-    { 0x102, "Military Academy BS" },
-    { 0x103, "Family Meeting BS" },
-    { 0x104, "Balbanes Death and BS" },
-    { 0x105, "Releasing Miluda BS" },
-    { 0x106, "Introducing Algus BS" },
-    { 0x107, "Returning to Igros and BS" },
-    { 0x108, "Attack on the Beoulves BS" },
-    { 0x109, "Interrogation BS" },
-    { 0x10A, "Gustav vs Wiegraf " },
-    { 0x10B, "Bedridden Dycedarg and BS" },
-    { 0x10C, "Reed Whistle" },
-    { 0x10D, "Wiegraf berating Golagros" },
-    { 0x10E, "Finding Teta Missing" },
-    { 0x10F, "Partings" },
-    { 0x110, "Ch2 Start Orbonne Monastery" },
-    { 0x111, "Ovelia Joins BS" },
-    { 0x112, " Ramza Mustadio Agrias Ovelia Meeting BS" },
-    { 0x113, "Ruins of Zaland and BS" },
-    { 0x114, "Dycedarg and Gafgarion Reunion and BS" },
-    { 0x115, "Besrodio Kidnapped BS" },
-    { 0x116, "Gate of Lionel Castle and BS" },
-    { 0x117, " Meet Draclau and BS" },
-    { 0x118, "Goug Machine City Town" },
-    { 0x119, "Besrodio Saved BS" },
-    { 0x11A, "Warjilis Port and BS" },
-    { 0x11B, "Draclau hires Gafgarion and BS" },
-    { 0x11C, "Substitute and BS" },
-    { 0x11D, "Gelwan's Death and BS" },
-    { 0x11E, "Ch2 Start Orbonne Monastery BS" },
-    { 0x11F, "Chapter 3 Start" },
-    { 0x120, "Chapter 3 Start BS" },
-    { 0x121, "Goland Coal City Post Battle" },
-    { 0x122, "Steel Ball Found and BS" },
-    { 0x123, "Worker 8 Activated and BS" },
-    { 0x124, "Summoning Machine Found and BS" },
-    { 0x125, "Cloud Summoned and BS" },
-    { 0x126, "Talk with Zalbag in Lesalia and BS" },
-    { 0x127, "Lesalia Gate Talk with Alma BS" },
-    { 0x128, "Orbonne Monastery (Ch3) and BS" },
-    { 0x129, "Meet Velius BS" },
-    { 0x12A, "Malak and the Scriptures" },
-    { 0x12B, "Delitas allegiance to Ovelia and BS" },
-    { 0x12C, "Meet Again with Olan BS" },
-    { 0x12D, "Exploding Frog BS" },
-    { 0x12E, "Barinten threatens Vormav and BS" },
-    { 0x12F, "Escaping Alma and BS" },
-    { 0x130, "Ajora's vessel and BS" },
-    { 0x131, "Reviving Malak BS" },
-    { 0x132, "Searching for Alma and BS" },
-    { 0x133, "Things Obtained and BS" },
-    { 0x134, "Reunion and Beyond and BS" },
-    { 0x135, "Those Who Squirm In Darkness" },
-    { 0x136, "Those Who Squirm In Darkness BS" },
-    { 0x137, " A Man with the Holy Stone and BS" },
-    { 0x138, "Delita's Thoughts" },
-    { 0x139, "Delita's Thoughts BS" },
-    { 0x13A, "Unstoppable Cog BS" },
-    { 0x13B, "Seized TG Cid and BS" },
-    { 0x13C, "Assassination of Prince Larg and BS" },
-    { 0x13D, "Rescue of Cid and BS" },
-    { 0x13E, "Entrance to the other world" },
-    { 0x13F, "Prince Goltanas Final Moments BS" },
-    { 0x140, "Ambition of Dycedarg and BS" },
-    { 0x141, "Men of Odd Appearance BS" },
-    { 0x142, "The Mystery of Lucavi BS" },
-    { 0x143, "Delitas Betrayal and BS" },
-    { 0x144, "Mosfungus and BS" },
-    { 0x145, "At the Gate of the Beoulve Castle " },
-    { 0x146, "Funerals Final Moments and BS" },
-    { 0x147, "Requiem and BS" },
-    { 0x148, "Zarghidas Aeris and BS" },
-    { 0x149, "Bar Deep Dungeon" },
-    { 0x14A, "Bar Goland Coal City" },
-    //
-    { 0x180, "Sweegy Woods" },
-    { 0x181, "Dorter Trade City1" },
-    { 0x182, "Sand Rat Cellar" },
-    { 0x183, "Orbonne Battle" },
-    { 0x184, "Gariland Fight" },
-    { 0x185, "Mandalia Plains" },
-    { 0x186, "Family Meeting" },
-    { 0x187, "Interrogation" },
-    { 0x188, "Military Academy" },
-    { 0x189, "Introducing Algus" },
-    { 0x18A, "Gustav vs Wiegraf" },
-    { 0x18B, "Miluda1" },
-    { 0x18C, "Releasing Miluda" },
-    { 0x18D, "Attack on the Beoulves" },
-    { 0x18E, "Expelling Algus and BS" },
-    { 0x18F, "Miluda2" },
-    { 0x190, "Wiegraf1" },
-    { 0x191, "Fort Zeakden" },
-    { 0x192, "DD END versus Elidibs" },
-    { 0x193, "Dorter2" },
-    { 0x194, "Araguay Woods" },
-    { 0x195, "Zirekile Falls" },
-    { 0x196, "Ovelia Joins" },
-    { 0x197, "Zaland Fort City" },
-    { 0x198, "Ramza Mustadio Agrias Ovelia Meeting" },
-    { 0x199, "Bariaus Hill" },
-    { 0x19A, "Zigolis Swamp" },
-    { 0x19B, "Goug Machine City" },
-    { 0x19C, "Besrodio Saved" },
-    { 0x19D, "Bariaus Valley" },
-    { 0x19E, "Golgorand Execution Site" },
-    { 0x19F, "Lionel Castle Gate " },
-    { 0x1A0, "Inside of Lionel Castle" },
-    { 0x1A1, "Goland Coal City" },
-    { 0x1A2, "Goland Coal City Post Battle" },
-    { 0x1A3, "Zarghidas" },
-    { 0x1A4, "Outside Lesalia Gate Zalmo 1" },
-    { 0x1A5, "Outside Lesalia Gate Talk with Alma" },
-    { 0x1A6, "Underground Book Storage Second Floor" },
-    { 0x1A7, "Underground Book Storage Third Floor" },
-    { 0x1A8, "Underground Book Storage First Floor" },
-    { 0x1A9, "Meet Velius" },
-    { 0x1AA, "Grog Hill " },
-    { 0x1AB, "Meet Again with Olan" },
-    { 0x1AC, "Rescue Rafa" },
-    { 0x1AD, "Exploding Frog" },
-    { 0x1AE, "Yuguo Woods" },
-    { 0x1AF, "Riovanes Castle Entrance" },
-    { 0x1B0, "Inside of Riovanes Castle" },
-    { 0x1B1, "Rooftop of Riovanes Castle" },
-    { 0x1B2, "Reviving Malak" },
-    { 0x1B3, "Underground Book Storage Fourth Floor" },
-    { 0x1B4, "Underground Book Storage Fifth Floor" },
-    { 0x1B5, "Entrance to the other world" },
-    { 0x1B6, "Murond Death City" },
-    { 0x1B7, "Lost Sacred Precincts" },
-    { 0x1B8, "Graveyard of Airships" },
-    { 0x1B9, "Graveyard of Airships" },
-    { 0x1BA, "Doguola Pass" },
-    { 0x1BB, "Bervenia Free City" },
-    { 0x1BC, "Finath River" },
-    { 0x1BD, "Zalmo II" },
-    { 0x1BE, "Unstoppable Cog" },
-    { 0x1BF, "Balk I" },
-    { 0x1C0, "South Wall of Bethla Garrison" },
-    { 0x1C1, "North Wall of Bethla Garrison" },
-    { 0x1C2, "Bethla Sluice" },
-    { 0x1C3, "Prince Goltana's Final Moments" },
-    { 0x1C4, "Germinas Peak" },
-    { 0x1C5, "Poeskas Lake" },
-    { 0x1C6, "Outside of Limberry Castle" },
-    { 0x1C7, "Men of Odd Appearance" },
-    { 0x1C8, "Elmdor II" },
-    { 0x1C9, "Zalera" },
-    { 0x1CA, "The Mystery of Lucavi" },
-    { 0x1CB, "Adramelk" },
-    { 0x1CC, "St Murond Temple" },
-    { 0x1CD, "Hall of St Murond Temple" },
-    { 0x1CE, "Chapel of St Murond Temple" },
-    { 0x1CF, "Colliery Underground Third Floor" },
-    { 0x1D0, "Colliery Underground Second Floor" },
-    { 0x1D1, "Colliery Underground First Floor" },
-    { 0x1D2, "Underground Passage in Goland" },
-    { 0x1D3, "Underground Passage in Goland Post Battle" },
-    { 0x1D4, "Nelveska Temple" },
-    { 0x1D5, "Reis Curse" },
-    //
-    { 0x1DB, "Test" },
-    { 0x1DC, "Test" },
-    { 0x1DD, "Test" },
-    { 0x1DE, "Test" },
-    { 0x1DF, "Test" },
-    { 0x1E0, "Test" },
-    { 0x1E1, "Test" },
-    { 0x1E2, "Test" },
-    { 0x1E3, "Test" },
-    { 0x1E4, "Test" },
-    { 0x1E5, "Test" },
-    { 0x1E6, "Test" },
-    { 0x1E7, "Test" },
-    { 0x1E8, "Test" },
-    { 0x1E9, "Test" },
-    { 0x1EA, "Test" },
-    { 0x1EB, "Test" },
-    { 0x1EC, "Test" },
-    { 0x1ED, "Test" },
-    { 0x1EE, "Test" },
-    { 0x1EF, "Test" },
-    { 0x1F0, "Test" },
-    { 0x1F1, "Test" },
-    { 0x1F2, "Test" },
-    { 0x1F3, "Test" },
-    { 0x1F4, "Test" },
-    { 0x1F5, "Test" },
-    { 0x1F6, "Test" },
-    { 0x1F7, "Test" },
-    { 0x1F8, "Test" },
-    { 0x1F9, "Test" },
-    { 0x1FA, "Test" },
-    { 0x1FB, "Test" },
-    { 0x1FC, "Test" },
-    { 0x1FD, "Test" },
-    { 0x1FE, "Test" },
-    { 0x1FF, "Test" },
-};
-
-std::string resource_type_str(ResourceType value)
-{
-    switch (value) {
-    case ResourceType::Texture:
-        return "Texture";
-    case ResourceType::MeshPrimary:
-        return "MeshPrimary";
-    case ResourceType::MeshOverride:
-        return "MeshOverride";
-    case ResourceType::MeshAlt:
-        return "MeshAlt";
-    case ResourceType::End:
-        return "End";
-    default:
-        return "Unknown";
-    }
-}
-
-std::string map_time_str(MapTime value)
-{
-    switch (value) {
-    case MapTime::Day:
-        return "Day";
-    case MapTime::Night:
-        return "Night";
-    default:
-        return "Unknown";
-    }
-}
-
-std::string map_weather_str(MapWeather value)
-{
-    switch (value) {
-    case MapWeather::None:
-        return "None";
-    case MapWeather::NoneAlt:
-        return "NoneAlt";
-    case MapWeather::Normal:
-        return "Normal";
-    case MapWeather::Strong:
-        return "Strong";
-    case MapWeather::VeryStrong:
-        return "VeryStrong";
-    default:
-        return "Unknown";
-    }
-}
-
-auto FFTMapDesc::repr() const -> std::string
-{
-    std::ostringstream oss;
-    oss << std::setw(3) << std::setfill('0') << std::to_string(id) << " " << name;
-    return oss.str();
-}
-
-auto Record::sector() -> int { return data[8] | (data[9] << 8); }
-auto Record::length() -> uint64_t { return static_cast<uint32_t>(data[12]) | (static_cast<uint32_t>(data[13]) << 8) | (static_cast<uint32_t>(data[14]) << 16) | (static_cast<uint32_t>(data[15]) << 24); }
-auto Record::resource_type() -> ResourceType { return static_cast<ResourceType>(data[4] | (data[5] << 8)); }
-auto Record::arrangement() -> int { return data[1]; }
-auto Record::time() const -> MapTime { return static_cast<MapTime>((data[3] >> 7) & 0x1); }
-auto Record::weather() const -> MapWeather { return static_cast<MapWeather>((data[3] >> 4) & 0x7); }
-auto Record::repr() -> std::string
-{
-    std::ostringstream oss;
-    oss << map_time_str(time()) << " " << map_weather_str(weather()) << " " << arrangement();
-    return oss.str();
-}
-
-bool Record::operator<(const Record& other) const
-{
-    auto t = time();
-    auto w = weather();
-    auto ot = other.time();
-    auto ow = other.weather();
-    return std::tie(t, w) < std::tie(ot, ow);
-}
-
-// Equality operator for unique
-bool Record::operator==(const Record& other) const
-{
-    auto t = time();
-    auto w = weather();
-    auto ot = other.time();
-    auto ow = other.weather();
-    return std::tie(t, w) == std::tie(ot, ow);
-}
