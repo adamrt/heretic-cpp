@@ -19,14 +19,13 @@
 
 #include "glm/glm.hpp"
 
-#define GNS_MAX_SIZE 2388
-#define RECORD_MAX_NUM 100
-
 // Max size of any resource file.
-#define FILE_MAX_SIZE 131072
+constexpr size_t FILE_MAX_SIZE = 131072;
 constexpr size_t SECTOR_SIZE = 2048;
 constexpr size_t SECTOR_SIZE_RAW = 2352;
 constexpr size_t SECTOR_HEADER_SIZE = 24;
+constexpr size_t GNS_MAX_SIZE = 2388;
+constexpr size_t RECORD_MAX_NUM = 100;
 
 enum class ResourceType : int {
     Texture = 0x1701,
@@ -36,14 +35,10 @@ enum class ResourceType : int {
     End = 0x3101,
 };
 
-std::string to_string(ResourceType value);
-
 enum class MapTime {
     Day = 0x0,
     Night = 0x1,
 };
-
-std::string to_string(MapTime value);
 
 enum class MapWeather {
     None = 0x0,
@@ -53,7 +48,9 @@ enum class MapWeather {
     VeryStrong = 0x4,
 };
 
-std::string to_string(MapWeather value);
+auto to_string(ResourceType value) -> std::string;
+auto to_string(MapTime value) -> std::string;
+auto to_string(MapWeather value) -> std::string;
 
 // Record represents a GNS record.
 struct Record {
@@ -67,8 +64,8 @@ struct Record {
     auto time() const -> MapTime;
     auto weather() const -> MapWeather;
 
-    bool operator<(const Record& other) const;
-    bool operator==(const Record& other) const;
+    auto operator<(const Record& other) const -> bool;
+    auto operator==(const Record& other) const -> bool;
 };
 
 struct FFTMesh {
@@ -79,8 +76,7 @@ struct FFTMesh {
     std::pair<glm::vec4, glm::vec4> background = {};
 };
 
-class FFTMap {
-public:
+struct FFTMap {
     std::vector<Record> gns_records = {};
     std::shared_ptr<Texture> texture = nullptr;
     std::shared_ptr<FFTMesh> mesh = nullptr;
