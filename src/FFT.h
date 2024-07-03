@@ -48,9 +48,9 @@ enum class MapWeather {
     VeryStrong = 0x4,
 };
 
-auto to_string(ResourceType value) -> std::string;
-auto to_string(MapTime value) -> std::string;
-auto to_string(MapWeather value) -> std::string;
+auto to_string(ResourceType value) -> std::string_view;
+auto to_string(MapTime value) -> std::string_view;
+auto to_string(MapWeather value) -> std::string_view;
 
 // Record represents a GNS record.
 struct Record {

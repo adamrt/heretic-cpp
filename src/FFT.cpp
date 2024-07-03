@@ -78,7 +78,7 @@ auto Record::operator==(const Record& other) const -> bool
     return std::tie(t, w) == std::tie(ot, ow);
 }
 
-auto to_string(ResourceType value) -> std::string
+auto to_string(ResourceType value) -> std::string_view
 {
     switch (value) {
     case ResourceType::Texture:
@@ -96,7 +96,7 @@ auto to_string(ResourceType value) -> std::string
     }
 }
 
-auto to_string(MapTime value) -> std::string
+auto to_string(MapTime value) -> std::string_view
 {
     switch (value) {
     case MapTime::Day:
@@ -108,7 +108,7 @@ auto to_string(MapTime value) -> std::string
     }
 }
 
-auto to_string(MapWeather value) -> std::string
+auto to_string(MapWeather value) -> std::string_view
 {
     switch (value) {
     case MapWeather::None:
