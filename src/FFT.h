@@ -13,6 +13,7 @@
 #include <variant>
 #include <vector>
 
+#include "Event.h"
 #include "Model.h"
 #include "Texture.h"
 
@@ -62,27 +63,6 @@ struct Record {
 
     bool operator<(const Record& other) const;
     bool operator==(const Record& other) const;
-};
-
-struct Command {
-    std::string name;
-    std::vector<int> params;
-};
-
-struct Instruction {
-    uint8_t command;
-    std::vector<std::variant<uint8_t, uint16_t>> params;
-};
-
-struct Event {
-    std::vector<uint8_t> data;
-    uint32_t offset = 4; // Skip the first 4 bytes as its the id.
-
-    auto id() -> int;
-    auto should_skip() -> bool;
-    auto text_offset() -> uint32_t;
-    auto next_command() -> Instruction;
-    auto parse_event() -> std::vector<Instruction>;
 };
 
 struct Scenario {
@@ -139,4 +119,3 @@ struct FFTMapDesc {
 
 extern std::array<FFTMapDesc, 128> map_list;
 extern std::map<int, std::string> scenario_list;
-extern std::map<int, Command> command_list;

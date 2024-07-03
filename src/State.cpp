@@ -60,7 +60,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
 auto State::set_map_from_scenario(Scenario scenario) -> bool
 {
     auto event = events[scenario.event_id()];
-    event_instructions = event.parse_event();
+    event_instructions = event.instructions();
 
     return set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }

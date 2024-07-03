@@ -1,4 +1,5 @@
 #include "BinReader.h"
+#include "Event.h"
 #include "ResourceManager.h"
 
 BinReader::BinReader(std::string filename)
