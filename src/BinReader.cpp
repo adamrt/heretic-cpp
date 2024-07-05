@@ -195,7 +195,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
     auto gns_records = gns_file.read_records();
 
     std::shared_ptr<FFTMesh> primary_mesh = nullptr;
-    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> meshes;
+    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> override_meshes;
     std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
 
     for (auto& record : gns_records) {
@@ -216,10 +216,10 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
             break;
         }
         case ResourceType::MeshAlt: {
-            meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::MeshOverride: {
+            override_meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::End: {
@@ -236,11 +236,11 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
         assert(texture != nullptr);
     }
 
-    auto override_mesh = meshes[requested_key];
+    auto override_mesh = override_meshes[requested_key];
     if (primary_mesh == nullptr) {
         primary_mesh = std::make_shared<FFTMesh>();
         if (override_mesh == nullptr) {
-            override_mesh = meshes[default_key];
+            override_mesh = override_meshes[default_key];
             assert(override_mesh != nullptr);
         }
     }
@@ -262,18 +262,6 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
         if (override_mesh->background.first.w == 1.0f) {
             primary_mesh->background = override_mesh->background;
         }
-    }
-
-    // FIXME: There are no vertices in primary or alt. Ex: Map 104.
-    if (primary_mesh->vertices.size() == 0) {
-        std::cout << "No vertices in primary mesh." << std::endl;
-        return nullptr;
-    }
-
-    // FIXME: Another hack. How are we getting a null palette?
-    if (primary_mesh->palette == nullptr) {
-        std::cout << "No palette." << std::endl;
-        return nullptr;
     }
 
     auto map = std::make_shared<FFTMap>();
