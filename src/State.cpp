@@ -60,8 +60,11 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
 
 auto State::set_map_from_scenario(Scenario scenario) -> bool
 {
-    auto event = events[scenario.event_id()];
+    auto reader = ResourceManager::get_instance()->get_bin_reader();
+
+    auto event = reader->read_event(scenario.event_id());
     event_instructions = event.instructions();
+    event_messages = event.messages();
 
     return set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }

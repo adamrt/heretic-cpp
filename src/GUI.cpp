@@ -97,7 +97,7 @@ auto GUI::draw_instructions() -> void
 {
 
     auto state = State::get_instance();
-    ImGui::SetNextWindowSize(ImVec2(1175.0f, 800.0f));
+    ImGui::SetNextWindowSize(ImVec2(800.0f, 600.0f));
     ImGui::Begin("Instructions");
 
     // Begin a table
@@ -146,26 +146,30 @@ auto GUI::draw_instructions() -> void
     ImGui::End();
 }
 
-auto GUI::draw_events() -> void
+auto GUI::draw_messages() -> void
 {
 
     auto state = State::get_instance();
-    ImGui::SetNextWindowSize(ImVec2(1175.0f, 800.0f));
-    ImGui::Begin("Events");
+    ImGui::Begin("Messages");
 
     // Begin a table
-    if (ImGui::BeginTable("Events", 1, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-        // Set up column headers
-        ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 100.0f);
+    if (ImGui::BeginTable("Messages", 2, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+
+        ImGui::TableSetupColumn("Index", ImGuiTableColumnFlags_WidthFixed, 200.0f);
+        ImGui::TableSetupColumn("Message", ImGuiTableColumnFlags_WidthStretch);
 
         ImGui::TableHeadersRow();
 
-        for (auto& event : state->events) {
+        auto rows = 1;
+        for (auto& message : state->event_messages) {
             ImGui::TableNextRow();
 
-            // Column 0: ID
             ImGui::TableSetColumnIndex(0);
-            ImGui::Text("0x%X", event.id());
+            ImGui::Text("%d", rows);
+
+            ImGui::TableSetColumnIndex(1);
+            ImGui::Text("%s", message.c_str());
+            rows++;
         }
 
         ImGui::EndTable();
@@ -173,6 +177,7 @@ auto GUI::draw_events() -> void
 
     ImGui::End();
 }
+
 auto GUI::draw_records() -> void
 {
 
@@ -319,6 +324,7 @@ auto GUI::draw() -> void
         }
     }
 
+    ImGui::Text("Current Event: %d", state->current_scenario.event_id());
     ImGui::NewLine();
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Rendering")) {
@@ -383,10 +389,6 @@ auto GUI::draw() -> void
         show_records_table = !show_records_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Events")) {
-        show_events_table = !show_events_table;
-    }
-    ImGui::SameLine();
     if (ImGui::Button("Scenarios")) {
         show_scenarios_table = !show_scenarios_table;
     }
@@ -394,7 +396,10 @@ auto GUI::draw() -> void
     if (ImGui::Button("Instructions")) {
         show_instructions_table = !show_instructions_table;
     }
-
+    ImGui::SameLine();
+    if (ImGui::Button("Messages")) {
+        show_messages_table = !show_messages_table;
+    }
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
         sapp_toggle_fullscreen();
     }
@@ -413,13 +418,11 @@ auto GUI::draw() -> void
         }
     }
 
-    if (show_events_table) {
-        if (state->events.size() > 0) {
-            draw_events();
-        }
-    }
-
     if (show_instructions_table) {
         draw_instructions();
+    }
+
+    if (show_messages_table) {
+        draw_messages();
     }
 }

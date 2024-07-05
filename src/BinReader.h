@@ -51,7 +51,7 @@ public:
 
     auto read_map(int mapnum, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>;
     auto read_scenarios() -> std::vector<Scenario>;
-    auto read_events() -> std::vector<Event>;
+    auto read_event(int event_id) -> Event;
 
 private:
     FILE* file;

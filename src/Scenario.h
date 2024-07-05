@@ -1,5 +1,11 @@
 #pragma once
 
+#include <cstdint>
+#include <string>
+#include <vector>
+
+#include "FFT.h"
+
 // Scenario represents a battle information.
 class Scenario {
 public:

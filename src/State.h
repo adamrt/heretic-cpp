@@ -38,8 +38,8 @@ public:
     Camera camera = {};
 
     std::vector<Scenario> scenarios = {};
-    std::vector<Event> events = {};
     std::vector<Instruction> event_instructions = {};
+    std::vector<std::string> event_messages = {};
     std::vector<Record> records = {};
 
     int current_scenario_index = 0;

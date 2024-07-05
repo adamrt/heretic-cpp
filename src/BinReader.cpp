@@ -1,3 +1,5 @@
+#include <optional>
+
 #include "BinReader.h"
 #include "Event.h"
 #include "ResourceManager.h"
@@ -163,21 +165,24 @@ auto BinReader::read_scenarios() -> std::vector<Scenario>
 }
 
 // https://ffhacktics.com/wiki/TEST.EVT
-auto BinReader::read_events() -> std::vector<Event>
+auto BinReader::read_event(int event_id) -> Event
 {
-    const int test_evt_sector = 3707;
-    const int test_evt_size = 4096000;
+    const int event_file_sector = 3707; // File length is 4096000 bytes.
+    constexpr int event_size = 8192;
 
-    std::vector<Event> events = {};
-    for (int event_id = 0; event_id < 100; event_id++) {
-        auto test_evt = read_file((event_id * 4) + test_evt_sector, test_evt_size);
-        auto event = test_evt.read_event();
-        if (event.should_skip()) {
+    auto original_event_id = event_id;
+    for (;;) {
+        auto event_file = read_file((event_id * 4) + event_file_sector, event_size);
+        auto event = event_file.read_event();
+        if (event.should_skip) {
+            event_id++;
             continue;
         }
-        events.push_back(event);
+        if (event_id != original_event_id) {
+            std::cout << "Event ID " << original_event_id << " was not found. Using " << event_id << " instead." << std::endl;
+        }
+        return event;
     }
-    return events;
 }
 
 auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>
@@ -261,11 +266,13 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
 
     // FIXME: There are no vertices in primary or alt. Ex: Map 104.
     if (primary_mesh->vertices.size() == 0) {
+        std::cout << "No vertices in primary mesh." << std::endl;
         return nullptr;
     }
 
     // FIXME: Another hack. How are we getting a null palette?
     if (primary_mesh->palette == nullptr) {
+        std::cout << "No palette." << std::endl;
         return nullptr;
     }
 
@@ -298,17 +305,16 @@ auto BinFile::read_records() -> std::vector<Record>
 
 auto BinFile::read_scenarios() -> std::vector<Scenario>
 {
-    constexpr int scenario_num = 500;
+    constexpr int scenario_count = 488;
     constexpr int scenario_size = 24;
 
     std::vector<Scenario> scenarios;
-    for (int i = 0; i < scenario_num; i++) {
+    for (int i = 0; i < scenario_count; i++) {
         auto bytes = read_bytes(scenario_size);
         Scenario scenario { bytes };
 
-        // We don't care about the test map as it doesn't have a texture. Skip
-        // all its scenarios.
-        if (scenario.map_id() == 0) {
+        // Other scenarios with an event_id of 0 seem invalid.
+        if (scenario.id() != 1 && scenario.event_id() == 0) {
             continue;
         }
 

@@ -76,7 +76,11 @@ auto Scenario::next_step() const -> int
     return data[20];
 }
 
+// 0x00: No event unless scenario 0x01.
 auto Scenario::event_id() const -> int
 {
-    return data[22] | (data[23] << 8);
+    // The docs says this is 2 bytes, but seems to work properly with 1.
+    // https://ffhacktics.com/wiki/ATTACK.OUT
+    // return data[22] | (data[23] << 8)
+    return data[22];
 }

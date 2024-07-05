@@ -1,6 +1,8 @@
 #pragma once
 
+#include <iostream>
 #include <map>
+#include <span>
 #include <string>
 #include <variant>
 #include <vector>
@@ -23,19 +25,22 @@ struct Instruction {
 // - text_section: Bytes text_offset thru 8192 is the text section.
 class Event {
 public:
-    Event(std::vector<uint8_t> data)
-        : data(data) {};
+    Event(std::vector<uint8_t> data);
 
-    auto id() -> int;
-    auto should_skip() -> bool;
     auto instructions() -> std::vector<Instruction>;
-
-private:
-    auto text_offset() -> uint32_t;
+    auto messages() -> std::vector<std::string>;
     auto next_instruction() -> Instruction;
 
-    std::vector<uint8_t> data;
-    uint32_t offset = 4; // Skip the first 4 bytes as its the id.
+    bool should_skip;
+    std::vector<uint8_t> code_section;
+    std::vector<uint8_t> text_section;
+
+private:
+    // text_offset is a constant value to points to the start of the text_section.
+    uint32_t text_offset;
+
+    // code_offset is the current pointer position into the code_section.
+    uint32_t code_offset = 0;
 };
 
 // A command represents an bit of functionality in FFT Events. This is used

@@ -15,6 +15,7 @@ private:
     auto draw_commands() -> void;
     auto draw_events() -> void;
     auto draw_instructions() -> void;
+    auto draw_messages() -> void;
 
     int scenarios_or_maps = 0;
 
@@ -22,4 +23,5 @@ private:
     bool show_records_table = false;
     bool show_events_table = false;
     bool show_instructions_table = false;
+    bool show_messages_table = false;
 };

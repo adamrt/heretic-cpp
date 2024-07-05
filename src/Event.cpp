@@ -1,27 +1,42 @@
+#include <algorithm>
 #include <assert.h>
+#include <cmath>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <memory>
+#include <numeric>
+#include <optional>
+#include <regex>
+#include <span>
+#include <sstream>
+#include <string>
+#include <string_view>
+#include <utility>
+#include <vector>
 
 #include "Event.h"
+#include "Font.h"
 
-auto Event::id() -> int
+Event::Event(std::vector<uint8_t> data)
 {
-    return (data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24);
-}
+    text_offset = static_cast<uint32_t>((data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24));
 
-auto Event::should_skip() -> bool
-{
-    return id() == 0xf2f2f2f2;
-}
+    should_skip = text_offset == 0xF2F2F2F2;
+    if (should_skip) {
+        return;
+    }
 
-auto Event::text_offset() -> uint32_t
-{
-    assert(!should_skip());
-    return id();
+    text_section = std::vector<uint8_t>(data.begin() + text_offset, data.end());
+    code_section = std::vector<uint8_t>(data.begin() + 4, data.begin() + text_offset);
 }
 
 auto Event::next_instruction() -> Instruction
 {
-    auto bytecode = data[offset];
-    offset++;
+    assert(!should_skip);
+    auto bytecode = code_section[code_offset];
+    code_offset++;
 
     if (command_list.find(bytecode) == command_list.end()) {
         Instruction instruction = {};
@@ -37,11 +52,11 @@ auto Event::next_instruction() -> Instruction
     for (auto const& param : command.params) {
         std::variant<uint8_t, uint16_t> result;
         if (param == 1) {
-            result = static_cast<uint8_t>(data[offset]);
+            result = static_cast<uint8_t>(code_section[code_offset]);
         } else if (param == 2) {
-            result = static_cast<uint16_t>(data[offset] | (data[offset + 1] << 8));
+            result = static_cast<uint16_t>(code_section[code_offset] | (code_section[code_offset + 1] << 8));
         }
-        offset += param;
+        code_offset += param;
         instruction.params.push_back(result);
     }
 
@@ -50,12 +65,126 @@ auto Event::next_instruction() -> Instruction
 
 auto Event::instructions() -> std::vector<Instruction>
 {
+    assert(!should_skip);
     std::vector<Instruction> commands;
-    while (offset < text_offset()) {
+    auto len = code_section.size();
+
+    while (code_offset < len) {
         auto command = next_instruction();
         commands.push_back(command);
     }
+
     return commands;
+}
+
+std::vector<std::string> split_string(const std::string& str, char delimiter)
+{
+    std::istringstream stream(str);
+    std::vector<std::string> tokens;
+    std::string token;
+
+    while (getline(stream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+
+    return tokens;
+}
+
+auto Event::messages() -> std::vector<std::string>
+{
+    assert(!should_skip);
+    auto message_vec = std::vector<std::string> {};
+
+    uint8_t delemiter = 0xFE;
+    std::string delemiter_str(1, static_cast<char>(delemiter));
+
+    for (int i = 0; i < text_section.size(); i++) {
+        uint8_t byte = text_section[i];
+
+        // These are special characters. We need to handle them differently.
+        // https://ffhacktics.com/wiki/Text_Format#Special_Characters
+        switch (byte) {
+        case 0xFE:
+            // This is the message delimiter.
+            message_vec.push_back(delemiter_str);
+            continue;
+        case 0xE0: {
+            // Character name stored somewhere else. Hard coding for now.
+            message_vec.push_back("Ramza");
+            continue;
+        }
+        case 0xE2: {
+            uint8_t delay = text_section[++i];
+            std::ostringstream ss;
+            ss << "{Delay: " << (int)delay << "}";
+            message_vec.push_back(ss.str());
+            continue;
+        }
+        case 0xE3: {
+            uint8_t color = text_section[++i];
+            std::ostringstream ss;
+            ss << "{Color: " << (int)color << "}";
+            message_vec.push_back(ss.str());
+            continue;
+        }
+        case 0xF0:
+        case 0xF1:
+        case 0xF2:
+        case 0xF3: {
+            // This is a jump to another point in the text section.
+            // The next 2 bytes are the jump location and how many bytes to read.
+            // https://gomtuu.org/fft/trans/compression/
+            auto second_byte = text_section[++i];
+            auto third_byte = text_section[++i];
+            message_vec.push_back("{TextJump}");
+            continue;
+        }
+        case 0xF8:
+            message_vec.push_back("\n");
+            continue;
+        case 0xFA:
+            // This one is not in the list but it is very common between words.
+            // It works well as a space though.
+            message_vec.push_back(" ");
+            continue;
+        case 0xFF:
+            message_vec.push_back("{Close}");
+            continue;
+        }
+
+        // Bytes higher than 0xCF are two byte characters.
+        // https://ffhacktics.com/wiki/Font
+        if (byte > 0xCF) {
+            auto second_byte = text_section[i + 1];
+            // combine the two bytes, c and z into a single 16 bit value, in little endian.
+            uint16_t combined = (second_byte | (byte << 8));
+            if (font.find(combined) != font.end()) {
+                message_vec.push_back(font[combined]);
+                i++;
+            } else {
+                // Print the unknown byte and its second byte. But we don't
+                // actually consume the second byte. This is because if they are
+                // an instruction, like the ones above (0xFA, 0xF8, etc), we
+                // don't want to consume the second byte as a two byte character.
+                std::ostringstream ss;
+                ss << "{Unknown: 0x" << std::hex << byte << std::dec << " & 0x" << std::hex << second_byte << std::dec << "}";
+                message_vec.push_back(ss.str());
+            }
+            continue;
+        }
+
+        if (font.find(byte) == font.end()) {
+            message_vec.push_back("?");
+            continue;
+        }
+
+        message_vec.push_back(font[byte]);
+    }
+
+    std::string message = std::accumulate(message_vec.begin(), message_vec.end(), std::string(""));
+    auto split_messages = split_string(message, delemiter);
+
+    return split_messages;
 }
 
 std::map<int, Command> command_list = {
