@@ -181,7 +181,6 @@ std::map<int, FFTMapDesc> map_list = {
     { 50, { 50, 33701, "St. Murond Temple", true } },
     { 51, { 51, 34349, "St. Murond Temple", true } },
     { 52, { 52, 34440, "Chapel of St. Murond Temple", true } },
-    // MAP053 doesn't have expected primary mesh pointer
     { 53, { 53, 34566, "Entrance to Death City", true } },
     { 54, { 54, 34647, "Lost Sacred Precincts", true } },
     { 55, { 55, 34745, "Graveyard of Airships", true } },
