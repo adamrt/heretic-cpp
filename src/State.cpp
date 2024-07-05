@@ -21,7 +21,13 @@ auto State::set_scenario(Scenario scenario) -> void
         return;
     }
 
-    set_map_from_scenario(scenario);
+    auto reader = ResourceManager::get_instance()->get_bin_reader();
+
+    auto event = reader->read_event(scenario.event_id());
+    event_instructions = event.instructions();
+    event_messages = event.messages();
+
+    set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 
 auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> bool
@@ -30,7 +36,21 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
     auto resources = ResourceManager::get_instance();
     auto reader = resources->get_bin_reader();
 
-    auto map = reader->read_map(map_num, time, weather, arrangement);
+    for (;;) {
+        auto desc = map_list[map_num];
+        if (!desc.valid) {
+            std::cout << "Invalid map: " << map_num << std::endl;
+            map_num++;
+            if (map_num >= map_list.size()) {
+                map_num = 0;
+            }
+            continue;
+        }
+        break;
+    }
+
+    auto map
+        = reader->read_map(map_num, time, weather, arrangement);
     if (map == nullptr) {
         std::cout << "Failed to load map: " << map_num << std::endl;
         return false;
@@ -56,17 +76,6 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
 
     current_map_index = map_num;
     return true;
-}
-
-auto State::set_map_from_scenario(Scenario scenario) -> bool
-{
-    auto reader = ResourceManager::get_instance()->get_bin_reader();
-
-    auto event = reader->read_event(scenario.event_id());
-    event_instructions = event.instructions();
-    event_messages = event.messages();
-
-    return set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 
 auto State::next_scenario() -> void
@@ -99,4 +108,46 @@ auto State::previous_scenario() -> void
     }
 
     state->set_scenario(*scenario);
+};
+
+auto State::next_map() -> void
+{
+    auto state = State::get_instance();
+
+    state->current_map_index++;
+
+    for (;;) {
+        auto desc = map_list[state->current_map_index];
+        if (!desc.valid) {
+            state->current_map_index++;
+            if (state->current_map_index >= map_list.size()) {
+                state->current_map_index = 0;
+            }
+            continue;
+        }
+        break;
+    }
+
+    state->set_map(state->current_map_index);
+};
+
+auto State::previous_map() -> void
+{
+    auto state = State::get_instance();
+
+    state->current_map_index--;
+
+    for (;;) {
+        auto desc = map_list[state->current_map_index];
+        if (!desc.valid) {
+            state->current_map_index--;
+            if (state->current_map_index < 0) {
+                state->current_map_index = map_list.size() - 1;
+            }
+            continue;
+        }
+        break;
+    }
+
+    state->set_map(state->current_map_index);
 };

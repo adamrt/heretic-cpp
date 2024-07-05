@@ -38,7 +38,8 @@ auto init() -> void
     auto reader = resources->get_bin_reader();
 
     state->scenarios = reader->read_scenarios();
-    state->set_scenario(state->scenarios[0]);
+    // state->set_scenario(state->scenarios[0]);
+    state->set_map(104);
 }
 
 auto input(sapp_event const* event) -> void
@@ -56,9 +57,15 @@ auto input(sapp_event const* event) -> void
             sapp_quit();
             break;
         case SAPP_KEYCODE_J:
-            state->previous_scenario();
+            state->previous_map();
             break;
         case SAPP_KEYCODE_K:
+            state->next_map();
+            break;
+        case SAPP_KEYCODE_U:
+            state->previous_scenario();
+            break;
+        case SAPP_KEYCODE_I:
             state->next_scenario();
             break;
         default:

@@ -250,8 +250,7 @@ auto GUI::draw() -> void
     ImGui::SameLine();
     if (ImGui::RadioButton("Maps", scenarios_or_maps == 1)) {
         scenarios_or_maps = 1;
-        auto new_map = map_list[state->current_map_index];
-        state->set_map(new_map.id);
+        state->set_map(state->current_map_index);
     }
 
     if (scenarios_or_maps == 0) {
@@ -274,15 +273,18 @@ auto GUI::draw() -> void
             auto new_scenario = state->scenarios[state->current_scenario_index];
             state->set_scenario(new_scenario);
         }
+
+        ImGui::Text("Event: %d", state->current_scenario.event_id());
+        ImGui::Text("Map: %d", state->current_scenario.map_id());
+        ImGui::Text("Time: %s", to_string(state->current_scenario.time()).c_str());
+        ImGui::Text("Weather: %s", to_string(state->current_scenario.weather()).c_str());
+
     } else if (scenarios_or_maps == 1) {
         std::vector<std::string> map_names;
-        map_names.reserve(map_list.size());
 
-        std::transform(
-            map_list.begin(),
-            map_list.end(),
-            std::back_inserter(map_names),
-            [](FFTMapDesc& s) { return s.repr(); });
+        for (auto [k, v] : map_list) {
+            map_names.push_back(v.repr());
+        }
 
         std::vector<const char*> map_name_ptrs;
         map_name_ptrs.reserve(map_names.size());
@@ -291,8 +293,7 @@ auto GUI::draw() -> void
         }
 
         if (ImGui::Combo("Map", &state->current_map_index, map_name_ptrs.data(), map_name_ptrs.size())) {
-            auto new_map = map_list[state->current_map_index];
-            state->set_map(new_map.id);
+            state->set_map(state->current_map_index);
         }
 
         std::vector<std::string> style_names;
@@ -324,7 +325,6 @@ auto GUI::draw() -> void
         }
     }
 
-    ImGui::Text("Current Event: %d", state->current_scenario.event_id());
     ImGui::NewLine();
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Rendering")) {
