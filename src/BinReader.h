@@ -28,6 +28,7 @@ public:
     auto read_normal() -> glm::vec3;
     auto read_rgb15() -> glm::vec4;
     auto read_rgb8() -> glm::vec4;
+    auto read_light_color() -> float;
 
     auto read_scenarios() -> std::vector<Scenario>;
     auto read_event() -> Event;

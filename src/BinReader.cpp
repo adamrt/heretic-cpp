@@ -1,4 +1,5 @@
 #include <optional>
+#include <utility>
 
 #include "BinReader.h"
 #include "Event.h"
@@ -562,6 +563,15 @@ auto BinFile::read_palette() -> std::shared_ptr<Texture>
     return palette;
 }
 
+// read_light_color clamps the value between 0.0 and 1.0. These unclamped values
+// are used to affect the lighting model but it isn't understood yet.
+// https://ffhacktics.com/wiki/Maps/Mesh#Light_colors_and_positions.2C_background_gradient_colors
+auto BinFile::read_light_color() -> float
+{
+    float val = read_f1x3x12();
+    return std::min(std::max(0.0f, val), 1.0f);
+}
+
 auto BinFile::read_lights() -> std::tuple<std::vector<std::shared_ptr<Light>>, glm::vec4, std::pair<glm::vec4, glm::vec4>>
 {
     offset = 0x64;
@@ -580,15 +590,15 @@ auto BinFile::read_lights() -> std::tuple<std::vector<std::shared_ptr<Light>>, g
     glm::vec3 b_pos = {};
     glm::vec3 c_pos = {};
 
-    a_color.x = read_f1x3x12();
-    b_color.x = read_f1x3x12();
-    c_color.x = read_f1x3x12();
-    a_color.y = read_f1x3x12();
-    b_color.y = read_f1x3x12();
-    c_color.y = read_f1x3x12();
-    a_color.z = read_f1x3x12();
-    b_color.z = read_f1x3x12();
-    c_color.z = read_f1x3x12();
+    a_color.x = read_light_color();
+    b_color.x = read_light_color();
+    c_color.x = read_light_color();
+    a_color.y = read_light_color();
+    b_color.y = read_light_color();
+    c_color.y = read_light_color();
+    a_color.z = read_light_color();
+    b_color.z = read_light_color();
+    c_color.z = read_light_color();
 
     a_color.w = 1.0f;
     b_color.w = 1.0f;
