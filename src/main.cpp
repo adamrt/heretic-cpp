@@ -38,9 +38,12 @@ auto init() -> void
     auto reader = std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin");
     resources->set_bin_reader(reader);
 
+    // Parse global data
     state->scenarios = reader->read_scenarios();
     state->events = reader->read_events();
-    state->set_scenario(state->scenarios[0]);
+
+    // Setup scenario to render
+    state->set_scenario(state->scenarios[52]);
 }
 
 auto input(sapp_event const* event) -> void
