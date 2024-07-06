@@ -260,7 +260,7 @@ auto GUI::draw() -> void
             state->scenarios.begin(),
             state->scenarios.end(),
             std::back_inserter(scenario_names),
-            [](Scenario& s) { return s.repr(); });
+            [](Scenario& s) { return scenario_list[s.id()]; });
 
         std::vector<const char*> scenario_name_ptrs;
         scenario_name_ptrs.reserve(scenario_names.size());

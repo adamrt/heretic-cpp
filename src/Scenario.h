@@ -53,3 +53,5 @@ public:
 private:
     std::vector<uint8_t> data;
 };
+
+extern std::map<int, std::string> scenario_list;

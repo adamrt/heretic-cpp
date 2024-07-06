@@ -128,7 +128,7 @@ auto to_string(MapWeather value) -> std::string
 }
 
 std::map<int, FFTMapDesc> map_list = {
-    { 0, { 0, 0, "???", false } },
+    { 0, { 0, 10026, "Unknown", false } }, // No texture
     { 1, { 1, 11304, "At Main Gate of Igros Castle", true } },
     { 2, { 2, 12656, "Back Gate of Lesalia Castle", true } },
     { 3, { 3, 12938, "Hall of St. Murond Temple", true } },
@@ -245,15 +245,15 @@ std::map<int, FFTMapDesc> map_list = {
     { 114, { 114, 55383, "END", true } },
     { 115, { 115, 56051, "Banished Fort", true } },
     { 116, { 116, 56123, "Arena", true } },
-    { 117, { 117, 56201, "???", true } },
-    { 118, { 118, 56279, "???", true } },
-    { 119, { 119, 56356, "???", true } },
+    { 117, { 117, 56201, "Unknown", true } },
+    { 118, { 118, 56279, "Unknown", true } },
+    { 119, { 119, 56356, "Unknown", true } },
     { 120, { 120, 0, "???", false } },
     { 121, { 121, 0, "???", false } },
     { 122, { 122, 0, "???", false } },
     { 123, { 123, 0, "???", false } },
     { 124, { 124, 0, "???", false } },
-    { 125, { 125, 56435, "???", true } },
+    { 125, { 125, 56435, "Unknown", true } },
     { 126, { 126, 0, "???", false } },
     { 127, { 127, 0, "???", false } },
 };
