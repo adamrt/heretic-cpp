@@ -273,8 +273,7 @@ auto GUI::draw() -> void
             state->set_scenario(new_scenario);
         }
 
-        ImGui::Text("Event: %d", state->current_scenario.id());
-        ImGui::Text("Map: %d", state->current_scenario.map_id());
+        ImGui::Text("Map: %s", map_list[state->current_scenario.map_id()].name.c_str());
         ImGui::Text("Time: %s", to_string(state->current_scenario.time()).c_str());
         ImGui::Text("Weather: %s", to_string(state->current_scenario.weather()).c_str());
 
