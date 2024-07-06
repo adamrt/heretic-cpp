@@ -39,6 +39,7 @@ auto init() -> void
     resources->set_bin_reader(reader);
 
     state->scenarios = reader->read_scenarios();
+    state->events = reader->read_events();
     state->set_scenario(state->scenarios[0]);
 }
 

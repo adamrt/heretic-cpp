@@ -20,11 +20,11 @@ auto State::set_scenario(Scenario scenario) -> void
         return;
     }
 
-    auto reader = ResourceManager::get_instance()->get_bin_reader();
-
     current_style_index = 0;
+
+    current_event = events[scenario.id()];
     current_scenario = scenario;
-    current_event = reader->read_event(current_scenario.id());
+
     set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 

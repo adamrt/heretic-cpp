@@ -39,13 +39,15 @@ public:
     Camera camera = {};
 
     std::vector<Scenario> scenarios = {};
-    Event current_event = {};
+    std::vector<Event> events = {};
     std::vector<Record> records = {};
+
+    Scenario current_scenario = {};
+    Event current_event = {};
 
     int current_scenario_index = 1;
     int current_map_index = 49;
     int current_style_index = 0;
-    Scenario current_scenario = {};
 
 private:
     State() {};
