@@ -95,7 +95,6 @@ auto GUI::draw_scenarios() -> void
 
 auto GUI::draw_instructions() -> void
 {
-
     auto state = State::get_instance();
     ImGui::SetNextWindowSize(ImVec2(800.0f, 600.0f));
     ImGui::Begin("Instructions");
@@ -117,7 +116,7 @@ auto GUI::draw_instructions() -> void
 
         ImGui::TableHeadersRow();
 
-        for (auto& instruction : state->event_instructions) {
+        for (auto& instruction : state->current_event.instructions()) {
             ImGui::TableNextRow();
 
             auto column = 0;
@@ -161,7 +160,7 @@ auto GUI::draw_messages() -> void
         ImGui::TableHeadersRow();
 
         auto rows = 1;
-        for (auto& message : state->event_messages) {
+        for (auto& message : state->current_event.messages()) {
             ImGui::TableNextRow();
 
             ImGui::TableSetColumnIndex(0);
@@ -237,8 +236,8 @@ auto GUI::draw_records() -> void
 auto GUI::draw() -> void
 {
     auto resources = ResourceManager::get_instance();
-
     auto state = State::get_instance();
+
     ImGui::SetNextWindowSize(ImVec2(0, 0));
     ImGui::Begin("Heretic");
 
@@ -274,7 +273,7 @@ auto GUI::draw() -> void
             state->set_scenario(new_scenario);
         }
 
-        ImGui::Text("Event: %d", state->current_scenario.event_id());
+        ImGui::Text("Event: %d", state->current_scenario.id());
         ImGui::Text("Map: %d", state->current_scenario.map_id());
         ImGui::Text("Time: %s", to_string(state->current_scenario.time()).c_str());
         ImGui::Text("Weather: %s", to_string(state->current_scenario.weather()).c_str());

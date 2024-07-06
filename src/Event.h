@@ -25,6 +25,7 @@ struct Instruction {
 // - text_section: Bytes text_offset thru 8192 is the text section.
 class Event {
 public:
+    Event() = default;
     Event(std::vector<uint8_t> data);
 
     auto instructions() -> std::vector<Instruction>;

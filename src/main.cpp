@@ -30,16 +30,13 @@
 
 auto init() -> void
 {
-
     auto state = State::get_instance();
-    ResourceManager::get_instance()->set_bin_reader(std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin"));
-
     auto resources = ResourceManager::get_instance();
-    auto reader = resources->get_bin_reader();
+    auto reader = std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin");
+    resources->set_bin_reader(reader);
 
     state->scenarios = reader->read_scenarios();
-    // state->set_scenario(state->scenarios[0]);
-    state->set_map(104);
+    state->set_scenario(state->scenarios[3]);
 }
 
 auto input(sapp_event const* event) -> void

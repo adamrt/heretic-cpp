@@ -11,7 +11,6 @@ State* State::instance = nullptr;
 
 auto State::set_scenario(Scenario scenario) -> void
 {
-    current_scenario = scenario;
     auto it = std::find(scenarios.begin(), scenarios.end(), scenario);
     if (it != scenarios.end()) {
         current_scenario_index = std::distance(scenarios.begin(), it);
@@ -23,10 +22,9 @@ auto State::set_scenario(Scenario scenario) -> void
 
     auto reader = ResourceManager::get_instance()->get_bin_reader();
 
-    auto event = reader->read_event(scenario.event_id());
-    event_instructions = event.instructions();
-    event_messages = event.messages();
-
+    current_style_index = 0;
+    current_scenario = scenario;
+    current_event = reader->read_event(current_scenario.id());
     set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 
@@ -49,8 +47,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
         break;
     }
 
-    auto map
-        = reader->read_map(map_num, time, weather, arrangement);
+    auto map = reader->read_map(map_num, time, weather, arrangement);
     if (map == nullptr) {
         std::cout << "Failed to load map: " << map_num << std::endl;
         return false;

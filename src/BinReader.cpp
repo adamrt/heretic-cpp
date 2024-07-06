@@ -3,6 +3,7 @@
 #include "BinReader.h"
 #include "Event.h"
 #include "ResourceManager.h"
+#include "Scenario.h"
 
 BinReader::BinReader(std::string filename)
 {
@@ -160,8 +161,18 @@ auto BinReader::read_scenarios() -> std::vector<Scenario>
     constexpr int attack_intra_file_offset = 0x10938;
 
     auto attack_out = read_file(attack_out_sector, attack_out_size);
+    // Delete initial data up to the beginning of the scenario data.
     attack_out.data.erase(attack_out.data.begin(), attack_out.data.begin() + attack_intra_file_offset);
-    return attack_out.read_scenarios();
+
+    std::vector<Scenario> valid_scenarios;
+    for (auto& scenario : attack_out.read_scenarios()) {
+        // We only care about scenarios that have a valid event.
+        if (read_event(scenario.id()).should_skip) {
+            continue;
+        }
+        valid_scenarios.push_back(scenario);
+    }
+    return valid_scenarios;
 }
 
 // https://ffhacktics.com/wiki/TEST.EVT
@@ -170,19 +181,9 @@ auto BinReader::read_event(int event_id) -> Event
     const int event_file_sector = 3707; // File length is 4096000 bytes.
     constexpr int event_size = 8192;
 
-    auto original_event_id = event_id;
-    for (;;) {
-        auto event_file = read_file((event_id * 4) + event_file_sector, event_size);
-        auto event = event_file.read_event();
-        if (event.should_skip) {
-            event_id++;
-            continue;
-        }
-        if (event_id != original_event_id) {
-            std::cout << "Event ID " << original_event_id << " was not found. Using " << event_id << " instead." << std::endl;
-        }
-        return event;
-    }
+    auto event_file = read_file((event_id * 4) + event_file_sector, event_size);
+    auto event = event_file.read_event();
+    return event;
 }
 
 auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>
@@ -195,6 +196,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
     auto gns_records = gns_file.read_records();
 
     std::shared_ptr<FFTMesh> primary_mesh = nullptr;
+    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> alt_meshes;
     std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> override_meshes;
     std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
 
@@ -216,6 +218,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
             break;
         }
         case ResourceType::MeshAlt: {
+            alt_meshes[record_key] = resource.read_mesh();
             break;
         }
         case ResourceType::MeshOverride: {
@@ -264,6 +267,26 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
         }
     }
 
+    auto alt_mesh = alt_meshes[requested_key];
+    if (alt_mesh != nullptr) {
+        if (alt_mesh->vertices.size() > 0) {
+            primary_mesh->vertices.insert(primary_mesh->vertices.end(), alt_mesh->vertices.begin(), alt_mesh->vertices.end());
+        }
+        if (alt_mesh->lights.size() > 0) {
+            primary_mesh->lights = alt_mesh->lights;
+        }
+        if (alt_mesh->palette != nullptr) {
+            primary_mesh->palette = alt_mesh->palette;
+        }
+        // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
+        if (alt_mesh->ambient_color.w == 1.0f) {
+            primary_mesh->ambient_color = alt_mesh->ambient_color;
+        }
+        if (alt_mesh->background.first.w == 1.0f) {
+            primary_mesh->background = alt_mesh->background;
+        }
+    }
+
     auto map = std::make_shared<FFTMap>();
     map->gns_records = gns_records;
     map->texture = texture;
@@ -275,18 +298,12 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
 auto BinFile::read_records() -> std::vector<Record>
 {
     std::vector<Record> records;
-
     while (true) {
         Record record { read_bytes(20) };
-        // This record type marks the end of the records for this GNS file.
         if (record.resource_type() == ResourceType::End) {
-            return records;
+            break;
         }
-
         records.push_back(record);
-
-        // Satefy check in case there is a bad read.
-        assert(records.size() < RECORD_MAX_NUM);
     }
     return records;
 }
@@ -300,12 +317,6 @@ auto BinFile::read_scenarios() -> std::vector<Scenario>
     for (int i = 0; i < scenario_count; i++) {
         auto bytes = read_bytes(scenario_size);
         Scenario scenario { bytes };
-
-        // Other scenarios with an event_id of 0 seem invalid.
-        if (scenario.id() != 1 && scenario.event_id() == 0) {
-            continue;
-        }
-
         scenarios.push_back(scenario);
     }
     return scenarios;
@@ -314,10 +325,7 @@ auto BinFile::read_scenarios() -> std::vector<Scenario>
 auto BinFile::read_event() -> Event
 {
     constexpr int event_size = 8192;
-
-    auto bytes = read_bytes(event_size);
-    Event event { bytes };
-    return event;
+    return Event { read_bytes(event_size) };
 }
 
 auto BinFile::read_mesh() -> std::shared_ptr<FFTMesh>
@@ -425,12 +433,6 @@ auto BinFile::read_vertices() -> std::vector<Vertex>
     }
 
     index = index + (R * 2 * 3);
-
-    // Validate
-    // uint32_t expected_num_vertices = (uint32_t)(N * 3) + (P * 3 * 2) + (Q * 3) + (R * 3 * 2);
-    // if (mesh->rtices != expected_num_vertices) {
-    //     return false;
-    // }
 
     // Reset index so we can start over for normals, using the same vertices.
     index = 0;

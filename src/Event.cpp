@@ -74,6 +74,9 @@ auto Event::instructions() -> std::vector<Instruction>
         commands.push_back(command);
     }
 
+    // Reset the index in case we want to read again.
+    code_offset = 0;
+
     return commands;
 }
 
@@ -181,10 +184,23 @@ auto Event::messages() -> std::vector<std::string>
         message_vec.push_back(font[byte]);
     }
 
-    std::string message = std::accumulate(message_vec.begin(), message_vec.end(), std::string(""));
-    auto split_messages = split_string(message, delemiter);
+    // All text for the event.
+    auto event_text = std::accumulate(message_vec.begin(), message_vec.end(), std::string(""));
+    auto messages = split_string(event_text, delemiter);
 
-    return split_messages;
+    std::vector<std::string> event_messages;
+    for (auto& instruction : instructions()) {
+        if (instruction.command == 0x10) {
+            auto pointer = std::get<uint16_t>(instruction.params[2]);
+            if (pointer > messages.size()) {
+                continue;
+            }
+            auto message = messages[pointer];
+            event_messages.push_back(message);
+        }
+        // FIXME: Handle 0x51 as well. It uses a different param index.
+    }
+    return event_messages;
 }
 
 std::map<int, Command> command_list = {

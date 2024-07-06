@@ -16,6 +16,8 @@ public:
     bool operator==(const Scenario& other) const;
 
     auto repr() const -> std::string;
+
+    // This is the ID of the scenario, but it is also the index into events.
     auto id() const -> int;
 
     // map_id() returns the ID from our map_list.
@@ -43,8 +45,9 @@ public:
     // next_scenario() returns the next scenario id if next_step() is 0x81.
     auto next_scenario() const -> int;
 
-    // event_id() returns the Event id that is triggered.
-    // FIXME: How is this indexed?
+    // The docs describe this as the event_id() but you should use the
+    // Scenario.id() as the index into events. This is currently unused. Actual
+    // events that we care about (non setup) will have this as 0.
     auto event_id() const -> int;
 
 private:
