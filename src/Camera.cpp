@@ -4,6 +4,12 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 
+auto Camera::reset() -> void
+{
+    _target = glm::vec3 { 0.0f, 0.0f, 0.0f };
+    update();
+}
+
 auto Camera::orbit(float dx, float dy) -> void
 {
     _longitude -= dx;
@@ -15,6 +21,15 @@ auto Camera::orbit(float dx, float dy) -> void
     }
 
     _latitude = glm::clamp(_latitude + dy, MIN_LAT, MAX_LAT);
+}
+
+auto Camera::pan(float dx, float dy) -> void
+{
+    const auto right = glm::normalize(glm::cross(_eye - _target, glm::vec3 { 0.0f, 1.0f, 0.0f }));
+    const auto up = glm::normalize(glm::cross(right, _eye - _target));
+
+    const auto d = right * dx + up * dy;
+    _target += d;
 }
 
 auto Camera::zoom(float d) -> void

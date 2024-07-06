@@ -17,7 +17,7 @@ private:
     auto draw_instructions() -> void;
     auto draw_messages() -> void;
 
-    int scenarios_or_maps = 1;
+    int scenarios_or_maps = 0;
 
     bool show_scenarios_table = false;
     bool show_records_table = false;

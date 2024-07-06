@@ -28,6 +28,9 @@
 #include "imgui.h"
 #include "sokol_imgui.h"
 
+bool mouse_left = false;
+bool mouse_right = false;
+
 auto init() -> void
 {
     auto state = State::get_instance();
@@ -36,7 +39,7 @@ auto init() -> void
     resources->set_bin_reader(reader);
 
     state->scenarios = reader->read_scenarios();
-    state->set_scenario(state->scenarios[3]);
+    state->set_scenario(state->scenarios[0]);
 }
 
 auto input(sapp_event const* event) -> void
@@ -65,6 +68,9 @@ auto input(sapp_event const* event) -> void
         case SAPP_KEYCODE_I:
             state->next_scenario();
             break;
+        case SAPP_KEYCODE_SPACE:
+            state->camera.reset();
+            break;
         default:
             break;
         }
@@ -72,11 +78,21 @@ auto input(sapp_event const* event) -> void
     case SAPP_EVENTTYPE_MOUSE_DOWN:
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(true);
+            mouse_left = true;
+        }
+        if (event->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+            sapp_lock_mouse(true);
+            mouse_right = true;
         }
         break;
     case SAPP_EVENTTYPE_MOUSE_UP:
         if (event->mouse_button == SAPP_MOUSEBUTTON_LEFT) {
             sapp_lock_mouse(false);
+            mouse_left = false;
+        }
+        if (event->mouse_button == SAPP_MOUSEBUTTON_RIGHT) {
+            sapp_lock_mouse(false);
+            mouse_right = false;
         }
         break;
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
@@ -84,7 +100,12 @@ auto input(sapp_event const* event) -> void
         break;
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
-            state->camera.orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+            if (mouse_left) {
+                state->camera.orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+            }
+            if (mouse_right) {
+                state->camera.pan(event->mouse_dx * 0.0025f, event->mouse_dy * 0.0025f);
+            }
         }
         break;
     default:

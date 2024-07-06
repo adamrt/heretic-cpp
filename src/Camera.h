@@ -19,8 +19,10 @@ public:
 
     Projection projection = Projection::Orthographic;
 
+    auto reset() -> void;
     auto update() -> void;
     auto orbit(float dx, float dy) -> void;
+    auto pan(float dx, float dy) -> void;
     auto zoom(float d) -> void;
     auto view_proj() const -> glm::mat4 { return _proj * _view; }
 
