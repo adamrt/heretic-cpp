@@ -1,4 +1,4 @@
-# Heretic. Final Fantasy Tactics Toolkit
+# Heretic: A Final Fantasy Tactics Toolkit
 
 C++, sokol, imgui, glm
 
