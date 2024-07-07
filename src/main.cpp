@@ -145,10 +145,10 @@ sapp_desc sokol_main(int argc, char* argv[])
     desc.init_cb = init;
     desc.frame_cb = frame;
     desc.event_cb = input;
-    desc.window_title = "Heretic: Final Fantasy Tactics Toolkit";
+    desc.window_title = "Heretic: A Final Fantasy Tactics Toolkit";
     desc.ios_keyboard_resizes_canvas = false;
     desc.icon.sokol_default = true;
-    desc.enable_clipboard = true;
+    desc.enable_clipboard = false;
     desc.logger.func = slog_func;
     return desc;
 }

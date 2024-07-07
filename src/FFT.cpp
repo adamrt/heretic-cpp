@@ -45,9 +45,9 @@ auto Record::resource_type() -> ResourceType
     return static_cast<ResourceType>(data[4] | (data[5] << 8));
 }
 
-auto Record::arrangement() -> int
+auto Record::arrangement() const -> int
 {
-    return data[1];
+    return data[2];
 }
 
 auto Record::time() const -> MapTime
@@ -64,9 +64,13 @@ auto Record::operator<(const Record& other) const -> bool
 {
     auto t = time();
     auto w = weather();
+    auto a = arrangement();
+
     auto ot = other.time();
     auto ow = other.weather();
-    return std::tie(t, w) < std::tie(ot, ow);
+    auto oa = other.arrangement();
+
+    return std::tie(t, w, a) < std::tie(ot, ow, oa);
 }
 
 // Equality operator for unique
@@ -74,9 +78,13 @@ auto Record::operator==(const Record& other) const -> bool
 {
     auto t = time();
     auto w = weather();
+    auto a = arrangement();
+
     auto ot = other.time();
     auto ow = other.weather();
-    return std::tie(t, w) == std::tie(ot, ow);
+    auto oa = other.arrangement();
+
+    return std::tie(t, w, a) == std::tie(ot, ow, oa);
 }
 
 auto to_string(ResourceType value) -> std::string

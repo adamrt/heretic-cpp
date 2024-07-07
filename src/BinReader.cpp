@@ -25,16 +25,14 @@ BinReader::~BinReader()
 auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>
 {
     auto requested_key = std::make_tuple(time, weather, arrangement);
-    auto default_key = std::make_tuple(MapTime::Day, MapWeather::None, 0);
-
-    int sector = map_list[map_num].sector;
-    auto gns_file = read_gns_file(sector);
-    auto gns_records = gns_file.read_records();
+    auto fallback_key = std::make_tuple(MapTime::Day, MapWeather::None, 0);
 
     std::shared_ptr<FFTMesh> primary_mesh = nullptr;
+    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
     std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> alt_meshes;
     std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> override_meshes;
-    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
+
+    auto gns_records = read_gns_file(map_list[map_num].sector).read_records();
 
     for (auto& record : gns_records) {
         auto record_key = std::make_tuple(record.time(), record.weather(), record.arrangement());
@@ -74,7 +72,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
 
     auto texture = textures[requested_key];
     if (texture == nullptr) {
-        texture = textures[default_key];
+        texture = textures[fallback_key];
         assert(texture != nullptr);
     }
 
@@ -82,7 +80,7 @@ auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arra
     if (primary_mesh == nullptr) {
         primary_mesh = std::make_shared<FFTMesh>();
         if (override_mesh == nullptr) {
-            override_mesh = override_meshes[default_key];
+            override_mesh = override_meshes[fallback_key];
             assert(override_mesh != nullptr);
         }
     }

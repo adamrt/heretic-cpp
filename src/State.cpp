@@ -34,7 +34,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
     auto resources = ResourceManager::get_instance();
     auto reader = resources->get_bin_reader();
 
-    for (;;) {
+    while (true) {
         auto desc = map_list[map_num];
         if (!desc.valid) {
             std::cout << "Invalid map: " << map_num << std::endl;
@@ -113,7 +113,7 @@ auto State::next_map() -> void
 
     state->current_map_index++;
 
-    for (;;) {
+    while (true) {
         auto desc = map_list[state->current_map_index];
         if (!desc.valid) {
             state->current_map_index++;
@@ -134,7 +134,7 @@ auto State::previous_map() -> void
 
     state->current_map_index--;
 
-    for (;;) {
+    while (true) {
         auto desc = map_list[state->current_map_index];
         if (!desc.valid) {
             state->current_map_index--;

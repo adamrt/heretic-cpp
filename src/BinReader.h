@@ -1,6 +1,5 @@
 #pragma once
 
-#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <glm/glm.hpp>

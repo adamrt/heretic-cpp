@@ -27,7 +27,7 @@ public:
     auto add_mesh(const std::string& name, std::shared_ptr<Mesh> mesh) -> std::shared_ptr<Mesh>;
     auto get_mesh(const std::string& name) -> std::shared_ptr<Mesh>;
 
-    auto set_bin_reader(std::shared_ptr<BinReader> _bin_reader) -> std::shared_ptr<BinReader>;
+    auto set_bin_reader(std::shared_ptr<BinReader> bin_reader) -> std::shared_ptr<BinReader>;
     auto get_bin_reader() -> std::shared_ptr<BinReader>;
 
 private:

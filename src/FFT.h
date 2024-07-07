@@ -60,7 +60,7 @@ struct Record {
     auto sector() -> int;
     auto length() -> uint64_t;
     auto resource_type() -> ResourceType;
-    auto arrangement() -> int;
+    auto arrangement() const -> int;
     auto time() const -> MapTime;
     auto weather() const -> MapWeather;
 

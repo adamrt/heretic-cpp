@@ -46,53 +46,6 @@ auto GUI::render() -> void
     simgui_render();
 }
 
-auto GUI::draw_scenarios() -> void
-{
-
-    auto state = State::get_instance();
-
-    ImGui::Begin("Scenarios");
-
-    // Begin a table
-    if (ImGui::BeginTable("Scenarios", 5, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
-        // Set up column headers
-        ImGui::TableSetupColumn("ID");
-        ImGui::TableSetupColumn("Map");
-        ImGui::TableSetupColumn("EventID");
-        ImGui::TableSetupColumn("Time");
-        ImGui::TableSetupColumn("Weather");
-
-        ImGui::TableHeadersRow();
-
-        // Populate table with data
-        for (auto& scenario : state->scenarios) {
-            ImGui::TableNextRow();
-
-            // Column 0: ID
-            ImGui::TableSetColumnIndex(0);
-            ImGui::Text("%d", scenario.id());
-
-            ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%s", map_list[scenario.map_id()].name.c_str());
-
-            ImGui::TableSetColumnIndex(2);
-            ImGui::Text("%d", scenario.event_id());
-
-            ImGui::TableSetColumnIndex(3);
-            ImGui::Text("%s", to_string(scenario.time()).data());
-
-            ImGui::TableSetColumnIndex(4);
-            ImGui::Text("%s", to_string(scenario.weather()).data());
-        }
-
-        // End the table
-        ImGui::EndTable();
-    }
-
-    // End the window
-    ImGui::End();
-}
-
 auto GUI::draw_instructions() -> void
 {
     auto state = State::get_instance();
@@ -319,7 +272,7 @@ auto GUI::draw() -> void
 
         if (ImGui::Combo("Style", &state->current_style_index, style_name_ptrs.data(), style_name_ptrs.size())) {
             auto record = records_copy[state->current_style_index];
-            state->set_map(state->current_map_index, record.time(), record.weather());
+            state->set_map(state->current_map_index, record.time(), record.weather(), record.arrangement());
         }
     }
 
@@ -351,6 +304,7 @@ auto GUI::draw() -> void
         ImGui::SliderFloat("Rotation", &state->scene.rotation_speed, 0.0f, 2.0f);
         // ImGui::ColorEdit3("Background", &state->renderer.clear_color.r);
     }
+    ImGui::NewLine();
     if (ImGui::CollapsingHeader("Lighting")) {
         ImGui::Checkbox("Lighting Enabled", &state->scene.use_lighting);
         ImGui::SameLine();
@@ -383,19 +337,16 @@ auto GUI::draw() -> void
     ImGui::NewLine();
     ImGui::Separator();
 
-    if (ImGui::Button("Records")) {
+    if (ImGui::Button("Map_Records")) {
         show_records_table = !show_records_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Scenarios")) {
-        show_scenarios_table = !show_scenarios_table;
-    }
-    ImGui::SameLine();
-    if (ImGui::Button("Instructions")) {
+    if (ImGui::Button("Event_Instructions")) {
+        std::cout << "Instructions" << std::endl;
         show_instructions_table = !show_instructions_table;
     }
     ImGui::SameLine();
-    if (ImGui::Button("Messages")) {
+    if (ImGui::Button("Event_Messages")) {
         show_messages_table = !show_messages_table;
     }
     if (ImGui::Button(sapp_is_fullscreen() ? "Switch to windowed" : "Switch to fullscreen")) {
@@ -405,15 +356,7 @@ auto GUI::draw() -> void
     ImGui::End();
 
     if (show_records_table) {
-        if (state->records.size() > 0) {
-            draw_records();
-        }
-    }
-
-    if (show_scenarios_table) {
-        if (state->scenarios.size() > 0) {
-            draw_scenarios();
-        }
+        draw_records();
     }
 
     if (show_instructions_table) {
