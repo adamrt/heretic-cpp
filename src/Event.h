@@ -8,12 +8,16 @@
 #include <vector>
 
 // An instruction single instruction and its parameters from an Event.
-struct Instruction {
+class Instruction {
+
+public:
     // The command id.
     uint8_t command;
 
     // A vector of parameters that are always 1 or 2 bytes.
     std::vector<std::variant<uint8_t, uint16_t>> params;
+    auto param_float(int index) const -> float;
+    auto param_int(int index) const -> int;
 };
 
 // An event is a list of instructions for a particular scenario.

@@ -19,6 +19,18 @@
 #include "Event.h"
 #include "Font.h"
 
+auto Instruction::param_float(int index) const -> float
+{
+    auto value = std::get<uint16_t>(params[index]);
+    int16_t reinterpretedValue = *reinterpret_cast<int16_t*>(&value);
+    return static_cast<float>(reinterpretedValue);
+}
+
+auto Instruction::param_int(int index) const -> int
+{
+    return static_cast<int>(std::get<uint16_t>(params[index]));
+}
+
 Event::Event(std::vector<uint8_t> data)
 {
     text_offset = static_cast<uint32_t>((data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24));
@@ -49,7 +61,9 @@ auto Event::next_instruction() -> Instruction
 
     Instruction instruction = {};
     instruction.command = bytecode;
+
     for (auto const& param : command.params) {
+        // Store everything as a uint8_t or uint16_t. We can cast them later.
         std::variant<uint8_t, uint16_t> result;
         if (param == 1) {
             result = static_cast<uint8_t>(code_section[code_offset]);
