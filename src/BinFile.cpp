@@ -424,9 +424,9 @@ auto MeshFile::read_background() -> std::pair<glm::vec4, glm::vec4>
 
 auto MeshFile::read_position() -> glm::vec3
 {
-    float x = read_i16();
-    float y = read_i16();
-    float z = read_i16();
+    float x = read_i16() / GLOBAL_SCALE;
+    float y = read_i16() / GLOBAL_SCALE;
+    float z = read_i16() / GLOBAL_SCALE;
 
     y = -y;
     z = -z;
@@ -442,6 +442,7 @@ auto MeshFile::read_normal() -> glm::vec3
 
     y = -y;
     z = -z;
+
     return { x, y, z };
 }
 

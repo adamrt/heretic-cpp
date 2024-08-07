@@ -8,6 +8,15 @@
 #include "Scenario.h"
 #include "Texture.h"
 
+// GLOBAL_SCALE is used to scale the vertex data. This might be used later to
+// scale camera movement and other positional related instruction data.
+//
+// We could use the original i16 data and pass those to OpenGL and let it
+// normalize, but OpenGL will do it based on the full range of i16, not the max
+// value of our vertex data. So we just pic a number here that is reasonable and
+// use it everywhere.
+constexpr float GLOBAL_SCALE = 256.0f;
+
 // BinFile represents an individual file in the FFT BIN.
 class BinFile {
 public:

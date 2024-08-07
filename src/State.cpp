@@ -56,9 +56,8 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
     auto map_mesh = std::make_shared<Mesh>(map->mesh->vertices);
     auto map_model = std::make_shared<PalettedModel>(map_mesh, map->texture, map->mesh->palette);
     auto background = std::make_shared<Background>(map->mesh->background);
-
-    map_model->scale = map_mesh->normalized_scale();
-    map_model->translation = map_mesh->center_translation();
+    auto map_center_translation = map_mesh->center_translation();
+    map_model->translation = map_center_translation;
 
     state->records = map->gns_records;
 
@@ -67,7 +66,11 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
     state->scene.add_model(map_model);
     state->scene.ambient_color = map->mesh->ambient_color;
 
+    // Add lights with the same translation from the map. We don't take the
+    // lights position into the center_translation calculation because they are
+    // so far away.
     for (std::shared_ptr<Light> light : map->mesh->lights) {
+        light->translation += map_center_translation;
         state->scene.add_light(light);
     }
 
