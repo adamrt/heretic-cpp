@@ -27,12 +27,19 @@ public:
     auto view_proj() const -> glm::mat4 { return _proj * _view; }
 
 private:
+    static constexpr glm::vec3 default_target = { 0.0f, 0.0f, 0.0f };
+    static constexpr float default_fov = 60.0f;
+    static constexpr float default_distance = 2.0f;
+    static constexpr float default_latitude = 30.0f;
+    static constexpr float default_longitude = 30.0f;
+
     auto _euclidean(float latitude, float longitude) -> glm::vec3;
 
-    float _fov = 60.0f;
-    float _distance = 2.0f;
-    float _latitude = 30.0f;
-    float _longitude = 30.0f;
+    float _fov = default_fov;
+    float _distance = default_distance;
+    float _latitude = default_latitude;
+    float _longitude = default_longitude;
+
     glm::vec3 _eye = {};
     glm::vec3 _target = {};
     glm::mat4 _view = {};

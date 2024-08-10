@@ -6,10 +6,12 @@
 
 auto Camera::reset() -> void
 {
-    _target = glm::vec3 { 0.0f, 0.0f, 0.0f };
-    _latitude = 30.0f;
-    _longitude = 30.0f;
-    _distance = 10.0f;
+    _target = default_target;
+    _fov = default_fov;
+    _distance = default_distance;
+    _latitude = default_latitude;
+    _longitude = default_longitude;
+
     update();
 }
 
