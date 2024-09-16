@@ -39,7 +39,7 @@ auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangeme
         if (!desc.valid) {
             std::cout << "Invalid map: " << map_num << std::endl;
             map_num++;
-            if (map_num >= map_list.size()) {
+            if (map_num >= (int)map_list.size()) {
                 map_num = 0;
             }
             continue;
@@ -83,7 +83,7 @@ auto State::next_scenario() -> void
     auto state = State::get_instance();
     std::optional<Scenario> scenario = {};
 
-    if (state->current_scenario_index == scenarios.size() - 1) {
+    if (state->current_scenario_index == (int)scenarios.size() - 1) {
         state->current_scenario_index = 0;
         scenario = scenarios[state->current_scenario_index];
     } else {
@@ -120,7 +120,7 @@ auto State::next_map() -> void
         auto desc = map_list[state->current_map_index];
         if (!desc.valid) {
             state->current_map_index++;
-            if (state->current_map_index >= map_list.size()) {
+            if (state->current_map_index >= (int)map_list.size()) {
                 state->current_map_index = 0;
             }
             continue;

@@ -115,7 +115,7 @@ auto Event::messages() -> std::vector<std::string>
     uint8_t delemiter = 0xFE;
     std::string delemiter_str(1, static_cast<char>(delemiter));
 
-    for (int i = 0; i < text_section.size(); i++) {
+    for (int i = 0; i < (int)text_section.size(); i++) {
         uint8_t byte = text_section[i];
 
         // These are special characters. We need to handle them differently.
@@ -153,6 +153,8 @@ auto Event::messages() -> std::vector<std::string>
             // https://gomtuu.org/fft/trans/compression/
             auto second_byte = text_section[++i];
             auto third_byte = text_section[++i];
+            (void)second_byte;
+            (void)third_byte;
             message_vec.push_back("{TextJump}");
             continue;
         }

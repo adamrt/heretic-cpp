@@ -45,6 +45,7 @@ public:
 class PalettedModel : public Model {
 public:
     PalettedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Texture> _texture, std::shared_ptr<Texture> _palette, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+    virtual ~PalettedModel() = default;
 
     auto render() -> void override;
 
@@ -66,6 +67,7 @@ public:
 class Light : public ColoredModel {
 public:
     Light(std::shared_ptr<Mesh> _mesh, glm::vec4 _color, glm::vec3 _position = { 0.0f, 0.0f, 0.0f });
+    virtual ~Light() = default;
 
     bool is_valid() { return color.x + color.y + color.z > 0.0f; }
 
@@ -76,6 +78,7 @@ class Background : public Model {
 public:
     Background(std::pair<glm::vec4, glm::vec4> background);
     Background(glm::vec4 top, glm::vec4 bottom);
+    virtual ~Background() = default;
 
     auto render() -> void override;
 

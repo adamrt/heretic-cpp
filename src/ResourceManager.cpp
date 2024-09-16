@@ -89,10 +89,10 @@ auto ResourceManager::get_mesh(const std::string& name) -> std::shared_ptr<Mesh>
     assert(false);
 }
 
-auto ResourceManager::set_bin_reader(std::shared_ptr<BinReader> bin_reader) -> std::shared_ptr<BinReader>
+auto ResourceManager::set_bin_reader(std::shared_ptr<BinReader> reader) -> std::shared_ptr<BinReader>
 {
-    this->bin_reader = bin_reader;
-    return bin_reader;
+    this->bin_reader = reader;
+    return reader;
 }
 
 auto ResourceManager::get_bin_reader() -> std::shared_ptr<BinReader>

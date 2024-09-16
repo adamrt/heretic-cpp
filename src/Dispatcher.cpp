@@ -39,7 +39,7 @@ float as_float(uint16_t value)
 
 auto Dispatcher::dispatch(Event& event) -> void
 {
-    auto state = State::get_instance();
+    // auto state = State::get_instance();
 
     for (auto& instruction : event.instructions()) {
         switch (instruction.command) {
@@ -63,6 +63,9 @@ auto Dispatcher::dispatch(Event& event) -> void
 
 auto Dispatcher::camera(glm::vec3 position, float angle, float map_rotation, float map_zoom, int frames) -> void
 {
+    (void)position;
+    (void)angle;
+    (void)map_zoom;
     CameraTransition transition = {
         // .start_position = m_camera->get_eye(),
         // .target_position = position,
@@ -90,6 +93,10 @@ auto Dispatcher::update_camera_transition(CameraTransition& transition) -> void
     float current_map_zoom = transition.start_zoom + t * (transition.target_zoom - transition.start_zoom);
 
     float distance = glm::distance(current_position, glm::vec3 { 0, 0, 0 });
+
+    (void)current_angle;
+    (void)current_map_zoom;
+    (void)distance;
 
     // state->camera.set_distance(distance);
     // state->camera.set_position(current_position);
