@@ -35,7 +35,7 @@ auto init() -> void
 {
     auto state = State::get_instance();
     auto resources = ResourceManager::get_instance();
-    auto reader = std::make_shared<BinReader>("/home/adam/sync/emu/fft.bin");
+    auto reader = std::make_shared<BinReader>("/Users/adam/sync/emu/fft.bin");
     resources->set_bin_reader(reader);
 
     // Parse global data
