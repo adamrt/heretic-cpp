@@ -53,7 +53,7 @@ auto Dispatcher::dispatch(Event& event) -> void
             float zoom = instruction.param_float(5);
             int frames = instruction.param_int(6);
 
-            auto position = glm::vec3(x, y, z) * state->scale;
+            auto position = glm::vec3(x, y, z); // * state->scale;
 
             camera(glm::vec3(x, y, z), angle, map_rotation, zoom, frames);
             break;
