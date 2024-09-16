@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <format>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -159,7 +160,7 @@ auto GUI::draw_records() -> void
 
             // Column 1: Length
             ImGui::TableSetColumnIndex(1);
-            ImGui::Text("%ld", record.length());
+            ImGui::Text("%llu", record.length());
 
             // Column 2: Type
             ImGui::TableSetColumnIndex(2);
@@ -324,9 +325,8 @@ auto GUI::draw() -> void
 
         for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);
-            char title[10];
-            sprintf(title, "Light %d", (int)i);
-            ImGui::SeparatorText(title);
+            std::string title = std::format("Light {}", static_cast<int>(i));
+            ImGui::SeparatorText(title.c_str());
             ImGui::SliderFloat3("Position", &state->scene.lights[i]->translation[0], -50.0f, 50.0f, "%0.2f", 0);
             ImGui::ColorEdit4("Color", &state->scene.lights[i]->color[0], ImGuiColorEditFlags_None);
             ImGui::Checkbox("Enabled", &state->scene.lights[i]->is_enabled);
