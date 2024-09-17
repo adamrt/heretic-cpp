@@ -13,10 +13,7 @@ public:
 
     auto update() -> void;
     auto dispatch(Event& event) -> void;
-    auto clear() -> void
-    {
-        m_transitions.clear();
-    };
+    auto clear() -> void { m_transitions.clear(); };
 
 private:
     struct CameraTransition {
@@ -32,7 +29,7 @@ private:
         int current_frame;
     };
 
-    Dispatcher();
+    Dispatcher() {};
     static Dispatcher* instance;
 
     // 0x19

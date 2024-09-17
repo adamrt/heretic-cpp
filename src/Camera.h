@@ -29,7 +29,7 @@ public:
 private:
     static constexpr glm::vec3 default_target = { 0.0f, 0.0f, 0.0f };
     static constexpr float default_fov = 60.0f;
-    static constexpr float default_distance = 2.0f;
+    static constexpr float default_distance = 1.0f;
     static constexpr float default_latitude = 30.0f;
     static constexpr float default_longitude = 30.0f;
 

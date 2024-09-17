@@ -12,10 +12,6 @@ auto Dispatcher::get_instance() -> Dispatcher*
     return instance;
 }
 
-Dispatcher::Dispatcher()
-{
-}
-
 auto Dispatcher::update() -> void
 {
 

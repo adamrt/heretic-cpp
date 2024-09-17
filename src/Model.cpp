@@ -62,6 +62,7 @@ TexturedModel::TexturedModel(std::shared_ptr<Mesh> _mesh, std::shared_ptr<Textur
     pipeline = resources->get_pipeline("textured")->get_pipeline();
     bindings.vertex_buffers[0] = mesh->vertex_buffer;
 }
+
 auto TexturedModel::render() -> void
 {
     auto state = State::get_instance();
