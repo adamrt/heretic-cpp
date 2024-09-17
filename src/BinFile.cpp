@@ -15,48 +15,48 @@ auto BinFile::read_bytes(int num) -> std::vector<uint8_t>
 auto BinFile::read_u8() -> uint8_t
 {
     uint8_t value;
-    memcpy(&value, &data[offset], sizeof(uint8_t));
-    offset += sizeof(uint8_t);
+    memcpy(&value, &m_data[m_offset], sizeof(uint8_t));
+    m_offset += sizeof(uint8_t);
     return value;
 }
 
 auto BinFile::read_u16() -> uint16_t
 {
     uint16_t value;
-    memcpy(&value, &data[offset], sizeof(uint16_t));
-    offset += sizeof(uint16_t);
+    memcpy(&value, &m_data[m_offset], sizeof(uint16_t));
+    m_offset += sizeof(uint16_t);
     return value;
 }
 
 auto BinFile::read_u32() -> uint32_t
 {
     uint32_t value;
-    memcpy(&value, &data[offset], sizeof(uint32_t));
-    offset += sizeof(uint32_t);
+    memcpy(&value, &m_data[m_offset], sizeof(uint32_t));
+    m_offset += sizeof(uint32_t);
     return value;
 }
 
 auto BinFile::read_i8() -> int8_t
 {
     int8_t value;
-    memcpy(&value, &data[offset], sizeof(int8_t));
-    offset += sizeof(int8_t);
+    memcpy(&value, &m_data[m_offset], sizeof(int8_t));
+    m_offset += sizeof(int8_t);
     return value;
 }
 
 auto BinFile::read_i16() -> int16_t
 {
     int16_t value;
-    memcpy(&value, &data[offset], sizeof(int16_t));
-    offset += sizeof(int16_t);
+    memcpy(&value, &m_data[m_offset], sizeof(int16_t));
+    m_offset += sizeof(int16_t);
     return value;
 }
 
 auto BinFile::read_i32() -> int32_t
 {
     int32_t value;
-    memcpy(&value, &data[offset], sizeof(int32_t));
-    offset += sizeof(int32_t);
+    memcpy(&value, &m_data[m_offset], sizeof(int32_t));
+    m_offset += sizeof(int32_t);
     return value;
 }
 
@@ -86,7 +86,7 @@ auto TextureFile::read_texture() -> std::shared_ptr<Texture>
     std::array<uint8_t, FFT_TEXTURE_NUM_BYTES> pixels = {};
 
     for (int i = 0, j = 0; i < FFT_TEXTURE_RAW_SIZE; i++, j += 8) {
-        uint8_t raw_pixel = data.at(i);
+        uint8_t raw_pixel = m_data.at(i);
         uint8_t right = ((raw_pixel & 0x0F));
         uint8_t left = ((raw_pixel & 0xF0) >> 4);
         pixels.at(j + 0) = right;
@@ -125,13 +125,13 @@ auto MeshFile::read_vertices() -> std::vector<Vertex>
 {
     // 0x40 is always the location of the primary mesh pointer.
     // 0xC4 is always the primary mesh pointer.
-    offset = 0x40;
+    m_offset = 0x40;
     uint32_t intra_file_ptr = read_u32();
     if (intra_file_ptr == 0) {
         return {};
     }
 
-    offset = intra_file_ptr;
+    m_offset = intra_file_ptr;
 
     // The number of each type of polygon.
     uint16_t N = read_u16(); // Textured triangles
@@ -334,12 +334,12 @@ auto MeshFile::read_vertices() -> std::vector<Vertex>
 
 auto MeshFile::read_palette() -> std::shared_ptr<Texture>
 {
-    offset = 0x44;
+    m_offset = 0x44;
     uint32_t intra_file_ptr = read_u32();
     if (intra_file_ptr == 0) {
         return nullptr;
     }
-    offset = intra_file_ptr;
+    m_offset = intra_file_ptr;
 
     std::array<uint8_t, FFT_PALETTE_NUM_BYTES> pixels = {};
 
@@ -357,13 +357,13 @@ auto MeshFile::read_palette() -> std::shared_ptr<Texture>
 
 auto MeshFile::read_lights() -> std::tuple<std::vector<std::shared_ptr<Light>>, glm::vec4, std::pair<glm::vec4, glm::vec4>>
 {
-    offset = 0x64;
+    m_offset = 0x64;
     uint32_t intra_file_ptr = read_u32();
     if (intra_file_ptr == 0) {
         return {};
     }
 
-    offset = intra_file_ptr;
+    m_offset = intra_file_ptr;
 
     glm::vec4 a_color = {};
     glm::vec4 b_color = {};
@@ -494,7 +494,7 @@ auto AttackOutFile::read_scenarios() -> std::vector<Scenario>
     constexpr int scenario_intra_file_offset = 0x10938;
 
     // Skip ahead to the scenario data in the file.
-    offset = scenario_intra_file_offset;
+    m_offset = scenario_intra_file_offset;
 
     std::vector<Scenario> scenarios;
     for (int i = 0; i < scenario_count; i++) {

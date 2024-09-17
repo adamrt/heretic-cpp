@@ -42,17 +42,17 @@ private:
 
 private:
     bool m_should_skip;
-    std::vector<uint8_t> code_section;
-    std::vector<uint8_t> text_section;
+    std::vector<uint8_t> m_code_section;
+    std::vector<uint8_t> m_text_section;
 
     std::vector<Instruction> m_cached_instructions;
     std::vector<std::string> m_cached_messages;
 
-    // text_offset is a constant value to points to the start of the text_section.
-    uint32_t text_offset;
+    // text_offset is a constant value that points to the start of the text_section.
+    uint32_t m_text_offset;
 
     // code_offset is the current pointer position into the code_section.
-    uint32_t code_offset = 0;
+    uint32_t m_code_offset = 0;
 };
 
 // A command represents an bit of functionality in FFT Events. This is used

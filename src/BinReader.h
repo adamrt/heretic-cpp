@@ -25,7 +25,6 @@ public:
     auto read_events() -> std::vector<Event>;
 
 private:
-    FILE* file;
     auto read_sector(int32_t sector_num) -> std::array<uint8_t, SECTOR_SIZE>;
     auto read_file(uint32_t sector, uint32_t size) -> BinFile;
 
@@ -37,4 +36,7 @@ private:
     // Specific Files on disk
     auto read_attack_out_file() -> AttackOutFile;
     auto read_event_file() -> EventFile;
+
+private:
+    FILE* file;
 };

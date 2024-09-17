@@ -20,6 +20,10 @@ constexpr float GLOBAL_SCALE = 256.0f;
 // BinFile represents an individual file in the FFT BIN.
 class BinFile {
 public:
+    BinFile(std::vector<uint8_t> data)
+        : m_data(data)
+        , m_offset(0) {};
+
     auto read_bytes(int num) -> std::vector<uint8_t>;
 
     auto read_u8() -> uint8_t;
@@ -29,9 +33,9 @@ public:
     auto read_i16() -> int16_t;
     auto read_i32() -> int32_t;
 
-    std::vector<uint8_t> data;
-    uint64_t length;
-    uint64_t offset;
+protected:
+    std::vector<uint8_t> m_data;
+    uint64_t m_offset;
 };
 
 class GNSFile : public BinFile {

@@ -33,22 +33,22 @@ auto Instruction::param_int(int index) const -> int
 
 Event::Event(std::vector<uint8_t> data)
 {
-    text_offset = static_cast<uint32_t>((data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24));
+    m_text_offset = static_cast<uint32_t>((data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24));
 
-    m_should_skip = text_offset == 0xF2F2F2F2;
+    m_should_skip = m_text_offset == 0xF2F2F2F2;
     if (m_should_skip) {
         return;
     }
 
-    text_section = std::vector<uint8_t>(data.begin() + text_offset, data.end());
-    code_section = std::vector<uint8_t>(data.begin() + 4, data.begin() + text_offset);
+    m_text_section = std::vector<uint8_t>(data.begin() + m_text_offset, data.end());
+    m_code_section = std::vector<uint8_t>(data.begin() + 4, data.begin() + m_text_offset);
 }
 
 auto Event::next_instruction() -> Instruction
 {
     assert(!m_should_skip);
-    auto bytecode = code_section[code_offset];
-    code_offset++;
+    auto bytecode = m_code_section[m_code_offset];
+    m_code_offset++;
 
     if (command_list.find(bytecode) == command_list.end()) {
         Instruction instruction = {};
@@ -66,11 +66,11 @@ auto Event::next_instruction() -> Instruction
         // Store everything as a uint8_t or uint16_t. We can cast them later.
         std::variant<uint8_t, uint16_t> result;
         if (param == 1) {
-            result = static_cast<uint8_t>(code_section[code_offset]);
+            result = static_cast<uint8_t>(m_code_section[m_code_offset]);
         } else if (param == 2) {
-            result = static_cast<uint16_t>(code_section[code_offset] | (code_section[code_offset + 1] << 8));
+            result = static_cast<uint16_t>(m_code_section[m_code_offset] | (m_code_section[m_code_offset + 1] << 8));
         }
-        code_offset += param;
+        m_code_offset += param;
         instruction.params.push_back(result);
     }
 
@@ -85,15 +85,15 @@ auto Event::instructions() -> std::vector<Instruction>
 
     assert(!m_should_skip);
     std::vector<Instruction> instructions;
-    auto len = code_section.size();
+    auto len = m_code_section.size();
 
-    while (code_offset < len) {
+    while (m_code_offset < len) {
         auto instruction = next_instruction();
         instructions.push_back(instruction);
     }
 
     // Reset the index in case we want to read again.
-    code_offset = 0;
+    m_code_offset = 0;
 
     m_cached_instructions = instructions;
 
@@ -126,8 +126,8 @@ auto Event::messages() -> std::vector<std::string>
     uint8_t delemiter = 0xFE;
     std::string delemiter_str(1, static_cast<char>(delemiter));
 
-    for (int i = 0; i < (int)text_section.size(); i++) {
-        uint8_t byte = text_section[i];
+    for (int i = 0; i < (int)m_text_section.size(); i++) {
+        uint8_t byte = m_text_section[i];
 
         // These are special characters. We need to handle them differently.
         // https://ffhacktics.com/wiki/Text_Format#Special_Characters
@@ -142,14 +142,14 @@ auto Event::messages() -> std::vector<std::string>
             continue;
         }
         case 0xE2: {
-            uint8_t delay = text_section[++i];
+            uint8_t delay = m_text_section[++i];
             std::ostringstream ss;
             ss << "{Delay: " << (int)delay << "}";
             message_vec.push_back(ss.str());
             continue;
         }
         case 0xE3: {
-            uint8_t color = text_section[++i];
+            uint8_t color = m_text_section[++i];
             std::ostringstream ss;
             ss << "{Color: " << (int)color << "}";
             message_vec.push_back(ss.str());
@@ -162,8 +162,8 @@ auto Event::messages() -> std::vector<std::string>
             // This is a jump to another point in the text section.
             // The next 2 bytes are the jump location and how many bytes to read.
             // https://gomtuu.org/fft/trans/compression/
-            auto second_byte = text_section[++i];
-            auto third_byte = text_section[++i];
+            auto second_byte = m_text_section[++i];
+            auto third_byte = m_text_section[++i];
             (void)second_byte;
             (void)third_byte;
             message_vec.push_back("{TextJump}");
@@ -185,7 +185,7 @@ auto Event::messages() -> std::vector<std::string>
         // Bytes higher than 0xCF are two byte characters.
         // https://ffhacktics.com/wiki/Font
         if (byte > 0xCF) {
-            auto second_byte = text_section[i + 1];
+            auto second_byte = m_text_section[i + 1];
             // combine the two bytes, c and z into a single 16 bit value, in little endian.
             uint16_t combined = (second_byte | (byte << 8));
             if (font.find(combined) != font.end()) {

@@ -173,13 +173,13 @@ auto BinReader::read_sector(int32_t sector_num) -> std::array<uint8_t, SECTOR_SI
 auto BinReader::read_file(uint32_t sector_num, uint32_t size) -> BinFile
 {
     uint32_t occupied_sectors = ceil((float)size / (float)SECTOR_SIZE);
-    BinFile out_file;
+    std::vector<uint8_t> data;
     for (uint32_t i = 0; i < occupied_sectors; i++) {
         auto sector_data = read_sector(sector_num + i);
-        out_file.data.insert(out_file.data.end(), sector_data.begin(), sector_data.end());
-        out_file.length += SECTOR_SIZE;
+        data.insert(data.end(), sector_data.begin(), sector_data.end());
     }
-    out_file.offset = 0;
+
+    BinFile out_file(data);
     return out_file;
 }
 

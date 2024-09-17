@@ -18,17 +18,16 @@ public:
     Mesh(std::string filename);
     Mesh(std::vector<Vertex> vertices);
     Mesh(std::vector<glm::vec3> vertices);
-    ~Mesh()
-    {
-        sg_destroy_buffer(vertex_buffer);
-    }
+    ~Mesh() { sg_destroy_buffer(vertex_buffer); }
 
-    glm::vec3 normalized_scale() const;
-    glm::vec3 center_translation() const;
+    auto center_translation() const -> glm::vec3;
 
-    std::vector<Vertex> parse_obj(const std::string filename);
-
-    sg_buffer vertex_buffer = {};
+public:
     std::vector<Vertex> vertices = {};
     std::vector<glm::vec3> vertices_float = {};
+    sg_buffer vertex_buffer = {};
+
+private:
+    auto parse_obj(const std::string filename) -> std::vector<Vertex>;
+    auto normalized_scale() const -> glm::vec3;
 };
