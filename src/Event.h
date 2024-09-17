@@ -32,15 +32,22 @@ public:
     Event() = default;
     Event(std::vector<uint8_t> data);
 
+    auto should_skip() -> bool { return m_should_skip; }
+
     auto instructions() -> std::vector<Instruction>;
     auto messages() -> std::vector<std::string>;
+
+private:
     auto next_instruction() -> Instruction;
 
-    bool should_skip;
+private:
+    bool m_should_skip;
     std::vector<uint8_t> code_section;
     std::vector<uint8_t> text_section;
 
-private:
+    std::vector<Instruction> m_cached_instructions;
+    std::vector<std::string> m_cached_messages;
+
     // text_offset is a constant value to points to the start of the text_section.
     uint32_t text_offset;
 

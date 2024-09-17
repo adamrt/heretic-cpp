@@ -35,8 +35,8 @@ Event::Event(std::vector<uint8_t> data)
 {
     text_offset = static_cast<uint32_t>((data[0] & 0xFF) | ((data[1] & 0xFF) << 8) | ((data[2] & 0xFF) << 16) | ((data[3] & 0xFF) << 24));
 
-    should_skip = text_offset == 0xF2F2F2F2;
-    if (should_skip) {
+    m_should_skip = text_offset == 0xF2F2F2F2;
+    if (m_should_skip) {
         return;
     }
 
@@ -46,7 +46,7 @@ Event::Event(std::vector<uint8_t> data)
 
 auto Event::next_instruction() -> Instruction
 {
-    assert(!should_skip);
+    assert(!m_should_skip);
     auto bytecode = code_section[code_offset];
     code_offset++;
 
@@ -79,19 +79,25 @@ auto Event::next_instruction() -> Instruction
 
 auto Event::instructions() -> std::vector<Instruction>
 {
-    assert(!should_skip);
-    std::vector<Instruction> commands;
+    if (!m_cached_instructions.empty()) {
+        return m_cached_instructions;
+    }
+
+    assert(!m_should_skip);
+    std::vector<Instruction> instructions;
     auto len = code_section.size();
 
     while (code_offset < len) {
-        auto command = next_instruction();
-        commands.push_back(command);
+        auto instruction = next_instruction();
+        instructions.push_back(instruction);
     }
 
     // Reset the index in case we want to read again.
     code_offset = 0;
 
-    return commands;
+    m_cached_instructions = instructions;
+
+    return instructions;
 }
 
 std::vector<std::string> split_string(const std::string& str, char delimiter)
@@ -109,7 +115,12 @@ std::vector<std::string> split_string(const std::string& str, char delimiter)
 
 auto Event::messages() -> std::vector<std::string>
 {
-    assert(!should_skip);
+    if (!m_cached_messages.empty()) {
+        return m_cached_messages;
+    }
+
+    printf("Reading messages\n");
+    assert(!m_should_skip);
     auto message_vec = std::vector<std::string> {};
 
     uint8_t delemiter = 0xFE;
@@ -216,6 +227,7 @@ auto Event::messages() -> std::vector<std::string>
         }
         // FIXME: Handle 0x51 as well. It uses a different param index.
     }
+    m_cached_messages = event_messages;
     return event_messages;
 }
 

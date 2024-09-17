@@ -31,12 +31,6 @@ auto Dispatcher::update() -> void
     }
 }
 
-float as_float(uint16_t value)
-{
-    int16_t reinterpretedValue = *reinterpret_cast<int16_t*>(&value);
-    return static_cast<float>(reinterpretedValue);
-}
-
 auto Dispatcher::dispatch(Event& event) -> void
 {
     // auto state = State::get_instance();

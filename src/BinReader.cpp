@@ -142,7 +142,7 @@ auto BinReader::read_scenarios() -> std::vector<Scenario>
     for (auto& scenario : attack_out.read_scenarios()) {
         // We only care about scenarios that have a valid event.
         auto event = events[scenario.id()];
-        if (event.should_skip) {
+        if (event.should_skip()) {
             continue;
         }
         valid_scenarios.push_back(scenario);
