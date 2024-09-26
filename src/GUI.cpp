@@ -1,5 +1,4 @@
 #include <algorithm>
-#include <format>
 #include <iomanip>
 #include <sstream>
 #include <utility>
@@ -325,7 +324,9 @@ auto GUI::draw() -> void
 
         for (size_t i = 0; i < state->scene.lights.size(); i++) {
             ImGui::PushID(i);
-            std::string title = std::format("Light {}", static_cast<int>(i));
+            std::stringstream ss;
+            ss << "Light " << static_cast<int>(i);
+            std::string title = ss.str();
             ImGui::SeparatorText(title.c_str());
             ImGui::SliderFloat3("Position", &state->scene.lights[i]->translation[0], -50.0f, 50.0f, "%0.2f", 0);
             ImGui::ColorEdit4("Color", &state->scene.lights[i]->color[0], ImGuiColorEditFlags_None);
