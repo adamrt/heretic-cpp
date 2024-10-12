@@ -77,9 +77,11 @@ struct FFTMesh {
 };
 
 struct FFTMap {
-    std::vector<Record> gns_records = {};
-    std::shared_ptr<Texture> texture = nullptr;
     std::shared_ptr<FFTMesh> mesh = nullptr;
+    std::shared_ptr<Texture> texture = nullptr;
+
+    // GNS records that are useful to list in the UI
+    std::vector<Record> gns_records = {};
 };
 
 struct FFTMapDesc {

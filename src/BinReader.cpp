@@ -24,110 +24,70 @@ BinReader::~BinReader()
 
 auto BinReader::read_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>
 {
-    auto requested_key = std::make_tuple(time, weather, arrangement);
-    auto fallback_key = std::make_tuple(MapTime::Day, MapWeather::None, 0);
-
+    std::shared_ptr<FFTMesh> final_mesh = nullptr;
     std::shared_ptr<FFTMesh> primary_mesh = nullptr;
-    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<Texture>> textures;
-    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> alt_meshes;
-    std::map<std::tuple<MapTime, MapWeather, int>, std::shared_ptr<FFTMesh>> override_meshes;
+    std::shared_ptr<FFTMesh> alt_mesh = nullptr;
+    std::shared_ptr<FFTMesh> override_mesh = nullptr;
+    std::shared_ptr<Texture> texture = nullptr;
+    std::shared_ptr<Texture> fallback_texture = nullptr;
 
     auto gns_records = read_gns_file(map_list[map_num].sector).read_records();
 
     for (auto& record : gns_records) {
-        auto record_key = std::make_tuple(record.time(), record.weather(), record.arrangement());
+        bool is_match = record.time() == time && record.weather() == weather && record.arrangement() == arrangement;
+        bool is_default = record.time() == MapTime::Day && record.weather() == MapWeather::None && record.arrangement() == 0;
 
+        // MeshPrimary and MeshOverride are special cases that use are always set to TimeDay, WeatherNone, Arrangement 0.
         switch (record.resource_type()) {
-        case ResourceType::MeshPrimary: {
-            // Primary Mesh is always Day/None
-            auto resource = read_mesh_file(record.sector(), record.length());
-            primary_mesh = resource.read_mesh();
+
+        case ResourceType::MeshPrimary:
+            primary_mesh = read_mesh_file(record.sector(), record.length()).read_mesh();
             break;
-        }
-        case ResourceType::Texture: {
-            // There can be duplicate textures for the same time/weather. Use the first one.
-            if (textures.find(record_key) == textures.end()) {
-                auto resource = read_texture_file(record.sector());
-                textures[record_key] = resource.read_texture();
+
+        case ResourceType::MeshOverride:
+            override_mesh = read_mesh_file(record.sector(), record.length()).read_mesh();
+            break;
+
+        case ResourceType::Texture:
+            // Maps 51 and 105 have duplicate textures for the same conditions
+            // but they are the same image data. Some maps don't have a texture
+            // for the conditions so we need to fallback to the default.
+            if (is_match) {
+                texture = read_texture_file(record.sector()).read_texture();
+            } else if (is_default) {
+                fallback_texture = read_texture_file(record.sector()).read_texture();
             }
             break;
-        }
-        case ResourceType::MeshAlt: {
-            auto resource = read_mesh_file(record.sector(), record.length());
-            alt_meshes[record_key] = resource.read_mesh();
+
+        case ResourceType::MeshAlt:
+            if (is_match) {
+                alt_mesh = read_mesh_file(record.sector(), record.length()).read_mesh();
+            }
             break;
-        }
-        case ResourceType::MeshOverride: {
-            auto resource = read_mesh_file(record.sector(), record.length());
-            override_meshes[record_key] = resource.read_mesh();
-            break;
-        }
-        case ResourceType::End: {
-            break;
-        }
+
         default:
             std::cout << "Unknown resource type: " << std::endl;
         }
     }
 
-    auto texture = textures[requested_key];
-    if (texture == nullptr) {
-        texture = textures[fallback_key];
-        assert(texture != nullptr);
-    }
-
-    auto override_mesh = override_meshes[requested_key];
-    if (primary_mesh == nullptr) {
-        primary_mesh = std::make_shared<FFTMesh>();
-        if (override_mesh == nullptr) {
-            override_mesh = override_meshes[fallback_key];
-            assert(override_mesh != nullptr);
-        }
-    }
+    // A few maps have no primary mesh, so we need to create one.
+    // 2, 8 ,15 ,16 ,18 ,33 ,34 ,41 ,55 ,68 ,92 ,94 ,95 ,96, 104
+    final_mesh = primary_mesh != nullptr ? primary_mesh : std::make_shared<FFTMesh>();
 
     if (override_mesh != nullptr) {
-        if (override_mesh->vertices.size() > 0) {
-            primary_mesh->vertices.insert(primary_mesh->vertices.end(), override_mesh->vertices.begin(), override_mesh->vertices.end());
-        }
-        if (override_mesh->lights.size() > 0) {
-            primary_mesh->lights = override_mesh->lights;
-        }
-        if (override_mesh->palette != nullptr) {
-            primary_mesh->palette = override_mesh->palette;
-        }
-        // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
-        if (override_mesh->ambient_color.w == 1.0f) {
-            primary_mesh->ambient_color = override_mesh->ambient_color;
-        }
-        if (override_mesh->background.first.w == 1.0f) {
-            primary_mesh->background = override_mesh->background;
-        }
+        merge_meshes(final_mesh, override_mesh);
     }
 
-    auto alt_mesh = alt_meshes[requested_key];
     if (alt_mesh != nullptr) {
-        if (alt_mesh->vertices.size() > 0) {
-            primary_mesh->vertices.insert(primary_mesh->vertices.end(), alt_mesh->vertices.begin(), alt_mesh->vertices.end());
-        }
-        if (alt_mesh->lights.size() > 0) {
-            primary_mesh->lights = alt_mesh->lights;
-        }
-        if (alt_mesh->palette != nullptr) {
-            primary_mesh->palette = alt_mesh->palette;
-        }
-        // Defaults w (alpha) is 0.0f, so 1.0f means we read the ambient color and background.
-        if (alt_mesh->ambient_color.w == 1.0f) {
-            primary_mesh->ambient_color = alt_mesh->ambient_color;
-        }
-        if (alt_mesh->background.first.w == 1.0f) {
-            primary_mesh->background = alt_mesh->background;
-        }
+        merge_meshes(final_mesh, alt_mesh);
     }
+
+    texture = texture != nullptr ? texture : fallback_texture;
 
     auto map = std::make_shared<FFTMap>();
-    map->gns_records = gns_records;
+    map->mesh = final_mesh;
     map->texture = texture;
-    map->mesh = primary_mesh;
+    map->gns_records = gns_records;
 
     return map;
 }
@@ -212,4 +172,29 @@ auto BinReader::read_event_file() -> EventFile
     constexpr int event_file_size = 4096000;
 
     return EventFile { read_file(event_file_sector, event_file_size) };
+}
+
+auto merge_meshes(std::shared_ptr<FFTMesh> destination, std::shared_ptr<FFTMesh> source) -> void
+{
+    if (!source->vertices.empty()) {
+        destination->vertices.insert(destination->vertices.end(), source->vertices.begin(), source->vertices.end());
+    }
+
+    if (!source->lights.empty()) {
+        destination->lights = source->lights;
+    }
+
+    if (source->palette != nullptr) {
+        destination->palette = source->palette;
+    }
+
+    if (source->ambient_color.r + source->ambient_color.g + source->ambient_color.b + source->ambient_color.a > 0.0f) {
+        destination->ambient_color = source->ambient_color;
+    }
+
+    bool top_has_color = source->background.first.r + source->background.first.g + source->background.first.b + source->background.first.a > 0.0f;
+    bool bottom_has_color = source->background.second.r + source->background.second.g + source->background.second.b + source->background.second.a > 0.0f;
+    if (top_has_color || bottom_has_color) {
+        destination->background = source->background;
+    }
 }

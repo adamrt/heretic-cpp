@@ -17,7 +17,7 @@
 // md5sum: b156ba386436d20fd5ed8d37bab6b624
 class BinReader {
 public:
-    BinReader(std::string filename);
+    explicit BinReader(std::string filename);
     ~BinReader();
 
     auto read_map(int mapnum, MapTime time, MapWeather weather, int arrangement) -> std::shared_ptr<FFTMap>;
@@ -40,3 +40,5 @@ private:
 private:
     FILE* file;
 };
+
+auto merge_meshes(std::shared_ptr<FFTMesh> primary_mesh, std::shared_ptr<FFTMesh> other_mesh) -> void;
