@@ -1,63 +1,28 @@
 #include "BinFile.h"
 #include "ResourceManager.h"
 
+template <typename T>
+auto BinFile::read() -> T
+{
+    T value;
+    memcpy(&value, &m_data[m_offset], sizeof(T));
+    m_offset += sizeof(T);
+    return value;
+}
+
+auto BinFile::read_u8() -> uint8_t { return read<uint8_t>(); }
+auto BinFile::read_u16() -> uint16_t { return read<uint16_t>(); }
+auto BinFile::read_u32() -> uint32_t { return read<uint32_t>(); }
+auto BinFile::read_i8() -> int8_t { return read<int8_t>(); }
+auto BinFile::read_i16() -> int16_t { return read<int16_t>(); }
+auto BinFile::read_i32() -> int32_t { return read<int32_t>(); }
+
 auto BinFile::read_bytes(int num) -> std::vector<uint8_t>
 {
-    std::vector<uint8_t> bytes = {};
-    bytes.resize(num);
-
-    for (int i = 0; i < num; i++) {
-        bytes.at(i) = read_u8();
-    }
+    std::vector<uint8_t> bytes(num);
+    std::memcpy(bytes.data(), m_data.data() + m_offset, num);
+    m_offset += num;
     return bytes;
-}
-
-auto BinFile::read_u8() -> uint8_t
-{
-    uint8_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(uint8_t));
-    m_offset += sizeof(uint8_t);
-    return value;
-}
-
-auto BinFile::read_u16() -> uint16_t
-{
-    uint16_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(uint16_t));
-    m_offset += sizeof(uint16_t);
-    return value;
-}
-
-auto BinFile::read_u32() -> uint32_t
-{
-    uint32_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(uint32_t));
-    m_offset += sizeof(uint32_t);
-    return value;
-}
-
-auto BinFile::read_i8() -> int8_t
-{
-    int8_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(int8_t));
-    m_offset += sizeof(int8_t);
-    return value;
-}
-
-auto BinFile::read_i16() -> int16_t
-{
-    int16_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(int16_t));
-    m_offset += sizeof(int16_t);
-    return value;
-}
-
-auto BinFile::read_i32() -> int32_t
-{
-    int32_t value;
-    memcpy(&value, &m_data[m_offset], sizeof(int32_t));
-    m_offset += sizeof(int32_t);
-    return value;
 }
 
 //

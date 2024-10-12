@@ -21,10 +21,7 @@ constexpr float GLOBAL_SCALE = 256.0f;
 class BinFile {
 public:
     BinFile(std::vector<uint8_t> data)
-        : m_data(data)
-        , m_offset(0) {};
-
-    auto read_bytes(int num) -> std::vector<uint8_t>;
+        : m_data(data) {};
 
     auto read_u8() -> uint8_t;
     auto read_u16() -> uint16_t;
@@ -33,9 +30,15 @@ public:
     auto read_i16() -> int16_t;
     auto read_i32() -> int32_t;
 
+    auto read_bytes(int num) -> std::vector<uint8_t>;
+
 protected:
     std::vector<uint8_t> m_data;
-    uint64_t m_offset;
+    uint64_t m_offset = 0;
+
+private:
+    template <typename T>
+    auto read() -> T;
 };
 
 class GNSFile : public BinFile {
