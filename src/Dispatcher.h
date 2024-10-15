@@ -23,6 +23,8 @@ private:
         float target_angle;
         float start_map_rotation;
         float target_map_rotation;
+        float start_cam_rotation;
+        float target_cam_rotation;
         float start_zoom;
         float target_zoom;
         int frames;
@@ -33,7 +35,7 @@ private:
     static Dispatcher* instance;
 
     // 0x19
-    auto camera(glm::vec3 position, float angle, float map_rotation, float map_zoom, int frames) -> void;
+    auto camera(glm::vec3 position, float angle, float map_rotation, float cam_rotation, float zoom, int frames) -> void;
 
     auto update_camera_transition(CameraTransition& transition) -> void;
 

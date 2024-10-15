@@ -2,6 +2,7 @@
 #include <iostream>
 #include <optional>
 
+#include "Dispatcher.h"
 #include "FFT.h"
 #include "Model.h"
 #include "ResourceManager.h"
@@ -24,6 +25,9 @@ auto State::set_scenario(Scenario scenario) -> void
 
     current_event = events[scenario.id()];
     current_scenario = scenario;
+
+    auto dispatcher = Dispatcher::get_instance();
+    dispatcher->dispatch(current_event);
 
     set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }

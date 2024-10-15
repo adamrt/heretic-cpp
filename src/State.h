@@ -36,9 +36,11 @@ public:
     Renderer renderer = {};
     GUI gui = {};
     Scene scene = {};
-    Camera camera = {};
+    OrbitalCamera orbital_camera = {};
+    FPSCamera fps_camera = {};
 
-    std::vector<Scenario> scenarios = {};
+    std::vector<Scenario>
+        scenarios = {};
     std::vector<Event> events = {};
     std::vector<Record> records = {};
 

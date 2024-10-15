@@ -21,14 +21,16 @@
 
 auto Instruction::param_float(int index) const -> float
 {
-    auto value = std::get<uint16_t>(params[index]);
-    int16_t reinterpretedValue = *reinterpret_cast<int16_t*>(&value);
-    return static_cast<float>(reinterpretedValue);
+    uint16_t stored_value = std::get<uint16_t>(params[index]);
+    int16_t signed_value = static_cast<int16_t>(stored_value);
+    return static_cast<float>(signed_value);
 }
 
 auto Instruction::param_int(int index) const -> int
 {
-    return static_cast<int>(std::get<uint16_t>(params[index]));
+    uint16_t stored_value = std::get<uint16_t>(params[index]);
+    int16_t signed_value = static_cast<int16_t>(stored_value);
+    return static_cast<int>(signed_value);
 }
 
 Event::Event(std::vector<uint8_t> data)

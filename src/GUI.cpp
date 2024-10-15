@@ -276,18 +276,24 @@ auto GUI::draw() -> void
         }
     }
 
+    ImGui::Separator();
+
+    if (ImGui::RadioButton("Perspective", state->fps_camera.projection == Projection::Perspective)) {
+        state->fps_camera.projection = Projection::Perspective;
+    }
+    ImGui::SameLine();
+    if (ImGui::RadioButton("Orthographic", state->fps_camera.projection == Projection::Orthographic)) {
+        state->fps_camera.projection = Projection::Orthographic;
+    }
+
+    ImGui::SliderFloat3("Position", &state->fps_camera.position[0], -5.0f, 5.0f, "%0.2f", 0);
+    ImGui::SliderFloat("Pitch", &state->fps_camera.pitch, -180.0f, 180.0f);
+    ImGui::SliderFloat("Yaw", &state->fps_camera.yaw, -180.0f, 180.0f);
+
     ImGui::NewLine();
     ImGui::Separator();
     if (ImGui::CollapsingHeader("Rendering")) {
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        if (ImGui::RadioButton("Perspective", state->camera.projection == Projection::Perspective)) {
-            state->camera.projection = Projection::Perspective;
-        }
-        ImGui::SameLine();
-        if (ImGui::RadioButton("Orthographic", state->camera.projection == Projection::Orthographic)) {
-            state->camera.projection = Projection::Orthographic;
-        }
-
         // Render Mode
         if (ImGui::RadioButton("Textured", state->renderer.render_mode == 0)) {
             state->renderer.render_mode = 0;

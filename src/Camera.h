@@ -2,13 +2,44 @@
 
 #include "glm/glm.hpp"
 #include "sokol_app.h"
+#include <glm/ext/matrix_clip_space.hpp>
 
 enum class Projection : int {
     Perspective = 0,
     Orthographic = 1,
 };
 
-class Camera {
+class FPSCamera {
+public:
+    static constexpr float NEARZ = 0.01f;
+    static constexpr float FARZ = 100.0f;
+    static constexpr float FOV = 60.0f;
+
+    static constexpr float YAW = -90.0f;       // Facing towards negative Z-axis
+    static constexpr float PITCH = 0.0f;       // Looking straight ahead
+    static constexpr float SPEED = 5.0f;       // Movement speed
+    static constexpr float SENSITIVITY = 0.1f; // Mouse sensitivity
+
+    Projection projection = Projection::Perspective;
+
+    auto update() -> void;
+    auto view_proj() const -> glm::mat4 { return proj * view; }
+
+    glm::vec3 position = { 0, 0, 0 };
+    glm::mat4 view = {};
+    glm::mat4 proj = {};
+    glm::vec3 front;
+    glm::vec3 up;
+    glm::vec3 right;
+    glm::vec3 worldUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+    float yaw = YAW;
+    float pitch = PITCH;
+    float speed = SPEED;
+    float sensitivity = SENSITIVITY;
+};
+
+class OrbitalCamera {
 public:
     static constexpr float NEARZ = 0.01f;
     static constexpr float FARZ = 100.0f;

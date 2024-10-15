@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "Camera.h"
+#include "Dispatcher.h"
 #include "FFT.h"
 #include "Model.h"
 #include "Pipeline.h"
@@ -73,7 +74,7 @@ auto input(sapp_event const* event) -> void
             state->next_scenario();
             break;
         case SAPP_KEYCODE_SPACE:
-            state->camera.reset();
+            state->orbital_camera.reset();
             break;
         default:
             break;
@@ -100,15 +101,15 @@ auto input(sapp_event const* event) -> void
         }
         break;
     case SAPP_EVENTTYPE_MOUSE_SCROLL:
-        state->camera.zoom(event->scroll_y * -0.5f);
+        state->orbital_camera.zoom(event->scroll_y * -0.5f);
         break;
     case SAPP_EVENTTYPE_MOUSE_MOVE:
         if (sapp_mouse_locked()) {
             if (mouse_left) {
-                state->camera.orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
+                state->orbital_camera.orbit(event->mouse_dx * 0.25f, event->mouse_dy * 0.25f);
             }
             if (mouse_right) {
-                state->camera.pan(event->mouse_dx * 0.0025f, event->mouse_dy * 0.0025f);
+                state->orbital_camera.pan(event->mouse_dx * 0.0025f, event->mouse_dy * 0.0025f);
             }
         }
         break;
@@ -122,11 +123,14 @@ auto frame() -> void
     auto state = State::get_instance();
     const float delta = (float)sapp_frame_duration();
 
+    auto dispatcher = Dispatcher::get_instance();
+
     // Update
-    state->camera.update();
+    dispatcher->update();
+    state->orbital_camera.update();
+    state->fps_camera.update();
     state->scene.update(delta);
     for (auto& model : state->scene.models) {
-        model->rotation.y += state->scene.rotation_speed * delta;
         model->update(delta);
     }
 
