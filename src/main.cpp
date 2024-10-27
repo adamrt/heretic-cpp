@@ -130,9 +130,6 @@ auto frame() -> void
     state->orbital_camera.update();
     state->fps_camera.update();
     state->scene.update(delta);
-    for (auto& model : state->scene.models) {
-        model->update(delta);
-    }
 
     // Render
     state->renderer.begin_frame();
