@@ -26,10 +26,10 @@ auto State::set_scenario(Scenario scenario) -> void
     current_event = events[scenario.id()];
     current_scenario = scenario;
 
+    set_map(scenario.map_id(), scenario.time(), scenario.weather());
+
     auto dispatcher = Dispatcher::get_instance();
     dispatcher->dispatch(current_event);
-
-    set_map(scenario.map_id(), scenario.time(), scenario.weather());
 }
 
 auto State::set_map(int map_num, MapTime time, MapWeather weather, int arrangement) -> bool
