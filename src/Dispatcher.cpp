@@ -2,9 +2,6 @@
 #include "BinFile.h"
 #include "Event.h"
 #include "State.h"
-#define GLM_ENABLE_EXPERIMENTAL
-
-#include <glm/gtx/string_cast.hpp>
 
 Dispatcher* Dispatcher::instance = nullptr;
 
@@ -33,14 +30,9 @@ auto Dispatcher::update() -> void
 
 auto Dispatcher::dispatch(Event& event) -> void
 {
-    // auto state = State::get_instance();
-    // const float DEGREE_PER_UNIT_ROTATION = 45.0f / 512.0f; // ≈0.087890625° per unit
-    // const float ANGLE_DEGREE_PER_UNIT = 180.0f / 1024.0f;  // ≈0.17578125
-
     for (auto& instruction : event.instructions()) {
         switch (instruction.command) {
         case 0x19:
-            std::cout << "0x19" << std::endl;
             float x = instruction.param_float(0);
             float y = instruction.param_float(1);
             float z = instruction.param_float(2);
@@ -50,29 +42,14 @@ auto Dispatcher::dispatch(Event& event) -> void
             float zoom = instruction.param_float(6);
             int frames = instruction.param_int(7);
 
-            cam_rotation = 0;
-            angle = 104.0 * std::log10(angle) - 233.0;
-            // angle = angle * ANGLE_DEGREE_PER_UNIT;
-            // cam_rotation = cam_rotation * DEGREE_PER_UNIT_ROTATION;
-
-            // 750 = 65.92°
-            // 510 = 44.82°
-            // 350 = 30.76°
-            // 334 = 29.36°
-            // 318 = 27.95
+            x = x / GLOBAL_SCALE;
+            y = y / GLOBAL_SCALE;
+            z = z / GLOBAL_SCALE;
+            angle = angle * DEGREE_PER_UNIT;
+            map_rotation = map_rotation * DEGREE_PER_UNIT;
+            cam_rotation = cam_rotation * DEGREE_PER_UNIT;
 
             auto position = glm::vec3(x, -y, -z);
-            (void)y;
-            (void)z;
-            (void)x;
-
-            position = position / GLOBAL_SCALE;
-
-            std::cout << "position: " << glm::to_string(position) << std::endl;
-            std::cout << "angle: " << angle << std::endl;
-            std::cout << "map_rotation: " << map_rotation << std::endl;
-            std::cout << "cam_rotation: " << cam_rotation << std::endl;
-
             camera(position, angle, map_rotation, cam_rotation, zoom, frames);
             break;
         }
