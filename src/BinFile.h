@@ -17,6 +17,10 @@
 // use it everywhere.
 constexpr float GLOBAL_SCALE = 256.0f;
 
+// DEGREE_PER_UNIT is used to convert the angles in the BIN files to degrees.
+// ie, the angle and rotation values of a Camera Instruction.
+constexpr float DEGREE_PER_UNIT = 45.0f / 512.0f; // 0.087890625
+
 // BinFile represents an individual file in the FFT BIN.
 class BinFile {
 public:
