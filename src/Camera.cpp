@@ -10,9 +10,7 @@ auto FPSCamera::update() -> void
     if (projection == Projection::Perspective) {
         proj = glm::perspective(glm::radians(FOV), aspect, NEARZ, FARZ);
     } else {
-        float orthoScale = 5.0f;
-        proj = glm::ortho(-orthoScale * aspect, orthoScale * aspect,
-            -orthoScale, orthoScale, NEARZ, FARZ);
+        proj = glm::ortho(-ortho_scale * aspect, ortho_scale * aspect, -ortho_scale, ortho_scale, NEARZ, FARZ);
     }
 
     glm::vec3 newFront;
