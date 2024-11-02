@@ -30,7 +30,7 @@ auto ColoredModel::render() -> void
 {
     auto state = State::get_instance();
     vs_standard_params_t vs_params;
-    vs_params.u_view_proj = state->fps_camera.view_proj();
+    vs_params.u_view_proj = state->orbital_camera.view_proj();
     vs_params.u_model = model_matrix;
 
     fs_colored_params_t fs_params;
@@ -67,7 +67,7 @@ auto TexturedModel::render() -> void
 {
     auto state = State::get_instance();
     vs_standard_params_t vs_params;
-    vs_params.u_view_proj = state->fps_camera.view_proj();
+    vs_params.u_view_proj = state->orbital_camera.view_proj();
     vs_params.u_model = model_matrix;
 
     fs_textured_params_t fs_params;
@@ -116,7 +116,7 @@ auto PalettedModel::render() -> void
 {
     auto state = State::get_instance();
     vs_standard_params_t vs_params;
-    vs_params.u_view_proj = state->fps_camera.view_proj();
+    vs_params.u_view_proj = state->orbital_camera.view_proj();
     vs_params.u_model = model_matrix;
 
     fs_paletted_params_t fs_params;
