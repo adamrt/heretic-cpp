@@ -285,6 +285,15 @@ auto GUI::draw() -> void
     if (ImGui::RadioButton("Orthographic", state->orbital_camera.projection == Projection::Orthographic)) {
         state->orbital_camera.projection = Projection::Orthographic;
     }
+    ImGui::NewLine();
+    ImGui::Separator();
+    if (ImGui::CollapsingHeader("Camera")) {
+        ImGui::SliderFloat("Distance", &state->orbital_camera._distance, state->orbital_camera._min_dist, state->orbital_camera._max_dist);
+        ImGui::SliderFloat("Near", &state->orbital_camera._nearz, -1.0f, 1000.0f);
+        ImGui::SliderFloat("Far", &state->orbital_camera._farz, 0.0f, 1000.0f);
+        ImGui::SliderFloat("Lat", &state->orbital_camera._latitude, -1024.0f, 1024.0f);
+        ImGui::SliderFloat("Lng", &state->orbital_camera._longitude, -1024.0f, 1024.0f);
+    }
 
     ImGui::NewLine();
     ImGui::Separator();

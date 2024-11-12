@@ -4,14 +4,13 @@
 #include "sokol_app.h"
 #include <glm/ext/matrix_clip_space.hpp>
 
-enum class Projection : int {
-    Perspective = 0,
-    Orthographic = 1,
+enum class Projection {
+    Orthographic,
+    Perspective,
 };
 
 class OrbitalCamera {
 public:
-    auto reset() -> void;
     auto update() -> void;
     auto orbit(float dx, float dy) -> void;
     auto pan(float dx, float dy) -> void;
@@ -19,26 +18,16 @@ public:
     auto view_proj() const -> glm::mat4 { return _proj * _view; }
 
     Projection projection = Projection::Orthographic;
+    float _fov = 60.0f;
+    float _distance = 256.0f;
+    float _latitude = 30.0f;
+    float _longitude = 30.0f;
+    float _nearz = 0.01f;
+    float _farz = 1024.0f;
+    float _min_dist = 0.01f;
+    float _max_dist = 1024.0f;
 
 private:
-    static constexpr float NEARZ = 0.01f;
-    static constexpr float FARZ = 100.0f;
-    static constexpr float MIN_DIST = 0.5f;
-    static constexpr float MAX_DIST = 100.0f;
-    static constexpr float MIN_LAT = -85.0f;
-    static constexpr float MAX_LAT = 85.0f;
-
-    static constexpr auto default_target = glm::vec3 { 0.0f, 0.0f, 0.0f };
-    static constexpr auto default_fov = 60.0f;
-    static constexpr auto default_distance = 1.0f;
-    static constexpr auto default_latitude = 30.0f;
-    static constexpr auto default_longitude = 30.0f;
-
-    float _fov = default_fov;
-    float _distance = default_distance;
-    float _latitude = default_latitude;
-    float _longitude = default_longitude;
-
     auto _euclidean(float latitude, float longitude) -> glm::vec3;
 
     glm::vec3 _eye = {};

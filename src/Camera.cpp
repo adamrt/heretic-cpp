@@ -2,7 +2,6 @@
 
 #include "glm/ext/matrix_transform.hpp"
 #include "glm/glm.hpp"
-#include "glm/gtc/matrix_transform.hpp"
 
 auto OrbitalCamera::update() -> void
 {
@@ -11,26 +10,27 @@ auto OrbitalCamera::update() -> void
 
     const float aspect = sapp_widthf() / sapp_heightf();
 
-    if (projection == Projection::Perspective) {
-        _proj = glm::perspective(glm::radians(_fov), aspect, NEARZ, FARZ);
-    } else {
-        const float w = 1.0f * _distance;
+    if (projection == Projection::Orthographic) {
+        const float w = _distance;
         const float h = w / aspect;
-        _proj = glm::ortho(-w, w, -h, h, NEARZ, FARZ);
+        _proj = glm::ortho(-w, w, -h, h, _nearz, _farz);
+
+    } else if (projection == Projection::Perspective) {
+        _proj = glm::perspective(glm::radians(_fov), aspect, _nearz, _farz);
     }
 }
 
 auto OrbitalCamera::orbit(float dx, float dy) -> void
 {
-    _longitude -= dx;
+    _longitude = fmod(_longitude - dx, 360.0f);
     if (_longitude < 0.0f) {
         _longitude += 360.0f;
     }
-    if (_longitude > 360.0f) {
-        _longitude -= 360.0f;
-    }
 
-    _latitude = glm::clamp(_latitude + dy, MIN_LAT, MAX_LAT);
+    const float min_lat = -85.0f;
+    const float max_lat = 85.0f;
+
+    _latitude = glm::clamp(_latitude + dy, min_lat, max_lat);
 }
 
 auto OrbitalCamera::pan(float dx, float dy) -> void
@@ -44,18 +44,8 @@ auto OrbitalCamera::pan(float dx, float dy) -> void
 
 auto OrbitalCamera::zoom(float d) -> void
 {
-    _distance = glm::clamp(_distance + d, MIN_DIST, MAX_DIST);
-}
-
-auto OrbitalCamera::reset() -> void
-{
-    _target = default_target;
-    _fov = default_fov;
-    _distance = default_distance;
-    _latitude = default_latitude;
-    _longitude = default_longitude;
-
-    update();
+    d *= 2.0f;
+    _distance = glm::clamp(_distance + d, _min_dist, _max_dist);
 }
 
 auto OrbitalCamera::_euclidean(float latitude, float longitude) -> glm::vec3

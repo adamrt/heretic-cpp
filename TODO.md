@@ -1,7 +1,7 @@
 # Todos
 
-- [ ] Remove `GLOBAL_SCALE`
-- [ ] Increase the dimensions of the ortho proj matrix
+- [X] Remove `GLOBAL_SCALE`
+- [X] Increase the dimensions of the ortho proj matrix
   - This will let us dump the `GLOBAL_SCALE`
 - [ ] Move the rendering to a smaller window to allow for more gui
 - [ ] Improve the windows that are visible

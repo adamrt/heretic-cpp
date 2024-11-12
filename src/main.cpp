@@ -73,9 +73,6 @@ auto input(sapp_event const* event) -> void
         case SAPP_KEYCODE_I:
             state->next_scenario();
             break;
-        case SAPP_KEYCODE_SPACE:
-            state->orbital_camera.reset();
-            break;
         default:
             break;
         }

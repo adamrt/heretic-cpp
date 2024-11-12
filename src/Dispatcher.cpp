@@ -42,9 +42,6 @@ auto Dispatcher::dispatch(Event& event) -> void
             float zoom = instruction.param_float(6);
             int frames = instruction.param_int(7);
 
-            x = x / GLOBAL_SCALE;
-            y = y / GLOBAL_SCALE;
-            z = z / GLOBAL_SCALE;
             angle = angle * DEGREE_PER_UNIT;
             map_rotation = map_rotation * DEGREE_PER_UNIT;
             cam_rotation = cam_rotation * DEGREE_PER_UNIT;
