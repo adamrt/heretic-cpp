@@ -1,4 +1,10 @@
+## Archived
+
+This is no longer in development. Please view https://github.com/adamrt/heretic for the current version.
+
 # Heretic: A Final Fantasy Tactics Toolkit
+
+
 
 C++, sokol, imgui, glm
 
